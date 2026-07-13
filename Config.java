@@ -171,12 +171,12 @@ public class Config {
     }
 
     private static void printHelp() {
-        System.out.println("Java Analyzer Tools");
+        System.out.println("JavaLens AST Tools");
         System.out.println("Usage (Legacy):");
-        System.out.println("  java -jar java-analyzer.jar <source-folder> [output-dir] [threads]");
+        System.out.println("  java -jar javalens.jar <source-folder> [output-dir] [threads]");
         System.out.println();
         System.out.println("Usage (Enhanced CLI):");
-        System.out.println("  java -jar java-analyzer.jar [options]");
+        System.out.println("  java -jar javalens.jar [options]");
         System.out.println();
         System.out.println("Options:");
         System.out.println("  -m, --mode <analyze|compare|merge|interactive>   Execution mode (default: analyze)");

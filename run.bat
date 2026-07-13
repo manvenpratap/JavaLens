@@ -1,2 +1,2 @@
 @echo off
-java -jar java-analyzer.jar %*
+java -jar javalens.jar %*

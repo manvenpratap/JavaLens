@@ -1,4 +1,4 @@
-# Java Analyzer
+# JavaLens
 
 An AST-based static analyzer for Java source repositories. Scans folders recursively, parsing file constructs using the standard Java Compiler Tree API. Includes directory-level analysis, diff comparison between versions, marker-guided merging, and a fully interactive terminal CLI wizard.
 
@@ -78,7 +78,7 @@ This automatically compiles the codebase, scans test assets, runs diff delta val
 
 ## Scalability & Performance
 
-The Java Analyzer features a parallelized parser built on Java's `ExecutorService` and structured as a producer-consumer model:
+JavaLens features a parallelized parser built on Java's `ExecutorService` and structured as a producer-consumer model:
 * **Memory Management**: Rather than loading all file syntax trees into the JVM heap simultaneously, trees are discarded and garbage-collected as soon as their extracted signatures are sent to the output writer queue.
 * **No File Count Limit**: The stream-based architecture opens and releases files sequentially, allowing the application to process **hundreds of thousands of classes** without running out of memory or OS file handles.
 

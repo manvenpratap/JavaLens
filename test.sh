@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "=================================================="
-echo "          JAVA ANALYZER TEST SUITE RUN            "
+echo "              JAVALENS TEST SUITE RUN             "
 echo "=================================================="
 
 # Create directories

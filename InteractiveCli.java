@@ -37,7 +37,7 @@ public class InteractiveCli {
                     runConfigFlow();
                     break;
                 case "5":
-                    System.out.println("\n\u001B[32;1m✔ System shutdown complete. Goodbye!\u001B[0m");
+                    System.out.println("\n\u001B[32;1m✔ Exiting JavaLens. Goodbye!\u001B[0m");
                     return;
                 default:
                     System.out.println("\u001B[31;1m⚠ Invalid selection. Please choose an option from 1 to 5.\u001B[0m");
@@ -46,13 +46,12 @@ public class InteractiveCli {
     }
 
     private static void printBanner() {
-        System.out.println("\u001B[35;1m   _   _  _____  _      ___  _   _  _____  ___  ___ ___ \u001B[0m");
-        System.out.println("\u001B[35;1m  | | | ||  _  || |    / _ \\| | | ||___  / |  \\/  || __|\u001B[0m");
-        System.out.println("\u001B[35;1m  | |_| || | | || |   / /_\\ \\ \\_/ /   / /  | .  . || _| \u001B[0m");
-        System.out.println("\u001B[36;1m  |  _  || | | || |   |  _  |\\   /   / /   | |\\/| || _| \u001B[0m");
-        System.out.println("\u001B[36;1m  | | | |\\ \\_/ /| |___| | | | | |   / /__  | |  | || |__\u001B[0m");
-        System.out.println("\u001B[36;1m  \\_| |_/ \\___/ \\____/\\_| |_/ \\_/  /_____| \\_|  |_/\\___|\u001B[0m");
-        System.out.println("\u001B[33;1m            === ENTERPRISE STATIC AST ENGINE ===        \u001B[0m");
+        System.out.println("\u001B[35;1m       _                  _                    \u001B[0m");
+        System.out.println("\u001B[35;1m      | | __ ___   ____ _| |    ___ _ __  ___  \u001B[0m");
+        System.out.println("\u001B[35;1m   _  | |/ _` \\ \\ / / _` | |   / _ \\ '_ \\/ __| \u001B[0m");
+        System.out.println("\u001B[36;1m  | |_| | (_| |\\ V / (_| | |__|  __/ | | \\__ \\ \u001B[0m");
+        System.out.println("\u001B[36;1m   \\___/ \\__,_| \\_/ \\__,_|_____\\___|_| |_|___/ \u001B[0m");
+        System.out.println("\u001B[33;1m          === ENTERPRISE STATIC AST ENGINE === \u001B[0m");
     }
 
     private static void runAnalyzeFlow() {

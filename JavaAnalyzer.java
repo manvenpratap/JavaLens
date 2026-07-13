@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Java Analyzer — uses the built-in JDK Compiler Tree API (no external JARs).
  *
  * Compile:  javac JavaAnalyzer.java
- * Run:      java JavaAnalyzer <source-folder> [output-dir] [threads]
+ * Run:      java -jar javalens.jar <source-folder> [output-dir] [threads]
  */
 public class JavaAnalyzer {
 

@@ -1,6 +1,6 @@
 @echo off
 echo ==================================================
-echo           JAVA ANALYZER TEST SUITE RUN            
+echo               JAVALENS TEST SUITE RUN             
 echo ==================================================
 
 rem 1. Compile codebase
