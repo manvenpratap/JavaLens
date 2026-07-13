@@ -1,0 +1,13 @@
+file,package,class,attribute_name,attribute_type,modifiers,annotations,initializer
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,id,Long,private,,
+com/example/UserService.java,com.example,com.example.UserService,userRepository,UserRepository,private final,,
+com/example/UserService.java,com.example,com.example.UserService,MAX_PAGE_SIZE,int,private static final,,100
+com/example/UserService.java,com.example,com.example.UserService,serviceName,String,protected,,"""UserService"""
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,createdAt,LocalDateTime,private,,
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,updatedAt,LocalDateTime,private,,
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,deleted,boolean,private,,false
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,paymentGateway,PaymentGateway,private,@Autowired,
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,inventoryService,InventoryService,private,@Autowired,
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,processorId,String,private final,,
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,running,boolean,private volatile,,false
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,TAX_RATE,BigDecimal,private static final,,"new BigDecimal(""0.18"")"

@@ -1,0 +1,23 @@
+file,package,class,method_name,return_type,modifiers,parameters,parameter_count,throws,annotations,kind
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,<init>,(constructor),protected,,0,,,constructor
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,getId,Long,public,,0,,,method
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,setId,void,public,Long id,1,,,method
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,getCreatedAt,LocalDateTime,public,,0,,,method
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,getUpdatedAt,LocalDateTime,public,,0,,,method
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,markUpdated,void,public,,0,,,method
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,isDeleted,boolean,public,,0,,,method
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,softDelete,void,public,,0,,,method
+com/example/BaseEntity.java,com.example,com.example.BaseEntity,toString,String,public abstract,,0,,@Override,method
+com/example/UserService.java,com.example,com.example.UserService,<init>,(constructor),public,UserRepository userRepository,1,,,constructor
+com/example/UserService.java,com.example,com.example.UserService,getAllUsers,List<User>,public,"int page, int size",2,IllegalArgumentException,@Override,method
+com/example/UserService.java,com.example,com.example.UserService,findById,Optional<User>,public,Long id,1,,,method
+com/example/UserService.java,com.example,com.example.UserService,createUser,User,public,"String name, String email",2,,,method
+com/example/UserService.java,com.example,com.example.UserService,isValidEmail,boolean,private,String email,1,,,method
+com/example/UserService.java,com.example,com.example.UserService,getVersion,String,public static,,0,,,method
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,<init>,(constructor),public,String processorId,1,,,constructor
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,processOrder,Order,public,"Cart cart, PaymentDetails payment",2,PaymentException,,method
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,validateCart,void,private,Cart cart,1,,,method
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,calculateTotal,BigDecimal,public,Cart cart,1,,,method
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,buildOrder,Order,private,"Cart cart, BigDecimal total",2,,,method
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,shutdown,void,public synchronized,,0,,,method
+com/example/OrderProcessor.java,com.example,com.example.OrderProcessor,getSupportedCurrencies,List<String>,public static,,0,,,method

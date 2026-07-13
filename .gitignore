@@ -1,0 +1,17 @@
+# Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Logs and runtime folders
+*.log
+java_analysis_output/
+test_out/
+test_workspace/*_backup.java
+
+# OS specific files
+.DS_Store
+Thumbs.db
