@@ -59,13 +59,15 @@ public class InteractiveCli {
         System.out.println("\u001B[35;1m║             ACTION: CODEBASE ANALYSIS                ║\u001B[0m");
         System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
         
-        String src = promptInput("Enter Source Directory Path", currentConfig.getSourceFolder());
-        if (src.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: Source directory path is required.\u001B[0m");
+        String workspace = promptInput("Enter Workspace Folder path", ".");
+        if (workspace.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Workspace folder path is required.\u001B[0m");
             return;
         }
 
-        String outDir = promptInput("Enter Output Directory Path", currentConfig.getOutputDir());
+        // Default output path inside the workspace folder
+        String defaultOut = workspace.equals(".") || workspace.equals("./") ? "java_analysis_output" : workspace + "/java_analysis_output";
+        String outDir = promptInput("Enter Output Directory Path", defaultOut);
         String threadStr = promptInput("Enter Parallel Threads", String.valueOf(currentConfig.getThreads()));
         int threads = parseThreadCount(threadStr);
 
@@ -78,7 +80,7 @@ public class InteractiveCli {
 
         System.out.println("\n\u001B[33m[SYS] Initiating AST scan thread-pool...\u001B[0m");
         try {
-            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "analyze", "-s", src, "--output-dir", outDir, "-t", String.valueOf(threads)));
+            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "analyze", "-s", workspace, "--output-dir", outDir, "-t", String.valueOf(threads)));
             Config config = Config.parse(argsList.toArray(new String[0]));
             
             long startTime = System.currentTimeMillis();

@@ -250,9 +250,12 @@
 
         <!-- TopNavBar -->
         <header class="hidden md:flex items-center justify-between px-6 w-full bg-background h-16 border-b border-border-subtle z-30 flex-shrink-0">
-            <nav class="flex items-center gap-6 h-full font-body-md text-body-md">
+            <nav class="flex items-center gap-4 h-full font-body-md text-body-md">
                 <span class="text-text-low-contrast">Workspace:</span>
                 <span id="workspace-header-title" class="text-primary font-bold font-code-md">/Volumes/Study/Projects/java-analyzer-project</span>
+                <button onclick="openWorkspaceModal()" class="flex items-center gap-1 py-1 px-2.5 bg-surface-variant hover:bg-surface-container-high border border-border-subtle text-[10px] font-bold text-text-high-contrast cursor-pointer transition-colors select-none">
+                    <span class="material-symbols-outlined text-[12px] font-bold">edit</span> Change
+                </button>
             </nav>
             
             <div class="flex items-center gap-4">
@@ -283,7 +286,7 @@
                                 <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-text-high-contrast tracking-tight">Enterprise Console</h2>
                                 <p class="font-body-lg text-body-lg text-text-low-contrast mt-1 max-w-2xl">High-Performance compiler analysis, diff comparisons, and token merging interfaces.</p>
                             </div>
-                            <button onclick="triggerAnalyzeSim()" class="btn-primary bg-primary text-surface-deep font-body-md text-body-md font-bold px-6 py-3 border border-primary flex items-center gap-2 flex-shrink-0 cursor-pointer">
+                            <button onclick="openWorkspaceModal()" class="btn-primary bg-primary text-surface-deep font-body-md text-body-md font-bold px-6 py-3 border border-primary flex items-center gap-2 flex-shrink-0 cursor-pointer">
                                 <span class="material-symbols-outlined">play_arrow</span>
                                 Run Codebase Scan
                             </button>
@@ -865,6 +868,54 @@
             rightScroll.addEventListener('scroll', () => {
                 leftScroll.scrollTop = rightScroll.scrollTop;
             });
+        }
+
+        // Workspace state
+        let activeWorkspace = "/Volumes/Study/Projects/java-analyzer-project";
+
+        function openWorkspaceModal() {
+            const modal = document.getElementById('workspace-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.getElementById('workspace-input-path').value = activeWorkspace;
+                updateDefaultOutputPreview();
+            }
+        }
+
+        function closeWorkspaceModal() {
+            const modal = document.getElementById('workspace-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function updateDefaultOutputPreview() {
+            const wsPath = document.getElementById('workspace-input-path').value.trim();
+            const outPath = document.getElementById('workspace-output-path');
+            if (outPath) {
+                if (wsPath === '.' || wsPath === '') {
+                    outPath.value = 'java_analysis_output';
+                } else {
+                    outPath.value = wsPath.endsWith('/') ? wsPath + 'java_analysis_output' : wsPath + '/java_analysis_output';
+                }
+            }
+        }
+
+        function confirmWorkspaceAndScan() {
+            const wsPath = document.getElementById('workspace-input-path').value.trim();
+            if (!wsPath) {
+                alert('Please enter a workspace folder path.');
+                return;
+            }
+            activeWorkspace = wsPath;
+            document.getElementById('workspace-header-title').innerText = activeWorkspace;
+            
+            // Update settings inputs dynamically
+            const settingsSrc = document.getElementById('settings-source-folder');
+            if (settingsSrc) settingsSrc.value = activeWorkspace;
+            
+            closeWorkspaceModal();
+            triggerAnalyzeSim();
         }
 
         // 4. File Tree details data source loading
@@ -1889,5 +1940,40 @@
             setTimeout(addLogLine, 300);
         }
     </script>
+
+    <!-- Workspace Selection Modal -->
+    <div id="workspace-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-background/85 backdrop-blur-md">
+        <div class="glass-panel w-full max-w-md p-6 flex flex-col gap-4 border border-border-subtle shadow-2xl animate-fade-in bg-surface-container-high rounded-sm">
+            <div class="flex justify-between items-center border-b border-border-subtle pb-3">
+                <h3 class="font-headline-md text-headline-md text-text-high-contrast flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[20px] select-none">folder_open</span>
+                    Workspace Settings
+                </h3>
+                <button onclick="closeWorkspaceModal()" class="text-on-surface-variant hover:text-high-contrast transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined select-none">close</span>
+                </button>
+            </div>
+            
+            <p class="text-xs text-text-low-contrast leading-relaxed">
+                Specify the workspace directory containing the Java source files you wish to analyze. The output report folder will be created inside this workspace directory by default.
+            </p>
+            
+            <div class="flex flex-col gap-2">
+                <label class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Workspace Path (Source Folder)</label>
+                <input id="workspace-input-path" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary w-full" type="text" value="/Volumes/Study/Projects/java-analyzer-project" oninput="updateDefaultOutputPreview()">
+            </div>
+            
+            <div class="flex flex-col gap-2">
+                <label class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Default Output Directory</label>
+                <input id="workspace-output-path" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-low-contrast font-code-md text-xs focus:outline-none focus:border-primary w-full" type="text" value="/Volumes/Study/Projects/java-analyzer-project/java_analysis_output" readonly>
+                <span class="text-[9px] text-text-low-contrast italic">Automatically generated inside workspace path.</span>
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-border-subtle">
+                <button onclick="closeWorkspaceModal()" class="py-2 px-4 border border-border-subtle text-text-high-contrast hover:border-high-contrast transition-colors font-body-md text-xs cursor-pointer">Cancel</button>
+                <button onclick="confirmWorkspaceAndScan()" class="py-2 px-6 bg-primary text-surface-deep font-body-md text-xs font-bold hover:bg-opacity-90 transition-all cursor-pointer">Set & Run Scan</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
