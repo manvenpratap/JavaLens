@@ -975,7 +975,7 @@
                 };
                 buildFileTree(filesData);
             }
-            selectDiffFile('MyClass.java');
+            updateDiffFileSelectors();
         }
 
         function buildFileTree(data) {
@@ -1383,23 +1383,265 @@
             }
         };
 
-        function selectDiffFile(fileName) {
-            const data = diffData[fileName];
-            if (!data) return;
+        function computeLineDiff(oldText, newText) {
+            const oldLines = oldText.split('\n');
+            const newLines = newText.split('\n');
+            
+            let i = 0, j = 0;
+            const leftResult = [];
+            const rightResult = [];
+            
+            while (i < oldLines.length || j < newLines.length) {
+                if (i < oldLines.length && j < newLines.length && oldLines[i] === newLines[j]) {
+                    leftResult.push({ type: 'normal', lineNum: i + 1, content: oldLines[i] });
+                    rightResult.push({ type: 'normal', lineNum: j + 1, content: newLines[j] });
+                    i++;
+                    j++;
+                } else {
+                    let foundMatch = false;
+                    let lookAheadLimit = 10;
+                    for (let k = 1; k <= lookAheadLimit; k++) {
+                        if (i + k < oldLines.length && oldLines[i + k] === newLines[j]) {
+                            for (let m = 0; m < k; m++) {
+                                leftResult.push({ type: 'removed', lineNum: i + 1, content: oldLines[i] });
+                                rightResult.push({ type: 'spacer', content: '' });
+                                i++;
+                            }
+                            foundMatch = true;
+                            break;
+                        }
+                        if (j + k < newLines.length && oldLines[i] === newLines[j + k]) {
+                            for (let m = 0; m < k; m++) {
+                                leftResult.push({ type: 'spacer', content: '' });
+                                rightResult.push({ type: 'added', lineNum: j + 1, content: newLines[j] });
+                                j++;
+                            }
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                    if (!foundMatch) {
+                        if (i < oldLines.length && j < newLines.length) {
+                            leftResult.push({ type: 'modified', lineNum: i + 1, content: oldLines[i] });
+                            rightResult.push({ type: 'modified', lineNum: j + 1, content: newLines[j] });
+                            i++;
+                            j++;
+                        } else if (i < oldLines.length) {
+                            leftResult.push({ type: 'removed', lineNum: i + 1, content: oldLines[i] });
+                            rightResult.push({ type: 'spacer', content: '' });
+                            i++;
+                        } else if (j < newLines.length) {
+                            leftResult.push({ type: 'spacer', content: '' });
+                            rightResult.push({ type: 'added', lineNum: j + 1, content: newLines[j] });
+                            j++;
+                        }
+                    }
+                }
+            }
+            return { left: leftResult, right: rightResult };
+        }
 
-            document.getElementById('compare-file-header-label').innerText = fileName;
-            document.getElementById('compare-left-header').innerText = data.baseHeader;
-            document.getElementById('compare-right-header').innerText = data.compareHeader;
-            document.getElementById('compare-left-code-pane').innerHTML = data.baseCode;
-            document.getElementById('compare-right-code-pane').innerHTML = data.compareCode;
-            document.getElementById('compare-delta-grid').innerHTML = data.summary;
+        function renderDiffCode(lines, elementId) {
+            const pane = document.getElementById(elementId);
+            pane.innerHTML = '';
+            
+            lines.forEach(line => {
+                const row = document.createElement('div');
+                if (line.type === 'added') {
+                    row.className = "bg-code-added bg-opacity-25 -mx-4 px-4 py-0.5 border-l-2 border-primary";
+                    row.innerHTML = `<span class="text-primary mr-2 inline-block w-8 select-none">${line.lineNum}</span>${escapeHTML(line.content)}`;
+                } else if (line.type === 'removed') {
+                    row.className = "bg-code-removed bg-opacity-25 -mx-4 px-4 py-0.5 border-l-2 border-error";
+                    row.innerHTML = `<span class="text-error mr-2 inline-block w-8 select-none">${line.lineNum}</span>${escapeHTML(line.content)}`;
+                } else if (line.type === 'modified') {
+                    row.className = "bg-code-modified bg-opacity-25 -mx-4 px-4 py-0.5 border-l-2 border-secondary";
+                    row.innerHTML = `<span class="text-secondary mr-2 inline-block w-8 select-none">${line.lineNum}</span>${escapeHTML(line.content)}`;
+                } else if (line.type === 'spacer') {
+                    row.className = "h-6";
+                    row.innerHTML = "";
+                } else {
+                    row.innerHTML = `<span class="text-text-low-contrast mr-2 inline-block w-8 select-none">${line.lineNum}</span>${escapeHTML(line.content)}`;
+                }
+                pane.appendChild(row);
+            });
+        }
 
-            if (fileName === 'MyClass.java') {
-                document.getElementById('diff-btn-MyClass').className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
-                document.getElementById('diff-btn-AuthService').className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
+        function escapeHTML(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function generateDynamicDeltaSummary(fileName, diff) {
+            const compGrid = document.getElementById('compare-delta-grid');
+            compGrid.innerHTML = '';
+            
+            const addedCount = diff.right.filter(l => l.type === 'added').length;
+            const removedCount = diff.left.filter(l => l.type === 'removed').length;
+            const modifiedCount = diff.right.filter(l => l.type === 'modified').length;
+            
+            let methodsAdded = [];
+            let methodsModified = [];
+            let methodsRemoved = [];
+            
+            const report = window.javaLensReportData || {};
+            if (report.compare_methods) {
+                report.compare_methods.forEach(m => {
+                    if (m.file && (m.file.endsWith(fileName) || fileName.endsWith(m.file))) {
+                        if (m.status === 'ADDED') methodsAdded.push(m.method_name);
+                        else if (m.status === 'MODIFIED') methodsModified.push(m.method_name);
+                        else if (m.status === 'REMOVED') methodsRemoved.push(m.method_name);
+                    }
+                });
+            }
+            
+            const addedCard = document.createElement('div');
+            addedCard.className = "border border-border-subtle p-3 bg-surface-muted hover:border-primary transition-colors cursor-default";
+            addedCard.innerHTML = `<span class="font-label-caps text-label-caps text-primary block mb-1">ADDED (${addedCount} lines)</span>`;
+            if (methodsAdded.length > 0) {
+                methodsAdded.forEach(m => {
+                    addedCard.innerHTML += `<p class="font-table-data text-table-data text-on-surface truncate">Method: <span class="text-text-high-contrast">${m}</span></p>`;
+                });
             } else {
-                document.getElementById('diff-btn-AuthService').className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
-                document.getElementById('diff-btn-MyClass').className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
+                addedCard.innerHTML += `<p class="text-xs text-text-low-contrast italic">No methods added</p>`;
+            }
+            
+            const modifiedCard = document.createElement('div');
+            modifiedCard.className = "border border-border-subtle p-3 bg-surface-muted hover:border-secondary transition-colors cursor-default";
+            modifiedCard.innerHTML = `<span class="font-label-caps text-label-caps text-secondary block mb-1">MODIFIED (${modifiedCount} lines)</span>`;
+            if (methodsModified.length > 0) {
+                methodsModified.forEach(m => {
+                    modifiedCard.innerHTML += `<p class="font-table-data text-table-data text-on-surface truncate">Method: <span class="text-text-high-contrast">${m}</span></p>`;
+                });
+            } else {
+                modifiedCard.innerHTML += `<p class="text-xs text-text-low-contrast italic">No methods modified</p>`;
+            }
+            
+            const removedCard = document.createElement('div');
+            removedCard.className = "border border-border-subtle p-3 bg-surface-muted hover:border-error transition-colors cursor-default";
+            removedCard.innerHTML = `<span class="font-label-caps text-label-caps text-error block mb-1">REMOVED (${removedCount} lines)</span>`;
+            if (methodsRemoved.length > 0) {
+                methodsRemoved.forEach(m => {
+                    removedCard.innerHTML += `<p class="font-table-data text-table-data text-on-surface truncate">Method: <span class="text-text-high-contrast">${m}</span></p>`;
+                });
+            } else {
+                removedCard.innerHTML += `<p class="text-xs text-text-low-contrast italic">No methods removed</p>`;
+            }
+            
+            compGrid.appendChild(addedCard);
+            compGrid.appendChild(modifiedCard);
+            compGrid.appendChild(removedCard);
+        }
+
+        async function loadRealFileDiff(fileName) {
+            const baseDir = document.getElementById('compare-base-input').value;
+            const featDir = document.getElementById('compare-feature-input').value;
+            
+            const oldPath = baseDir + '/' + fileName;
+            const newPath = featDir + '/' + fileName;
+            
+            let oldText = "";
+            let newText = "";
+            
+            try {
+                const oldRes = await fetch(oldPath);
+                if (oldRes.ok) oldText = await oldRes.text();
+            } catch (e) {
+                console.warn("Could not fetch old file:", oldPath, e);
+            }
+            
+            try {
+                const newRes = await fetch(newPath);
+                if (newRes.ok) newText = await newRes.text();
+            } catch (e) {
+                console.warn("Could not fetch new file:", newPath, e);
+            }
+            
+            if (!oldText && !newText) {
+                if (diffData[fileName]) {
+                    document.getElementById('compare-left-code-pane').innerHTML = diffData[fileName].baseCode;
+                    document.getElementById('compare-right-code-pane').innerHTML = diffData[fileName].compareCode;
+                    document.getElementById('compare-delta-grid').innerHTML = diffData[fileName].summary;
+                    return;
+                } else {
+                    document.getElementById('compare-left-code-pane').innerHTML = `<div class="text-error p-2">Error: Could not read file at ${oldPath}. Make sure to serve the application using a local web server (e.g. run.sh) or check the paths.</div>`;
+                    document.getElementById('compare-right-code-pane').innerHTML = `<div class="text-error p-2">Error: Could not read file at ${newPath}. Make sure to serve the application using a local web server (e.g. run.sh) or check the paths.</div>`;
+                    return;
+                }
+            }
+            
+            const diff = computeLineDiff(oldText, newText);
+            
+            renderDiffCode(diff.left, 'compare-left-code-pane');
+            renderDiffCode(diff.right, 'compare-right-code-pane');
+            
+            generateDynamicDeltaSummary(fileName, diff);
+        }
+
+        function updateDiffFileSelectors() {
+            const selectorRow = document.getElementById('diff-file-selector-row');
+            selectorRow.innerHTML = '<span class="text-xs text-text-low-contrast font-code-md">Select file:</span>';
+            
+            const uniqueFiles = new Set();
+            const report = window.javaLensReportData || {};
+            
+            if (report.compare_methods) {
+                report.compare_methods.forEach(m => {
+                    if (m.file) {
+                        const parts = m.file.replace(/\\/g, '/').split('/');
+                        const basename = parts[parts.length - 1];
+                        uniqueFiles.add(basename);
+                    }
+                });
+            }
+            if (report.compare_attributes) {
+                report.compare_attributes.forEach(a => {
+                    if (a.file) {
+                        const parts = a.file.replace(/\\/g, '/').split('/');
+                        const basename = parts[parts.length - 1];
+                        uniqueFiles.add(basename);
+                    }
+                });
+            }
+            
+            if (uniqueFiles.size === 0) {
+                uniqueFiles.add('MyClass.java');
+                uniqueFiles.add('AuthenticationService.java');
+            }
+            
+            let firstFile = null;
+            uniqueFiles.forEach(fileName => {
+                if (!firstFile) firstFile = fileName;
+                const btn = document.createElement('button');
+                btn.id = 'diff-btn-' + fileName.replace(/\./g, '_');
+                btn.className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
+                btn.innerText = fileName;
+                btn.onclick = () => {
+                    uniqueFiles.forEach(f => {
+                        const otherBtn = document.getElementById('diff-btn-' + f.replace(/\./g, '_'));
+                        if (otherBtn) {
+                            if (f === fileName) {
+                                otherBtn.className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
+                            } else {
+                                otherBtn.className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
+                            }
+                        }
+                    });
+                    
+                    document.getElementById('compare-file-header-label').innerText = fileName;
+                    loadRealFileDiff(fileName);
+                };
+                selectorRow.appendChild(btn);
+            });
+            
+            if (firstFile) {
+                const firstBtn = document.getElementById('diff-btn-' + firstFile.replace(/\./g, '_'));
+                if (firstBtn) firstBtn.className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
+                document.getElementById('compare-file-header-label').innerText = firstFile;
+                loadRealFileDiff(firstFile);
             }
         }
 
@@ -1411,7 +1653,6 @@
             const prompt = document.getElementById('active-prompt');
             const selectVal = document.getElementById('selected-input');
             
-            // Expand terminal if collapsed
             const panel = document.getElementById('terminal-panel');
             if (panel.classList.contains('w-12')) {
                 toggleTerminalCollapse();
@@ -1492,7 +1733,7 @@
                     const termBody = document.getElementById('terminal-body');
                     termBody.scrollTop = termBody.scrollHeight;
 
-                    selectDiffFile('MyClass.java');
+                    updateDiffFileSelectors();
                 }
             }
             setTimeout(addLogLine, 300);
