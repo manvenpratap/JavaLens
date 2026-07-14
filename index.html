@@ -176,7 +176,7 @@
         }
     </style>
 </head>
-<body class="font-body-lg text-body-lg overflow-x-hidden antialiased">
+<body class="font-body-lg text-body-lg overflow-x-hidden antialiased md:h-screen md:overflow-hidden flex flex-col">
     
     <!-- Fixed WebGL Shader Background -->
     <div class="fixed inset-0 z-0 opacity-25 pointer-events-none">
@@ -266,16 +266,16 @@
     </header>
 
     <!-- Main Canvas -->
-    <main class="relative z-10 md:ml-64 pt-16 pb-12 min-h-screen flex flex-col">
-        <div class="p-grid-margin max-w-7xl mx-auto w-full flex-grow flex flex-col gap-stack-lg">
+    <main class="relative z-10 md:ml-64 pt-16 pb-12 md:pb-0 h-screen flex flex-col overflow-y-auto md:overflow-hidden">
+        <div class="p-4 md:p-6 w-full h-full max-w-7xl mx-auto flex flex-col gap-4 min-h-0">
 
             <!-- 1. DASHBOARD OVERVIEW TAB -->
-            <div id="tab-dashboard" class="flex flex-col gap-stack-lg animate-fade-in">
+            <div id="tab-dashboard" class="h-full flex flex-col gap-4 min-h-0 overflow-y-auto md:overflow-hidden animate-fade-in">
                 
-                <section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-stack-md mt-stack-md">
+                <section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-2">
                     <div>
                         <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-text-high-contrast tracking-tight">Enterprise Console</h2>
-                        <p class="font-body-lg text-body-lg text-text-low-contrast mt-2 max-w-2xl">High-Performance compiler analysis, diff comparisons, and token merging interfaces.</p>
+                        <p class="font-body-lg text-body-lg text-text-low-contrast mt-1 max-w-2xl">High-Performance compiler analysis, diff comparisons, and token merging interfaces.</p>
                     </div>
                     <button onclick="triggerAnalyzeSim()" class="btn-primary bg-primary text-surface-deep font-body-md text-body-md font-bold px-6 py-3 border border-primary flex items-center gap-2 flex-shrink-0 cursor-pointer">
                         <span class="material-symbols-outlined">play_arrow</span>
@@ -284,11 +284,11 @@
                 </section>
 
                 <!-- Grid layout for counters and terminal -->
-                <section class="grid grid-cols-1 md:grid-cols-12 gap-grid-gutter">
+                <section class="grid grid-cols-1 md:grid-cols-12 gap-4 flex-grow min-h-0">
                     <!-- Metrics side (4 cols) -->
-                    <div class="md:col-span-4 flex flex-col gap-grid-gutter">
-                        <div class="glass-panel p-6 flex flex-col">
-                            <span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-2 flex items-center gap-2">
+                    <div class="md:col-span-4 flex flex-col gap-4 justify-between h-full min-h-0">
+                        <div class="glass-panel p-4 flex flex-col flex-grow justify-center">
+                            <span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-[16px]">data_object</span>
                                 Classes Analyzed
                             </span>
@@ -296,39 +296,39 @@
                                 <span id="metric-classes" class="font-headline-lg text-headline-lg text-text-high-contrast">14,285</span>
                                 <span class="font-code-md text-code-md text-primary">+120</span>
                             </div>
-                            <div class="w-full bg-surface-deep h-1 mt-4 overflow-hidden">
+                            <div class="w-full bg-surface-deep h-1 mt-2 overflow-hidden">
                                 <div class="bg-primary h-full w-[78%]"></div>
                             </div>
                         </div>
 
-                        <div class="glass-panel p-6 flex flex-col">
-                            <span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-2 flex items-center gap-2">
+                        <div class="glass-panel p-4 flex flex-col flex-grow justify-center">
+                            <span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-[16px]">timer</span>
                                 Analysis Speed
                             </span>
                             <div class="flex items-baseline gap-2 mt-1">
                                 <span class="font-headline-lg text-headline-lg text-text-high-contrast">4,850 files/s</span>
                             </div>
-                            <p class="font-body-md text-body-md text-text-low-contrast mt-2">P95 processing speed optimal. Compiled cleanly inside AST memory.</p>
+                            <p class="font-body-md text-body-md text-text-low-contrast mt-1 text-xs">P95 processing speed optimal. Compiled cleanly inside AST memory.</p>
                         </div>
 
-                        <div class="glass-panel p-6 flex flex-col">
-                            <span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-2 flex items-center gap-2">
+                        <div class="glass-panel p-4 flex flex-col flex-grow justify-center">
+                            <span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1 flex items-center gap-2">
                                 <span class="material-symbols-outlined text-[16px]">memory</span>
                                 JVM Memory Allocation
                             </span>
                             <div class="flex items-baseline gap-2 mt-1">
                                 <span class="font-headline-lg text-headline-lg text-text-high-contrast">512 MB</span>
                             </div>
-                            <div class="flex items-center gap-2 mt-3">
+                            <div class="flex items-center gap-2 mt-2">
                                 <span class="w-2 h-2 rounded-full bg-primary inline-block"></span>
-                                <span class="font-body-md text-body-md text-on-surface-variant">Garbage collector active</span>
+                                <span class="font-body-md text-body-md text-on-surface-variant text-xs">Garbage collector active</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Terminal Output (8 cols) -->
-                    <div class="md:col-span-8 flex flex-col h-full min-h-[400px]">
+                    <div class="md:col-span-8 flex flex-col h-full min-h-0">
                         <div class="glass-panel flex flex-col h-full overflow-hidden">
                             <div class="bg-surface-deep border-b border-border-subtle p-3 flex items-center justify-between">
                                 <div class="flex items-center gap-2">
@@ -341,7 +341,7 @@
                                     <div class="w-2.5 h-2.5 bg-border-subtle"></div>
                                 </div>
                             </div>
-                            <div class="bg-surface-deep flex-grow p-6 font-code-md text-code-md overflow-y-auto h-[350px] hide-scrollbar" id="terminal-body">
+                            <div class="bg-surface-deep flex-grow p-6 font-code-md text-code-md overflow-y-auto h-full min-h-0 hide-scrollbar" id="terminal-body">
                                 <div class="text-on-surface-variant mb-4">
                                     <span class="text-primary">javalens@host</span>:<span class="text-secondary-fixed-dim">~/workspace</span>$ ./run.sh --interactive
                                 </div>
@@ -366,20 +366,20 @@
             </div>
 
             <!-- 2. ANALYSIS VIEW TAB -->
-            <div id="tab-analysis" class="hidden flex-col gap-stack-lg animate-fade-in">
-                <section class="mt-stack-md">
-                    <div class="flex items-center gap-2 mb-2 text-text-low-contrast font-table-data text-table-data">
+            <div id="tab-analysis" class="hidden h-full flex-col gap-4 min-h-0 overflow-y-auto md:overflow-hidden animate-fade-in">
+                <section class="mb-1">
+                    <div class="flex items-center gap-2 mb-1 text-text-low-contrast font-table-data text-table-data">
                         <span>com.javalens.core</span>
                         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                         <span class="text-primary" id="analysis-file-header">ASTAnalyzer.java</span>
                     </div>
                     <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-high-contrast">Codebase Analysis</h2>
-                    <p class="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">Detailed structural breakdown of extracted methods, attributes, and access permissions.</p>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant mt-1 max-w-2xl">Detailed structural breakdown of extracted methods, attributes, and access permissions.</p>
                 </section>
 
-                <section class="grid grid-cols-1 lg:grid-cols-12 gap-grid-gutter">
+                <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow min-h-0">
                     <!-- File tree left (3 cols) -->
-                    <div class="lg:col-span-3 bg-surface-container-low border border-border-subtle flex flex-col h-[550px]">
+                    <div class="lg:col-span-3 bg-surface-container-low border border-border-subtle flex flex-col h-full min-h-0">
                         <div class="p-4 border-b border-border-subtle bg-surface-container flex items-center justify-between">
                             <span class="font-label-caps text-label-caps text-text-low-contrast">FILE STRUCTURE</span>
                             <span class="material-symbols-outlined text-[16px] text-text-low-contrast">unfold_less</span>
@@ -390,7 +390,7 @@
                     </div>
 
                     <!-- Right tables (9 cols) -->
-                    <div class="lg:col-span-9 bg-surface-deep border border-border-subtle flex flex-col h-[550px] overflow-hidden">
+                    <div class="lg:col-span-9 bg-surface-deep border border-border-subtle flex flex-col h-full min-h-0 overflow-hidden">
                         <div class="p-3 border-b border-border-subtle bg-surface-container-low flex items-center justify-between">
                             <div class="flex gap-2">
                                 <button onclick="toggleTableSubTab('methods')" id="subtab-methods" class="px-3 py-1 text-table-data font-table-data bg-surface-variant border border-border-subtle text-high-contrast">Methods</button>
@@ -425,22 +425,22 @@
             </div>
 
             <!-- 3. COMPARE TAB -->
-            <div id="tab-compare" class="hidden flex-col gap-stack-lg animate-fade-in">
-                <section class="mt-stack-md">
-                    <div class="flex items-center gap-2 mb-2">
+            <div id="tab-compare" class="hidden h-full flex-col gap-4 min-h-0 overflow-y-auto md:overflow-hidden animate-fade-in">
+                <section class="mb-1">
+                    <div class="flex items-center gap-2 mb-1">
                         <span class="font-label-caps text-label-caps text-on-surface-variant px-2 py-1 bg-surface-container border border-border-subtle">PR-4092</span>
                         <span class="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
                         <span class="font-label-caps text-label-caps text-primary tracking-wider">AuthenticationService.java</span>
                     </div>
                     <h2 class="font-headline-md text-headline-md text-text-high-contrast">AST Delta Comparator</h2>
-                    <p class="font-body-lg text-body-lg text-on-surface-variant mt-2">Side-by-side AST comparisons with inline additions, modifications, and removals.</p>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant mt-1">Side-by-side AST comparisons with inline additions, modifications, and removals.</p>
                 </section>
 
                 <!-- Side-by-side pane split -->
-                <section class="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-px bg-border-subtle border border-border-subtle overflow-hidden relative">
+                <section class="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-px bg-border-subtle border border-border-subtle overflow-hidden relative min-h-0">
                     
                     <!-- Left: Old Source -->
-                    <div class="bg-surface-deep flex flex-col h-[400px]">
+                    <div class="bg-surface-deep flex flex-col h-full min-h-0">
                         <div class="h-10 bg-surface-container border-b border-border-subtle flex items-center px-4 justify-between sticky top-0 z-10">
                             <span class="font-code-md text-code-md text-on-surface-variant">base / HEAD~1</span>
                             <span class="font-label-caps text-label-caps text-text-low-contrast px-2 py-0.5 border border-border-subtle bg-surface-muted">OLD</span>
@@ -475,7 +475,7 @@
                     </div>
 
                     <!-- Right: New Source -->
-                    <div class="bg-surface-deep flex flex-col h-[400px]">
+                    <div class="bg-surface-deep flex flex-col h-full min-h-0">
                         <div class="h-10 bg-surface-container border-b border-border-subtle flex items-center px-4 justify-between sticky top-0 z-10">
                             <span class="font-code-md text-code-md text-on-surface-variant">compare / pr-feature-branch</span>
                             <span class="font-label-caps text-label-caps text-background px-2 py-0.5 bg-primary border border-primary">NEW</span>
@@ -532,9 +532,9 @@
             </div>
 
             <!-- 4. MERGE WIZARD TAB -->
-            <div id="tab-merge" class="hidden flex-col gap-stack-lg animate-fade-in">
-                <section class="mt-stack-md max-w-4xl w-full mx-auto">
-                    <div class="flex flex-col gap-stack-md mb-8">
+            <div id="tab-merge" class="hidden h-full flex-col gap-4 overflow-y-auto pb-20 animate-fade-in">
+                <section class="max-w-4xl w-full mx-auto">
+                    <div class="flex flex-col gap-2 mb-4">
                         <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-text-high-contrast">Marker-Guided Merge</h1>
                         <p class="font-body-lg text-body-lg text-text-low-contrast max-w-2xl">Copy blocks of code between markers governed by static parser extraction boundaries.</p>
                     </div>
@@ -639,10 +639,10 @@
             </div>
 
             <!-- 5. CONFIGURATION / PROPERTIES TAB -->
-            <div id="tab-settings" class="hidden flex-col gap-stack-lg animate-fade-in">
-                <section class="mt-stack-md max-w-2xl w-full mx-auto">
+            <div id="tab-settings" class="hidden h-full flex-col gap-4 overflow-y-auto pb-20 animate-fade-in">
+                <section class="max-w-2xl w-full mx-auto">
                     <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-high-contrast">Settings</h2>
-                    <p class="font-body-lg text-body-lg text-on-surface-variant mt-2 mb-6">Manage properties configuration template `analyzer.properties`.</p>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant mt-1 mb-4">Manage properties configuration template `analyzer.properties`.</p>
                     
                     <div class="glass-panel p-6 flex flex-col gap-4">
                         <div class="flex justify-between items-center border-b border-border-subtle pb-3">
