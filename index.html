@@ -690,16 +690,22 @@
             </main>
 
             <!-- Right: Persistent Interactive CLI Terminal -->
-            <div class="hidden md:flex w-[380px] lg:w-[450px] xl:w-[500px] border-l border-border-subtle h-full flex-col bg-surface-deep flex-shrink-0 z-20">
-                <div class="bg-surface-deep border-b border-border-subtle p-3 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
+            <div id="terminal-panel" class="hidden md:flex w-[380px] lg:w-[450px] xl:w-[500px] border-l border-border-subtle h-full flex-col bg-surface-deep flex-shrink-0 z-20 transition-all duration-300">
+                <div class="bg-surface-deep border-b border-border-subtle p-3 flex items-center justify-between h-16 flex-shrink-0 overflow-hidden" id="terminal-header">
+                    <div class="flex items-center gap-2" id="terminal-title">
                         <span class="material-symbols-outlined text-text-low-contrast text-[18px]">terminal</span>
-                        <span class="font-code-md text-code-md text-text-low-contrast">Interactive CLI Monitor</span>
+                        <span class="font-code-md text-code-md text-text-low-contrast truncate">Interactive CLI Monitor</span>
                     </div>
-                    <div class="flex gap-2">
-                        <div class="w-2.5 h-2.5 bg-border-subtle"></div>
-                        <div class="w-2.5 h-2.5 bg-border-subtle"></div>
-                        <div class="w-2.5 h-2.5 bg-border-subtle"></div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleTerminalCollapse()" class="p-1 hover:bg-surface-variant transition-colors flex items-center justify-center text-text-low-contrast hover:text-high-contrast cursor-pointer" id="terminal-collapse-btn" title="Toggle Terminal Collapse">
+                            <span class="material-symbols-outlined text-[18px] select-none" id="terminal-collapse-icon">chevron_right</span>
+                        </button>
+                        <span class="h-4 w-px bg-border-subtle" id="terminal-divider"></span>
+                        <div class="flex gap-2" id="terminal-controls">
+                            <div class="w-2.5 h-2.5 bg-border-subtle"></div>
+                            <div class="w-2.5 h-2.5 bg-border-subtle"></div>
+                            <div class="w-2.5 h-2.5 bg-border-subtle"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-surface-deep flex-grow p-6 font-code-md text-code-md overflow-y-auto h-full min-h-0 hide-scrollbar" id="terminal-body">
@@ -1259,6 +1265,40 @@
                 }
             }
             setTimeout(addLogLine, 300);
+        }
+
+        function toggleTerminalCollapse() {
+            const panel = document.getElementById('terminal-panel');
+            const icon = document.getElementById('terminal-collapse-icon');
+            const title = document.getElementById('terminal-title');
+            const divider = document.getElementById('terminal-divider');
+            const controls = document.getElementById('terminal-controls');
+            const header = document.getElementById('terminal-header');
+            const body = document.getElementById('terminal-body');
+            
+            if (panel.classList.contains('w-12')) {
+                // Expand terminal
+                panel.classList.remove('w-12');
+                panel.classList.add('w-[380px]', 'lg:w-[450px]', 'xl:w-[500px]');
+                icon.innerText = 'chevron_right';
+                title.style.display = 'flex';
+                divider.style.display = 'inline-block';
+                controls.style.display = 'flex';
+                header.classList.remove('justify-center');
+                header.classList.add('justify-between', 'p-3');
+                body.style.display = 'block';
+            } else {
+                // Collapse terminal
+                panel.classList.remove('w-[380px]', 'lg:w-[450px]', 'xl:w-[500px]');
+                panel.classList.add('w-12');
+                icon.innerText = 'chevron_left';
+                title.style.display = 'none';
+                divider.style.display = 'none';
+                controls.style.display = 'none';
+                header.classList.remove('justify-between', 'p-3');
+                header.classList.add('justify-center');
+                body.style.display = 'none';
+            }
         }
     </script>
 </body>
