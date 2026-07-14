@@ -651,6 +651,10 @@
                             </label>
                         </div>
                         <div class="flex flex-col gap-2">
+                            <label class="font-label-caps text-label-caps text-on-surface-variant">Default Analysis Source Folder</label>
+                            <input id="settings-source-folder" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="." placeholder="e.g. . or test_workspace/v1">
+                        </div>
+                        <div class="flex flex-col gap-2">
                             <label class="font-label-caps text-label-caps text-on-surface-variant">Default Output Directory</label>
                             <input class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="java_analysis_output">
                         </div>
@@ -1137,7 +1141,27 @@
 
         // 5. Simulations for interactive triggers
         function saveSettingsSim() {
+            const srcDir = document.getElementById('settings-source-folder').value;
             alert("Properties configurations stored and updated inside analyzer.properties template successfully.");
+            
+            const panel = document.getElementById('terminal-panel');
+            if (panel && panel.classList.contains('w-12')) {
+                toggleTerminalCollapse();
+            }
+            
+            const container = document.getElementById('typewriter-container');
+            const newDiv = document.createElement('div');
+            newDiv.innerHTML = `
+                <div class="text-on-surface-variant mt-2">javalens@host:~/workspace$ ./run.sh --interactive</div>
+                <div class="text-on-surface">Select action [1-5]: 4</div>
+                <div class="text-primary mt-1">[CONFIG] Properties updated:</div>
+                <div class="text-on-surface font-code-md">  analysis.src_dir = ${srcDir}</div>
+                <div class="text-primary font-bold">✔ analyzer.properties rewritten successfully!</div>
+            `;
+            container.appendChild(newDiv);
+            
+            const termBody = document.getElementById('terminal-body');
+            termBody.scrollTop = termBody.scrollHeight;
         }
 
         function triggerMergeSim() {
