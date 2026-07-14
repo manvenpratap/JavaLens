@@ -396,9 +396,14 @@
                                 <button onclick="toggleTableSubTab('methods')" id="subtab-methods" class="px-3 py-1 text-table-data font-table-data bg-surface-variant border border-border-subtle text-high-contrast cursor-pointer transition-all duration-150">Methods</button>
                                 <button onclick="toggleTableSubTab('attributes')" id="subtab-attributes" class="px-3 py-1 text-table-data font-table-data text-text-low-contrast hover:bg-surface-variant cursor-pointer transition-all duration-150">Attributes</button>
                             </div>
-                            <button class="flex items-center gap-1 text-table-data font-table-data text-text-low-contrast hover:text-high-contrast px-2 py-1 border border-border-subtle cursor-pointer transition-colors duration-150">
-                                <span class="material-symbols-outlined text-[14px]">download</span> Export CSV
-                            </button>
+                            <div class="flex gap-2">
+                                <a id="download-methods-csv" href="#" download class="flex items-center gap-1 text-table-data font-table-data text-primary hover:text-high-contrast px-2 py-1 border border-border-subtle cursor-pointer transition-colors">
+                                    <span class="material-symbols-outlined text-[14px] select-none">download</span> Methods CSV
+                                </a>
+                                <a id="download-attributes-csv" href="#" download class="flex items-center gap-1 text-table-data font-table-data text-primary hover:text-high-contrast px-2 py-1 border border-border-subtle cursor-pointer transition-colors">
+                                    <span class="material-symbols-outlined text-[14px] select-none">download</span> Attributes CSV
+                                </a>
+                            </div>
                         </div>
 
                         <!-- Table Headers -->
@@ -509,7 +514,17 @@
                 </section>
 
                 <div class="bg-surface-container-low border border-border-subtle p-4">
-                    <h3 class="font-headline-md text-[16px] text-text-high-contrast mb-3">AST Delta Summary</h3>
+                    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <h3 class="font-headline-md text-[16px] text-text-high-contrast">AST Delta Summary</h3>
+                        <div class="flex gap-2">
+                            <a id="download-comp-methods-csv" href="#" download class="flex items-center gap-1 text-xs font-code-md text-primary hover:text-high-contrast px-2 py-1 border border-border-subtle cursor-pointer transition-colors">
+                                <span class="material-symbols-outlined text-[14px] select-none">download</span> Comp Methods CSV
+                            </a>
+                            <a id="download-comp-attributes-csv" href="#" download class="flex items-center gap-1 text-xs font-code-md text-primary hover:text-high-contrast px-2 py-1 border border-border-subtle cursor-pointer transition-colors">
+                                <span class="material-symbols-outlined text-[14px] select-none">download</span> Comp Attributes CSV
+                            </a>
+                        </div>
+                    </div>
                     <div id="compare-delta-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Dynamic Summary Cards -->
                     </div>
@@ -1001,6 +1016,7 @@
                 buildFileTree(filesData);
             }
             updateDiffFileSelectors();
+            updateDownloadLinks();
         }
 
         function buildFileTree(data) {
@@ -1184,6 +1200,8 @@
             const selectVal = document.getElementById('selected-input');
             const classesMetric = document.getElementById('metric-classes');
             
+            const runFolder = (window.javaLensReportData || {}).activeRunFolder || 'run_latest';
+            
             // Hide input prompt temporarily during scanning
             prompt.style.display = 'none';
             selectVal.innerText = '';
@@ -1221,7 +1239,8 @@
                 "[OK] Extracted all Compilation Unit AST signatures cleanly.",
                 "[SYS] Discarding tree nodes from memory queue to free JVM heap.",
                 "[OK] Successfully parsed 14,285 classes.",
-                "[INFO] Reports generated: java_attributes.csv, java_methods.csv",
+                `  Attributes CSV : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/java_attributes.csv`,
+                `  Methods CSV    : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/java_methods.csv`,
                 "[SYS] Auto-load dashboard database updated."
             ];
 
@@ -1229,7 +1248,7 @@
             function addLogLine() {
                 if (index < logs.length) {
                     const line = document.createElement('div');
-                    line.className = "text-on-surface font-code-md";
+                    line.className = "text-on-surface font-code-md text-xs";
                     if (logs[index].includes("[OK]")) {
                         line.className += " text-primary font-bold";
                     } else if (logs[index].includes("[WARN]")) {
@@ -1256,6 +1275,10 @@
                     const endDiv = document.createElement('div');
                     endDiv.innerHTML = `
                         <div class="text-primary font-bold mt-2">✔ SUCCESS: Codebase analysis finished in 180ms.</div>
+                        <div class="text-on-surface-variant font-code-md text-[10px] mt-1 select-all">
+                          &nbsp;&nbsp;Attributes CSV : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/java_attributes.csv<br>
+                          &nbsp;&nbsp;Methods CSV    : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/java_methods.csv
+                        </div>
                         
                         <div class="text-on-surface mt-4">Select Operation Mode:</div>
                         <div class="text-on-surface">  <span class="text-primary font-bold">[1]</span> ANALYZE   - Scan codebase and extract class signatures</div>
@@ -1272,6 +1295,8 @@
                     
                     const termBody = document.getElementById('terminal-body');
                     termBody.scrollTop = termBody.scrollHeight;
+                    
+                    updateDownloadLinks();
                 }
             }
             setTimeout(addLogLine, 300);
@@ -1699,6 +1724,29 @@
             loadRealFileDiff(fileName);
         }
 
+        function updateDownloadLinks() {
+            const report = window.javaLensReportData || {};
+            const runFolder = report.activeRunFolder || 'run_latest';
+            
+            const methodsLink = document.getElementById('download-methods-csv');
+            const attributesLink = document.getElementById('download-attributes-csv');
+            if (methodsLink) {
+                methodsLink.href = `java_analysis_output/${runFolder}/java_methods.csv`;
+            }
+            if (attributesLink) {
+                attributesLink.href = `java_analysis_output/${runFolder}/java_attributes.csv`;
+            }
+
+            const compMethodsLink = document.getElementById('download-comp-methods-csv');
+            const compAttributesLink = document.getElementById('download-comp-attributes-csv');
+            if (compMethodsLink) {
+                compMethodsLink.href = `java_analysis_output/${runFolder}/comparison_methods.csv`;
+            }
+            if (compAttributesLink) {
+                compAttributesLink.href = `java_analysis_output/${runFolder}/comparison_attributes.csv`;
+            }
+        }
+
         function updateDiffFileSelectors() {
             const uniqueFiles = new Set();
             const report = window.javaLensReportData || {};
@@ -1747,6 +1795,8 @@
             const prompt = document.getElementById('active-prompt');
             const selectVal = document.getElementById('selected-input');
             
+            const runFolder = (window.javaLensReportData || {}).activeRunFolder || 'run_latest';
+            
             const panel = document.getElementById('terminal-panel');
             if (panel.classList.contains('w-12')) {
                 toggleTerminalCollapse();
@@ -1781,7 +1831,8 @@
                 "  Compare Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0.0%",
                 "  Compare Progress: [██████████████████████████████] 100.0% | COMPLETE",
                 "[OK] Structural diff calculation complete.",
-                "[INFO] compare_methods.csv and compare_attributes.csv written successfully.",
+                `  Attributes Comparison CSV : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/comparison_attributes.csv`,
+                `  Methods Comparison CSV    : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/comparison_methods.csv`,
                 "[SYS] Diff viewer caches updated."
             ];
 
@@ -1789,7 +1840,7 @@
             function addLogLine() {
                 if (index < logs.length) {
                     const line = document.createElement('div');
-                    line.className = "text-on-surface font-code-md";
+                    line.className = "text-on-surface font-code-md text-xs";
                     if (logs[index].includes("[OK]")) {
                         line.className += " text-primary font-bold";
                     } else if (logs[index].includes("Compare Progress:")) {
@@ -1812,6 +1863,10 @@
                     const endDiv = document.createElement('div');
                     endDiv.innerHTML = `
                         <div class="text-primary font-bold mt-2">✔ SUCCESS: Structural compare completed in 95ms.</div>
+                        <div class="text-on-surface-variant font-code-md text-[10px] mt-1 select-all">
+                          &nbsp;&nbsp;Attributes Comparison CSV : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/comparison_attributes.csv<br>
+                          &nbsp;&nbsp;Methods Comparison CSV    : /Volumes/Study/Projects/java-analyzer-project/java_analysis_output/${runFolder}/comparison_methods.csv
+                        </div>
                         
                         <div class="text-on-surface mt-4">Select Operation Mode:</div>
                         <div class="text-on-surface">  <span class="text-primary font-bold">[1]</span> ANALYZE   - Scan codebase and extract class signatures</div>
@@ -1828,6 +1883,7 @@
                     termBody.scrollTop = termBody.scrollHeight;
 
                     updateDiffFileSelectors();
+                    updateDownloadLinks();
                 }
             }
             setTimeout(addLogLine, 300);

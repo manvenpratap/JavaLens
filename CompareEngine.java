@@ -79,11 +79,11 @@ public class CompareEngine {
 
         long elapsed = System.currentTimeMillis() - startMs;
         System.out.printf("%nComparison completed in %.1fs%n", elapsed / 1000.0);
-        System.out.println("  Attributes Comparison CSV : " + attrCsv);
-        System.out.println("  Methods Comparison CSV    : " + methCsv);
+        System.out.println("  Attributes Comparison CSV : " + attrCsv.toAbsolutePath());
+        System.out.println("  Methods Comparison CSV    : " + methCsv.toAbsolutePath());
         if (!errLog.isEmpty()) {
             Files.write(errorLog, errLog);
-            System.out.println("  Errors encountered        : " + errLog.size() + " — see " + errorLog);
+            System.out.println("  Errors encountered        : " + errLog.size() + " — see " + errorLog.toAbsolutePath());
         } else {
             System.out.println("  Errors encountered        : 0");
         }

@@ -150,11 +150,11 @@ public class JavaAnalyzer {
 
         long elapsed = System.currentTimeMillis() - startMs;
         System.out.printf("%nDone in %.1fs%n", elapsed / 1000.0);
-        System.out.println("  Attributes CSV : " + attrCsv);
-        System.out.println("  Methods CSV    : " + methCsv);
+        System.out.println("  Attributes CSV : " + attrCsv.toAbsolutePath());
+        System.out.println("  Methods CSV    : " + methCsv.toAbsolutePath());
         if (!errLog.isEmpty()) {
             Files.write(errorLog, errLog);
-            System.out.println("  Parse errors   : " + errLog.size() + " — see " + errorLog);
+            System.out.println("  Parse errors   : " + errLog.size() + " — see " + errorLog.toAbsolutePath());
         } else {
             System.out.println("  Parse errors   : 0");
         }
