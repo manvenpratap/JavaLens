@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
+    <script src="java_report_data.js" onerror="console.log('No report data file found; using default demo dataset.')"></script>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>JavaLens - High-Performance AST Dashboard</title>
@@ -248,7 +249,7 @@
     <header class="hidden md:flex items-center justify-between px-grid-margin w-full ml-64 max-w-[calc(100%-16rem)] bg-background h-16 border-b border-border-subtle z-30 fixed top-0">
         <nav class="flex items-center gap-6 h-full font-body-md text-body-md">
             <span class="text-text-low-contrast">Workspace:</span>
-            <span class="text-primary font-bold font-code-md">/Volumes/Study/Projects/java-analyzer-project</span>
+            <span id="workspace-header-title" class="text-primary font-bold font-code-md">/Volumes/Study/Projects/java-analyzer-project</span>
         </nav>
         
         <div class="flex items-center gap-4">
@@ -383,35 +384,8 @@
                             <span class="font-label-caps text-label-caps text-text-low-contrast">FILE STRUCTURE</span>
                             <span class="material-symbols-outlined text-[16px] text-text-low-contrast">unfold_less</span>
                         </div>
-                        <div class="p-2 flex-grow overflow-y-auto font-table-data text-table-data">
-                            <div class="flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant cursor-pointer text-on-surface">
-                                <span class="material-symbols-outlined text-[16px] text-text-low-contrast">folder_open</span>
-                                <span>src/main/java</span>
-                            </div>
-                            <div class="pl-4">
-                                <div class="flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant cursor-pointer text-on-surface">
-                                    <span class="material-symbols-outlined text-[16px] text-text-low-contrast">folder_open</span>
-                                    <span>com/javalens</span>
-                                </div>
-                                <div class="pl-4 flex flex-col gap-0.5">
-                                    <button onclick="selectFile('ASTAnalyzer')" id="file-ASTAnalyzer" class="w-full text-left flex items-center gap-2 px-2 py-1.5 bg-surface-variant text-high-contrast border-l border-primary">
-                                        <span class="material-symbols-outlined text-[16px] text-primary">description</span>
-                                        <span>ASTAnalyzer.java</span>
-                                    </button>
-                                    <button onclick="selectFile('NodeVisitor')" id="file-NodeVisitor" class="w-full text-left flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant text-on-surface">
-                                        <span class="material-symbols-outlined text-[16px] text-text-low-contrast">description</span>
-                                        <span>NodeVisitor.java</span>
-                                    </button>
-                                    <button onclick="selectFile('SymbolTable')" id="file-SymbolTable" class="w-full text-left flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant text-on-surface">
-                                        <span class="material-symbols-outlined text-[16px] text-text-low-contrast">description</span>
-                                        <span>SymbolTable.java</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant cursor-pointer text-on-surface mt-2">
-                                <span class="material-symbols-outlined text-[16px] text-text-low-contrast">folder</span>
-                                <span>src/test/java</span>
-                            </div>
+                        <div class="p-2 flex-grow overflow-y-auto font-table-data text-table-data" id="file-tree-container">
+                            <!-- Dynamic File Tree will be populated here -->
                         </div>
                     </div>
 
@@ -539,7 +513,7 @@
 
                 <div class="bg-surface-container-low border border-border-subtle p-4">
                     <h3 class="font-headline-md text-[16px] text-text-high-contrast mb-3">AST Delta Summary</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div id="compare-delta-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="border border-border-subtle p-3 bg-surface-muted hover:border-primary transition-colors cursor-default">
                             <span class="font-label-caps text-label-caps text-primary block mb-1">ADDED</span>
                             <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">generateToken(User)</span></p>
@@ -847,74 +821,219 @@
             });
         }
 
-        // 4. File Tree details data source simulation
-        const filesData = {
-            ASTAnalyzer: {
-                file: 'ASTAnalyzer.java',
-                sub: 'com.javalens.core',
-                type: 'methods',
-                list: [
-                    { signature: 'analyzeTree', params: '(CompilationUnitTree, Trees)', ret: 'AnalysisResult', mods: ['public'], ann: ['@Override'], loc: 45 },
-                    { signature: 'extractModifiers', params: '(ModifiersTree)', ret: 'Set&lt;Modifier&gt;', mods: ['private', 'static'], ann: ['@NonNull'], loc: 12 },
-                    { signature: 'buildMethodSignature', params: '(MethodTree)', ret: 'String', mods: ['protected'], ann: [], loc: 28 },
-                    { signature: 'deprecatedParsingLogic', params: '(Tree)', ret: 'void', mods: ['private'], ann: ['@Deprecated'], loc: 85 }
-                ],
-                attributes: [
-                    { name: 'compilationUnit', type: 'CompilationUnitTree', mods: ['private', 'final'], init: 'null' },
-                    { name: 'sourceRoot', type: 'Path', mods: ['private', 'final'], init: 'null' },
-                    { name: 'logger', type: 'Logger', mods: ['private', 'static', 'final'], init: 'Logger.getLogger(...)' }
-                ]
-            },
-            NodeVisitor: {
-                file: 'NodeVisitor.java',
-                sub: 'com.javalens.core',
-                type: 'methods',
-                list: [
-                    { signature: 'visitClass', params: '(ClassTree, Void)', ret: 'Void', mods: ['public'], ann: ['@Override'], loc: 56 },
-                    { signature: 'visitVariable', params: '(VariableTree, Void)', ret: 'Void', mods: ['public'], ann: ['@Override'], loc: 32 },
-                    { signature: 'visitMethod', params: '(MethodTree, Void)', ret: 'Void', mods: ['public'], ann: ['@Override'], loc: 94 }
-                ],
-                attributes: [
-                    { name: 'foundAttributes', type: 'List&lt;AttributeModel&gt;', mods: ['private', 'final'], init: 'new ArrayList&lt;&gt;()' },
-                    { name: 'foundMethods', type: 'List&lt;MethodModel&gt;', mods: ['private', 'final'], init: 'new ArrayList&lt;&gt;()' }
-                ]
-            },
-            SymbolTable: {
-                file: 'SymbolTable.java',
-                sub: 'com.javalens.core',
-                type: 'methods',
-                list: [
-                    { signature: 'define', params: '(Symbol)', ret: 'void', mods: ['public'], ann: [], loc: 18 },
-                    { signature: 'lookup', params: '(String)', ret: 'Symbol', mods: ['public'], ann: ['@Nullable'], loc: 24 },
-                    { signature: 'enterScope', params: '()', ret: 'void', mods: ['public'], ann: [], loc: 8 },
-                    { signature: 'exitScope', params: '()', ret: 'void', mods: ['public'], ann: [], loc: 10 }
-                ],
-                attributes: [
-                    { name: 'globals', type: 'Map&lt;String, Symbol&gt;', mods: ['private'], init: 'new HashMap&lt;&gt;()' },
-                    { name: 'currentScope', type: 'Scope', mods: ['private'], init: 'globals' }
-                ]
-            }
-        };
-
-        let activeFile = 'ASTAnalyzer';
+        // 4. File Tree details data source loading
+        let filesData = {};
+        let activeFile = '';
         let activeSubTab = 'methods';
+
+        function initData() {
+            if (window.javaLensReportData) {
+                const report = window.javaLensReportData;
+                
+                // Show active run header info
+                document.getElementById('workspace-header-title').innerText = report.activeRunFolder;
+                document.getElementById('metric-classes').innerText = report.methods.length;
+                
+                // Show console status in the terminal panel
+                const typewriter = document.getElementById('typewriter-container');
+                typewriter.innerHTML += `
+                    <div class="text-primary font-bold mt-2">[SYS] Auto-loaded report data from active run:</div>
+                    <div class="text-secondary-fixed-dim">  Folder    : ${report.activeRunFolder}</div>
+                    <div class="text-secondary-fixed-dim">  Timestamp : ${report.timestamp}</div>
+                    <div class="text-on-surface">  Parsed    : ${report.methods.length} methods, ${report.attributes.length} attributes.</div>
+                `;
+                
+                // Map records into filesData structure
+                report.methods.forEach(m => {
+                    const fileKey = m.file;
+                    if (!filesData[fileKey]) {
+                        filesData[fileKey] = {
+                            file: fileKey.substring(fileKey.lastIndexOf('/') + 1),
+                            sub: m.package || 'Default',
+                            list: [],
+                            attributes: []
+                        };
+                    }
+                    filesData[fileKey].list.push({
+                        signature: m.method_name,
+                        params: m.parameters ? "(" + m.parameters + ")" : "()",
+                        ret: m.return_type || "void",
+                        mods: m.modifiers ? m.modifiers.split(" ") : [],
+                        ann: m.annotations ? m.annotations.split(" ") : [],
+                        loc: m.parameter_count || 0
+                    });
+                });
+                
+                report.attributes.forEach(a => {
+                    const fileKey = a.file;
+                    if (!filesData[fileKey]) {
+                        filesData[fileKey] = {
+                            file: fileKey.substring(fileKey.lastIndexOf('/') + 1),
+                            sub: a.package || 'Default',
+                            list: [],
+                            attributes: []
+                        };
+                    }
+                    filesData[fileKey].attributes.push({
+                        name: a.attribute_name,
+                        type: a.attribute_type,
+                        mods: a.modifiers ? a.modifiers.split(" ") : [],
+                        init: a.initializer || "-"
+                    });
+                });
+
+                // Build Delta Comparison boxes if COMPARE mode data was appended
+                if (report.compare_methods && report.compare_methods.length > 0) {
+                    const compGrid = document.getElementById('compare-delta-grid');
+                    compGrid.innerHTML = '';
+
+                    const addedMethods = report.compare_methods.filter(m => m.status === 'ADDED');
+                    const removedMethods = report.compare_methods.filter(m => m.status === 'REMOVED');
+                    const modifiedMethods = report.compare_methods.filter(m => m.status === 'MODIFIED');
+
+                    // Added card
+                    const addedCard = document.createElement('div');
+                    addedCard.className = "border border-border-subtle p-3 bg-surface-muted hover:border-primary transition-colors cursor-default";
+                    addedCard.innerHTML = `<span class="font-label-caps text-label-caps text-primary block mb-1">ADDED (${addedMethods.length})</span>`;
+                    addedMethods.slice(0, 4).forEach(m => {
+                        addedCard.innerHTML += `<p class="font-table-data text-table-data text-on-surface truncate">Method: <span class="text-text-high-contrast">${m.method_name}</span></p>`;
+                    });
+                    if (addedMethods.length > 4) addedCard.innerHTML += `<p class="text-xs text-text-low-contrast mt-1">+ ${addedMethods.length - 4} more items</p>`;
+                    
+                    // Modified card
+                    const modifiedCard = document.createElement('div');
+                    modifiedCard.className = "border border-border-subtle p-3 bg-surface-muted hover:border-secondary transition-colors cursor-default";
+                    modifiedCard.innerHTML = `<span class="font-label-caps text-label-caps text-secondary block mb-1">MODIFIED (${modifiedMethods.length})</span>`;
+                    modifiedMethods.slice(0, 4).forEach(m => {
+                        modifiedCard.innerHTML += `<p class="font-table-data text-table-data text-on-surface truncate">Method: <span class="text-text-high-contrast">${m.method_name}</span></p>`;
+                    });
+                    if (modifiedMethods.length > 4) modifiedCard.innerHTML += `<p class="text-xs text-text-low-contrast mt-1">+ ${modifiedMethods.length - 4} more items</p>`;
+
+                    // Removed card
+                    const removedCard = document.createElement('div');
+                    removedCard.className = "border border-border-subtle p-3 bg-surface-muted hover:border-error transition-colors cursor-default";
+                    removedCard.innerHTML = `<span class="font-label-caps text-label-caps text-error block mb-1">REMOVED (${removedMethods.length})</span>`;
+                    removedMethods.slice(0, 4).forEach(m => {
+                        removedCard.innerHTML += `<p class="font-table-data text-table-data text-on-surface truncate">Method: <span class="text-text-high-contrast">${m.method_name}</span></p>`;
+                    });
+                    if (removedMethods.length > 4) removedCard.innerHTML += `<p class="text-xs text-text-low-contrast mt-1">+ ${removedMethods.length - 4} more items</p>`;
+
+                    compGrid.appendChild(addedCard);
+                    compGrid.appendChild(modifiedCard);
+                    compGrid.appendChild(removedCard);
+                }
+                
+                buildFileTree(filesData);
+            } else {
+                // Fallback mock data when no runs exist yet
+                filesData = {
+                    'com/javalens/core/ASTAnalyzer.java': {
+                        file: 'ASTAnalyzer.java',
+                        sub: 'com.javalens.core',
+                        list: [
+                            { signature: 'analyzeTree', params: '(CompilationUnitTree, Trees)', ret: 'AnalysisResult', mods: ['public'], ann: ['@Override'], loc: 45 },
+                            { signature: 'extractModifiers', params: '(ModifiersTree)', ret: 'Set<Modifier>', mods: ['private', 'static'], ann: ['@NonNull'], loc: 12 },
+                            { signature: 'buildMethodSignature', params: '(MethodTree)', ret: 'String', mods: ['protected'], ann: [], loc: 28 },
+                            { signature: 'deprecatedParsingLogic', params: '(Tree)', ret: 'void', mods: ['private'], ann: ['@Deprecated'], loc: 85 }
+                        ],
+                        attributes: [
+                            { name: 'compilationUnit', type: 'CompilationUnitTree', mods: ['private', 'final'], init: 'null' },
+                            { name: 'sourceRoot', type: 'Path', mods: ['private', 'final'], init: 'null' },
+                            { name: 'logger', type: 'Logger', mods: ['private', 'static', 'final'], init: 'Logger.getLogger(...)' }
+                        ]
+                    },
+                    'com/javalens/core/NodeVisitor.java': {
+                        file: 'NodeVisitor.java',
+                        sub: 'com.javalens.core',
+                        list: [
+                            { signature: 'visitClass', params: '(ClassTree, Void)', ret: 'Void', mods: ['public'], ann: ['@Override'], loc: 56 },
+                            { signature: 'visitVariable', params: '(VariableTree, Void)', ret: 'Void', mods: ['public'], ann: ['@Override'], loc: 32 },
+                            { signature: 'visitMethod', params: '(MethodTree, Void)', ret: 'Void', mods: ['public'], ann: ['@Override'], loc: 94 }
+                        ],
+                        attributes: [
+                            { name: 'foundAttributes', type: 'List<AttributeModel>', mods: ['private', 'final'], init: 'new ArrayList<>()' },
+                            { name: 'foundMethods', type: 'List<MethodModel>', mods: ['private', 'final'], init: 'new ArrayList<>()' }
+                        ]
+                    },
+                    'com/javalens/core/SymbolTable.java': {
+                        file: 'SymbolTable.java',
+                        sub: 'com.javalens.core',
+                        list: [
+                            { signature: 'define', params: '(Symbol)', ret: 'void', mods: ['public'], ann: [], loc: 18 },
+                            { signature: 'lookup', params: '(String)', ret: 'Symbol', mods: ['public'], ann: ['@Nullable'], loc: 24 }
+                        ],
+                        attributes: [
+                            { name: 'globals', type: 'Map<String, Symbol>', mods: ['private'], init: 'new HashMap<>()' }
+                        ]
+                    }
+                };
+                buildFileTree(filesData);
+            }
+        }
+
+        function buildFileTree(data) {
+            const container = document.getElementById('file-tree-container');
+            container.innerHTML = '';
+            
+            const fileKeys = Object.keys(data);
+            if (fileKeys.length === 0) {
+                container.innerHTML = '<div class="text-text-low-contrast p-4 text-xs">No files parsed in this run.</div>';
+                return;
+            }
+            
+            // Group by directory
+            const dirs = {};
+            fileKeys.forEach(filePath => {
+                const parts = filePath.split('/');
+                const fileName = parts.pop();
+                const dirPath = parts.join('/') || 'Root';
+                if (!dirs[dirPath]) dirs[dirPath] = [];
+                dirs[dirPath].push({ name: fileName, key: filePath });
+            });
+
+            Object.keys(dirs).forEach(dir => {
+                // Folder element
+                const folderDiv = document.createElement('div');
+                folderDiv.className = "flex items-center gap-2 px-2 py-1.5 text-on-surface font-bold mt-2 cursor-default select-none";
+                folderDiv.innerHTML = `<span class="material-symbols-outlined text-[16px] text-text-low-contrast">folder_open</span><span>${dir}</span>`;
+                container.appendChild(folderDiv);
+
+                // File elements
+                const fileContainer = document.createElement('div');
+                fileContainer.className = "pl-4 flex flex-col gap-0.5";
+                dirs[dir].forEach(file => {
+                    const btn = document.createElement('button');
+                    btn.id = `file-${file.key}`;
+                    btn.onclick = () => selectFile(file.key);
+                    btn.className = "w-full text-left flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant text-on-surface";
+                    btn.innerHTML = `<span class="material-symbols-outlined text-[16px] text-text-low-contrast">description</span><span class="truncate">${file.name}</span>`;
+                    fileContainer.appendChild(btn);
+                });
+                container.appendChild(fileContainer);
+            });
+            
+            // Set initial active file to first key
+            activeFile = fileKeys[0];
+            selectFile(activeFile);
+        }
 
         function selectFile(fileKey) {
             activeFile = fileKey;
             
             // Toggle highlight in file tree
-            ['ASTAnalyzer', 'NodeVisitor', 'SymbolTable'].forEach(k => {
-                const button = document.getElementById(`file-${k}`);
-                if (k === fileKey) {
-                    button.className = "w-full text-left flex items-center gap-2 px-2 py-1.5 bg-surface-variant text-high-contrast border-l border-primary";
-                    button.querySelector('span').className = "material-symbols-outlined text-[16px] text-primary";
+            const buttons = document.querySelectorAll('#file-tree-container button');
+            buttons.forEach(btn => {
+                if (btn.id === `file-${fileKey}`) {
+                    btn.className = "w-full text-left flex items-center gap-2 px-2 py-1.5 bg-surface-variant text-high-contrast border-l border-primary";
+                    btn.querySelector('span').className = "material-symbols-outlined text-[16px] text-primary";
                 } else {
-                    button.className = "w-full text-left flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant text-on-surface";
-                    button.querySelector('span').className = "material-symbols-outlined text-[16px] text-text-low-contrast";
+                    btn.className = "w-full text-left flex items-center gap-2 px-2 py-1.5 hover:bg-surface-variant text-on-surface";
+                    btn.querySelector('span').className = "material-symbols-outlined text-[16px] text-text-low-contrast";
                 }
             });
 
-            document.getElementById('analysis-file-header').innerText = filesData[fileKey].file;
+            const fileName = fileKey.substring(fileKey.lastIndexOf('/') + 1);
+            document.getElementById('analysis-file-header').innerText = fileName;
             renderAnalysisTable();
         }
 
@@ -940,6 +1059,7 @@
             tableContentArea.innerHTML = '';
             
             const fileData = filesData[activeFile];
+            if (!fileData) return;
             
             if (activeSubTab === 'methods') {
                 fileData.list.forEach((item, index) => {
@@ -947,7 +1067,7 @@
                     row.className = "grid grid-cols-12 gap-4 px-4 py-3 border-b border-border-subtle hover:bg-surface-container-low transition-colors group cursor-default relative";
                     
                     let modBadges = item.mods.map(m => `<span class="bg-surface-variant text-on-surface px-1.5 py-0.5 rounded text-[10px]">${m}</span>`).join(' ');
-                    let annBadges = item.ann.map(a => `<span class="${a === '@Deprecated' ? 'bg-error-container text-on-error-container' : 'text-tertiary'}">${a}</span>`).join(' ');
+                    let annBadges = item.ann.map(a => `<span class="text-tertiary">${a}</span>`).join(' ');
                     if (!annBadges) annBadges = '-';
 
                     row.innerHTML = `
@@ -984,17 +1104,14 @@
             }
         }
 
-        // Initialize table
-        selectFile('ASTAnalyzer');
+        // Initialize dynamic report data on page load
+        initData();
 
         // 5. Simulations for interactive triggers
-        
-        // Sim: Settings Properties Safe Saved Notice
         function saveSettingsSim() {
             alert("Properties configurations stored and updated inside analyzer.properties template successfully.");
         }
 
-        // Sim: Code block Merge Wizard Initiate Spinner Transition
         function triggerMergeSim() {
             const btn = document.getElementById('merge-trigger-btn');
             btn.innerHTML = '<span class="flex items-center gap-2"><span class="material-symbols-outlined animate-spin text-sm">sync</span> Parsing files...</span>';
@@ -1008,7 +1125,6 @@
             }, 1200);
         }
 
-        // Sim: Analyze codebase live progress output
         function triggerAnalyzeSim() {
             switchTab('dashboard');
             const container = document.getElementById('typewriter-container');
@@ -1050,7 +1166,6 @@
                     
                     line.innerHTML = logs[index];
                     
-                    // Replace previous progress line in-place if it exists to mimic terminal overwrite
                     if (index > 0 && logs[index].includes("Analyze Progress:") && logs[index-1].includes("Analyze Progress:")) {
                         container.lastElementChild.innerHTML = logs[index];
                     } else {
@@ -1060,7 +1175,6 @@
                     index++;
                     setTimeout(addLogLine, Math.random() * 200 + 150);
                     
-                    // Auto scroll terminal
                     const termBody = document.getElementById('terminal-body');
                     termBody.scrollTop = termBody.scrollHeight;
                 } else {

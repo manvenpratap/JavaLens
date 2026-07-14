@@ -1,4 +1,6 @@
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -15,6 +17,7 @@ public class Config {
     private String startMarker = "// START_MERGE";
     private String endMarker = "// END_MERGE";
     private String outputDir = "java_analysis_output";
+    private String activeRunFolder = "";
     private int threads = Runtime.getRuntime().availableProcessors();
     private boolean compareEnabled = true;
     private boolean mergeEnabled = true;
@@ -162,11 +165,31 @@ public class Config {
             startMarker = props.getProperty("merge.start_marker", startMarker);
             endMarker = props.getProperty("merge.end_marker", endMarker);
             outputDir = props.getProperty("compare.output_dir", outputDir);
+            activeRunFolder = props.getProperty("active.run_folder", "");
+            if (!activeRunFolder.isEmpty()) {
+                outputDir = activeRunFolder;
+            }
             if (props.containsKey("threads")) {
                 threads = Integer.parseInt(props.getProperty("threads"));
             }
         } catch (IOException | NumberFormatException e) {
             System.err.println("Warning: Failed to load properties from " + path + ": " + e.getMessage());
+        }
+    }
+
+    public static void updateActiveRunFolder(String path) {
+        Properties props = new Properties();
+        File propFile = new File("analyzer.properties");
+        if (propFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(propFile)) {
+                props.load(fis);
+            } catch (IOException e) { /* ignore */ }
+        }
+        props.setProperty("active.run_folder", path);
+        try (FileOutputStream fos = new FileOutputStream(propFile)) {
+            props.store(fos, "Updated active run folder context");
+        } catch (IOException e) {
+            System.err.println("Warning: Failed to save active run folder to analyzer.properties: " + e.getMessage());
         }
     }
 
@@ -201,6 +224,7 @@ public class Config {
     public String getOutputDir() { return outputDir; }
     public int getThreads() { return threads; }
     public String getSourceFolder() { return sourceFolder; }
+    public String getActiveRunFolder() { return activeRunFolder; }
     public boolean isCompareEnabled() { return compareEnabled; }
     public boolean isMergeEnabled() { return mergeEnabled; }
 }

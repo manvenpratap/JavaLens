@@ -87,6 +87,10 @@ public class CompareEngine {
         } else {
             System.out.println("  Errors encountered        : 0");
         }
+
+        // Write report data js for serverless UI
+        String runFolderName = outputDir.getFileName().toString();
+        ParserUtil.writeReportDataJs("COMPARE", runFolderName, outputDir);
     }
 
     private static void compareSingleFiles(Path oldFile, Path newFile,

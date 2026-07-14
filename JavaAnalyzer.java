@@ -46,10 +46,19 @@ public class JavaAnalyzer {
 
     private static void runAnalyze(Config config) throws Exception {
         Path sourceRoot = Paths.get(config.getSourceFolder()).toAbsolutePath();
-        Path outputDir  = Paths.get(config.getOutputDir()).toAbsolutePath();
+        Path parentOutputDir = Paths.get(config.getOutputDir()).toAbsolutePath();
         int  threads    = config.getThreads();
 
-        Files.createDirectories(outputDir);
+        String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
+                               .format(java.time.LocalDateTime.now());
+        String runFolderName = "run_" + timestamp;
+        Path runFolderPath = parentOutputDir.resolve(runFolderName);
+        Files.createDirectories(runFolderPath);
+
+        // Save active run folder context
+        Config.updateActiveRunFolder(runFolderPath.toString());
+
+        Path outputDir = runFolderPath;
 
         // Walk directory for .java files
         List<Path> javaFiles = new ArrayList<>();
@@ -138,6 +147,9 @@ public class JavaAnalyzer {
         } else {
             System.out.println("  Parse errors   : 0");
         }
+
+        // Write report data js for serverless UI
+        ParserUtil.writeReportDataJs("ANALYZE", runFolderName, outputDir);
     }
 
     private static void analyzeFile(Path file, Path root,
