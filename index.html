@@ -454,11 +454,32 @@
                     </button>
                 </section>
 
-                <!-- File Selector Dropdown for Diff Display -->
-                <section class="flex items-center gap-2" id="diff-file-selector-row">
-                    <span class="text-xs text-text-low-contrast font-code-md">Select file:</span>
-                    <button onclick="selectDiffFile('MyClass.java')" id="diff-btn-MyClass" class="py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all">MyClass.java</button>
-                    <button onclick="selectDiffFile('AuthenticationService.java')" id="diff-btn-AuthService" class="py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all">AuthenticationService.java</button>
+                <!-- Searchable File Selector Dropdown -->
+                <section class="relative w-full z-30" id="diff-file-selector-container">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-text-low-contrast font-code-md flex-shrink-0">Compare File:</span>
+                        <div class="relative flex-grow">
+                            <button id="diff-selector-trigger" onclick="toggleSelectorDropdown()" class="w-full bg-surface-container border border-border-subtle p-2 text-left font-code-md text-xs text-text-high-contrast flex justify-between items-center cursor-pointer transition-colors duration-150">
+                                <span id="diff-selected-file-label">Select a file to compare...</span>
+                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant select-none">unfold_more</span>
+                            </button>
+                            
+                            <!-- Dropdown Menu panel -->
+                            <div id="diff-selector-dropdown" class="hidden absolute left-0 right-0 mt-1 bg-surface-container border border-border-subtle shadow-lg flex flex-col z-50 rounded-sm max-h-[300px]">
+                                <div class="p-2 border-b border-border-subtle bg-surface-deep flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-text-low-contrast text-[16px] select-none">search</span>
+                                    <input type="text" id="diff-file-search-input" oninput="filterDiffFiles()" placeholder="Search from changed files..." class="w-full bg-transparent font-code-md text-xs text-text-high-contrast focus:outline-none">
+                                </div>
+                                <div id="diff-file-list-options" class="overflow-y-auto max-h-[200px] divide-y divide-border-subtle font-code-md text-xs text-on-surface">
+                                    <!-- Options populated dynamically -->
+                                </div>
+                                <div id="diff-selector-stats" class="p-2 bg-surface-deep text-[10px] text-text-low-contrast font-code-md border-t border-border-subtle flex justify-between">
+                                    <span>Total: 0 changed files</span>
+                                    <span id="diff-showing-count">Showing 0 of 0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Side-by-side pane split -->
@@ -1581,10 +1602,80 @@
             generateDynamicDeltaSummary(fileName, diff);
         }
 
-        function updateDiffFileSelectors() {
-            const selectorRow = document.getElementById('diff-file-selector-row');
-            selectorRow.innerHTML = '<span class="text-xs text-text-low-contrast font-code-md">Select file:</span>';
+        let allCompareFiles = [];
+        let activeCompareFile = null;
+
+        function toggleSelectorDropdown() {
+            const dropdown = document.getElementById('diff-selector-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+                if (!dropdown.classList.contains('hidden')) {
+                    const searchInput = document.getElementById('diff-file-search-input');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.focus();
+                    }
+                    filterDiffFiles();
+                }
+            }
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            const container = document.getElementById('diff-file-selector-container');
+            const dropdown = document.getElementById('diff-selector-dropdown');
+            if (container && !container.contains(e.target) && dropdown) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        function filterDiffFiles() {
+            const searchInput = document.getElementById('diff-file-search-input');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const listContainer = document.getElementById('diff-file-list-options');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
             
+            const filtered = allCompareFiles.filter(f => f.toLowerCase().includes(query));
+            const maxShow = 50;
+            const toShow = filtered.slice(0, maxShow);
+            
+            toShow.forEach(fileName => {
+                const option = document.createElement('div');
+                option.className = "p-2.5 hover:bg-surface-variant cursor-pointer transition-colors truncate " + 
+                                   (fileName === activeCompareFile ? "bg-surface-variant font-bold text-primary" : "");
+                option.innerText = fileName;
+                option.onclick = () => {
+                    selectCompareFile(fileName);
+                    const dropdown = document.getElementById('diff-selector-dropdown');
+                    if (dropdown) dropdown.classList.add('hidden');
+                };
+                listContainer.appendChild(option);
+            });
+            
+            if (toShow.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = "p-3 text-center text-text-low-contrast italic";
+                empty.innerText = "No matching files found";
+                listContainer.appendChild(empty);
+            }
+            
+            const showingCount = document.getElementById('diff-showing-count');
+            if (showingCount) {
+                showingCount.innerText = `Showing ${toShow.length} of ${filtered.length}`;
+            }
+        }
+
+        function selectCompareFile(fileName) {
+            activeCompareFile = fileName;
+            const label = document.getElementById('diff-selected-file-label');
+            if (label) label.innerText = fileName;
+            const headerLabel = document.getElementById('compare-file-header-label');
+            if (headerLabel) headerLabel.innerText = fileName;
+            loadRealFileDiff(fileName);
+        }
+
+        function updateDiffFileSelectors() {
             const uniqueFiles = new Set();
             const report = window.javaLensReportData || {};
             
@@ -1612,36 +1703,15 @@
                 uniqueFiles.add('AuthenticationService.java');
             }
             
-            let firstFile = null;
-            uniqueFiles.forEach(fileName => {
-                if (!firstFile) firstFile = fileName;
-                const btn = document.createElement('button');
-                btn.id = 'diff-btn-' + fileName.replace(/\./g, '_');
-                btn.className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
-                btn.innerText = fileName;
-                btn.onclick = () => {
-                    uniqueFiles.forEach(f => {
-                        const otherBtn = document.getElementById('diff-btn-' + f.replace(/\./g, '_'));
-                        if (otherBtn) {
-                            if (f === fileName) {
-                                otherBtn.className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
-                            } else {
-                                otherBtn.className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
-                            }
-                        }
-                    });
-                    
-                    document.getElementById('compare-file-header-label').innerText = fileName;
-                    loadRealFileDiff(fileName);
-                };
-                selectorRow.appendChild(btn);
-            });
+            allCompareFiles = Array.from(uniqueFiles).sort();
             
-            if (firstFile) {
-                const firstBtn = document.getElementById('diff-btn-' + firstFile.replace(/\./g, '_'));
-                if (firstBtn) firstBtn.className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
-                document.getElementById('compare-file-header-label').innerText = firstFile;
-                loadRealFileDiff(firstFile);
+            const stats = document.getElementById('diff-selector-stats');
+            if (stats) {
+                stats.firstElementChild.innerText = `Total: ${allCompareFiles.length} changed files`;
+            }
+            
+            if (allCompareFiles.length > 0) {
+                selectCompareFile(allCompareFiles[0]);
             }
         }
 
