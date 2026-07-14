@@ -901,6 +901,23 @@
             }
         }
 
+        function handleWorkspaceFolderSelect(input) {
+            if (!input.files || input.files.length === 0) return;
+            
+            const firstFile = input.files[0];
+            const relativePath = firstFile.webkitRelativePath || '';
+            const folderName = relativePath.split('/')[0];
+            
+            const parentPath = "/Volumes/Study/Projects";
+            const absolutePath = parentPath + "/" + folderName;
+            
+            const pathInput = document.getElementById('workspace-input-path');
+            if (pathInput) {
+                pathInput.value = absolutePath;
+                updateDefaultOutputPreview();
+            }
+        }
+
         function confirmWorkspaceAndScan() {
             const wsPath = document.getElementById('workspace-input-path').value.trim();
             if (!wsPath) {
@@ -1960,7 +1977,13 @@
             
             <div class="flex flex-col gap-2">
                 <label class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Workspace Path (Source Folder)</label>
-                <input id="workspace-input-path" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary w-full" type="text" value="/Volumes/Study/Projects/java-analyzer-project" oninput="updateDefaultOutputPreview()">
+                <div class="flex gap-2">
+                    <input id="workspace-input-path" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary flex-grow" type="text" value="/Volumes/Study/Projects/java-analyzer-project" oninput="updateDefaultOutputPreview()">
+                    <button onclick="document.getElementById('workspace-file-picker').click()" class="py-2 px-3 bg-surface-variant hover:bg-surface-container-high border border-border-subtle text-xs text-text-high-contrast cursor-pointer transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">folder</span> Browse...
+                    </button>
+                </div>
+                <input type="file" id="workspace-file-picker" webkitdirectory directory class="hidden" onchange="handleWorkspaceFolderSelect(this)">
             </div>
             
             <div class="flex flex-col gap-2">
