@@ -47,6 +47,9 @@ public class JavaAnalyzer {
     private static void runAnalyze(Config config) throws Exception {
         Path sourceRoot = Paths.get(config.getSourceFolder()).toAbsolutePath();
         Path parentOutputDir = Paths.get(config.getOutputDir()).toAbsolutePath();
+        while (parentOutputDir.getFileName() != null && parentOutputDir.getFileName().toString().startsWith("run_")) {
+            parentOutputDir = parentOutputDir.getParent();
+        }
         int  threads    = config.getThreads();
 
         String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
