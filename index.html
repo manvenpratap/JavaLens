@@ -428,12 +428,37 @@
             <div id="tab-compare" class="hidden h-full flex-col gap-4 min-h-0 overflow-y-auto md:overflow-hidden animate-fade-in">
                 <section class="mb-1">
                     <div class="flex items-center gap-2 mb-1">
-                        <span class="font-label-caps text-label-caps text-on-surface-variant px-2 py-1 bg-surface-container border border-border-subtle">PR-4092</span>
+                        <span class="font-label-caps text-label-caps text-on-surface-variant px-2 py-1 bg-surface-container border border-border-subtle">AST COMPARATOR</span>
                         <span class="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
-                        <span class="font-label-caps text-label-caps text-primary tracking-wider">AuthenticationService.java</span>
+                        <span id="compare-file-header-label" class="font-label-caps text-label-caps text-primary tracking-wider">MyClass.java</span>
                     </div>
                     <h2 class="font-headline-md text-headline-md text-text-high-contrast">AST Delta Comparator</h2>
                     <p class="font-body-lg text-body-lg text-on-surface-variant mt-1">Side-by-side AST comparisons with inline additions, modifications, and removals.</p>
+                </section>
+
+                <!-- Interactive Path Inputs for Comparison -->
+                <section class="glass-panel p-3 flex flex-col md:flex-row items-center gap-4 justify-between">
+                    <div class="flex flex-grow w-full md:w-auto items-center gap-3">
+                        <div class="flex flex-col gap-1 w-1/2">
+                            <label class="font-label-caps text-label-caps text-on-surface-variant uppercase text-[10px]">Base Branch / Path</label>
+                            <input id="compare-base-input" class="bg-surface-deep border-b border-border-subtle px-2 py-1 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary w-full" type="text" value="test_workspace/v1">
+                        </div>
+                        <div class="flex flex-col gap-1 w-1/2">
+                            <label class="font-label-caps text-label-caps text-on-surface-variant uppercase text-[10px]">Compare Branch / Path</label>
+                            <input id="compare-feature-input" class="bg-surface-deep border-b border-border-subtle px-2 py-1 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary w-full" type="text" value="test_workspace/v2">
+                        </div>
+                    </div>
+                    <button onclick="runCompareSimulation()" class="btn-primary py-2 px-6 bg-primary text-surface-deep font-body-md text-xs font-bold border border-primary cursor-pointer flex items-center gap-1.5 flex-shrink-0 transition-all">
+                        <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+                        Compare Codebases
+                    </button>
+                </section>
+
+                <!-- File Selector Dropdown for Diff Display -->
+                <section class="flex items-center gap-2" id="diff-file-selector-row">
+                    <span class="text-xs text-text-low-contrast font-code-md">Select file:</span>
+                    <button onclick="selectDiffFile('MyClass.java')" id="diff-btn-MyClass" class="py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all">MyClass.java</button>
+                    <button onclick="selectDiffFile('AuthenticationService.java')" id="diff-btn-AuthService" class="py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all">AuthenticationService.java</button>
                 </section>
 
                 <!-- Side-by-side pane split -->
@@ -442,71 +467,22 @@
                     <!-- Left: Old Source -->
                     <div class="bg-surface-deep flex flex-col h-full min-h-0">
                         <div class="h-10 bg-surface-container border-b border-border-subtle flex items-center px-4 justify-between sticky top-0 z-10">
-                            <span class="font-code-md text-code-md text-on-surface-variant">base / HEAD~1</span>
+                            <span id="compare-left-header" class="font-code-md text-code-md text-on-surface-variant">base / MyClass.java (v1)</span>
                             <span class="font-label-caps text-label-caps text-text-low-contrast px-2 py-0.5 border border-border-subtle bg-surface-muted">OLD</span>
                         </div>
                         <div class="flex-grow overflow-y-auto p-4 font-code-md text-code-md text-on-surface hide-scrollbar" id="left-diff-scroll">
-                            <pre class="m-0 leading-relaxed"><code class="language-java"><span class="text-text-low-contrast">12</span> <span class="text-secondary">@Service</span>
-<span class="text-text-low-contrast">13</span> <span class="text-primary">public class</span> AuthenticationService {
-<span class="text-text-low-contrast">14</span>
-<span class="text-text-low-contrast">15</span>     <span class="text-primary">private final</span> UserRepository userRepository;
-<span class="text-text-low-contrast">16</span>     <span class="text-primary">private final</span> PasswordEncoder passwordEncoder;
-<span class="text-text-low-contrast">17</span>     
-<span class="text-text-low-contrast">18</span>     <span class="text-text-low-contrast italic">// Removed in new version</span>
-<div class="bg-code-removed bg-opacity-25 -mx-4 px-4 py-1 border-l-2 border-error"><span class="text-error">19</span>     <span class="text-primary">private final</span> LegacyTokenProvider tokenProvider;</div>
-<span class="text-text-low-contrast">20</span>
-<span class="text-text-low-contrast">21</span>     <span class="text-primary">public</span> User <span class="text-secondary">authenticate</span>(String username, String password) {
-<span class="text-text-low-contrast">22</span>         User user = userRepository.findByUsername(username)
-<span class="text-text-low-contrast">23</span>             .orElseThrow(() -&gt; <span class="text-primary">new</span> AuthenticationException(<span class="text-tertiary">"User not found"</span>));
-<span class="text-text-low-contrast">24</span>
-<div class="bg-code-modified bg-opacity-25 -mx-4 px-4 py-1 border-l-2 border-secondary"><span class="text-secondary">25</span>         <span class="text-primary">if</span> (!passwordEncoder.matches(password, user.getPassword())) {
-<span class="text-secondary">26</span>             <span class="text-primary">throw new</span> AuthenticationException(<span class="text-tertiary">"Invalid credentials"</span>);
-<span class="text-secondary">27</span>         }</div>
-<span class="text-text-low-contrast">28</span>
-<span class="text-text-low-contrast">29</span>         <span class="text-primary">return</span> user;
-<span class="text-text-low-contrast">30</span>     }
-<span class="text-text-low-contrast">31</span>     
-<span class="text-text-low-contrast">32</span>     <span class="text-text-low-contrast italic">// Method removed entirely</span>
-<div class="bg-code-removed bg-opacity-25 -mx-4 px-4 py-2 border-l-2 border-error mt-2"><span class="text-error">33</span>     <span class="text-primary">public</span> String <span class="text-secondary">generateLegacyToken</span>(User user) {
-<span class="text-error">34</span>         <span class="text-primary">return</span> tokenProvider.createToken(user.getId());
-<span class="text-error">35</span>     }</div>
-<span class="text-text-low-contrast">36</span> }</code></pre>
+                            <pre class="m-0 leading-relaxed"><code class="language-java" id="compare-left-code-pane"><!-- Populated dynamically --></code></pre>
                         </div>
                     </div>
 
                     <!-- Right: New Source -->
                     <div class="bg-surface-deep flex flex-col h-full min-h-0">
                         <div class="h-10 bg-surface-container border-b border-border-subtle flex items-center px-4 justify-between sticky top-0 z-10">
-                            <span class="font-code-md text-code-md text-on-surface-variant">compare / pr-feature-branch</span>
+                            <span id="compare-right-header" class="font-code-md text-code-md text-on-surface-variant">compare / MyClass.java (v2)</span>
                             <span class="font-label-caps text-label-caps text-background px-2 py-0.5 bg-primary border border-primary">NEW</span>
                         </div>
                         <div class="flex-grow overflow-y-auto p-4 font-code-md text-code-md text-on-surface hide-scrollbar" id="right-diff-scroll">
-                            <pre class="m-0 leading-relaxed"><code class="language-java"><span class="text-text-low-contrast">12</span> <span class="text-secondary">@Service</span>
-<span class="text-text-low-contrast">13</span> <span class="text-primary">public class</span> AuthenticationService {
-<span class="text-text-low-contrast">14</span>
-<span class="text-text-low-contrast">15</span>     <span class="text-primary">private final</span> UserRepository userRepository;
-<span class="text-text-low-contrast">16</span>     <span class="text-primary">private final</span> PasswordEncoder passwordEncoder;
-<span class="text-text-low-contrast">17</span>     
-<div class="bg-code-added bg-opacity-25 -mx-4 px-4 py-1 border-l-2 border-primary"><span class="text-primary">18</span>     <span class="text-primary">private final</span> JwtTokenService jwtTokenService;
-<span class="text-primary">19</span>     <span class="text-primary">private final</span> AuditLogger auditLogger;</div>
-<span class="text-text-low-contrast">20</span>
-<span class="text-text-low-contrast">21</span>     <span class="text-primary">public</span> User <span class="text-secondary">authenticate</span>(String username, String password) {
-<span class="text-text-low-contrast">22</span>         User user = userRepository.findByUsername(username)
-<span class="text-text-low-contrast">23</span>             .orElseThrow(() -&gt; <span class="text-primary">new</span> AuthenticationException(<span class="text-tertiary">"User not found"</span>));
-<span class="text-text-low-contrast">24</span>
-<div class="bg-code-modified bg-opacity-25 -mx-4 px-4 py-2 border-l-2 border-secondary"><span class="text-secondary">25</span>         <span class="text-primary">if</span> (!passwordEncoder.matches(password, user.getPassword())) {
-<span class="text-secondary">26</span>             auditLogger.logFailedAttempt(username);
-<span class="text-secondary">27</span>             <span class="text-primary">throw new</span> AuthenticationException(<span class="text-tertiary">"Invalid credentials"</span>);
-<span class="text-secondary">28</span>         }</div>
-<span class="text-text-low-contrast">29</span>
-<span class="text-text-low-contrast">30</span>         auditLogger.logSuccessfulLogin(username);
-<span class="text-text-low-contrast">31</span>         <span class="text-primary">return</span> user;
-<span class="text-text-low-contrast">32</span>     }
-<span class="text-text-low-contrast">33</span>     
-<div class="bg-code-added bg-opacity-25 -mx-4 px-4 py-2 border-l-2 border-primary mt-2"><span class="text-primary">34</span>     <span class="text-primary">public</span> String <span class="text-secondary">generateToken</span>(User user) {
-<span class="text-primary">35</span>         <span class="text-primary">return</span> jwtTokenService.generateToken(user);
-<span class="text-primary">36</span>     }</div>
-<span class="text-text-low-contrast">37</span> }</code></pre>
+                            <pre class="m-0 leading-relaxed"><code class="language-java" id="compare-right-code-pane"><!-- Populated dynamically --></code></pre>
                         </div>
                     </div>
                 </section>
@@ -514,19 +490,7 @@
                 <div class="bg-surface-container-low border border-border-subtle p-4">
                     <h3 class="font-headline-md text-[16px] text-text-high-contrast mb-3">AST Delta Summary</h3>
                     <div id="compare-delta-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="border border-border-subtle p-3 bg-surface-muted hover:border-primary transition-colors cursor-default">
-                            <span class="font-label-caps text-label-caps text-primary block mb-1">ADDED</span>
-                            <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">generateToken(User)</span></p>
-                            <p class="font-table-data text-table-data text-on-surface">Field: <span class="text-text-high-contrast">jwtTokenService</span></p>
-                        </div>
-                        <div class="border border-border-subtle p-3 bg-surface-muted hover:border-secondary transition-colors cursor-default">
-                            <span class="font-label-caps text-label-caps text-secondary block mb-1">MODIFIED</span>
-                            <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">authenticate(String, String)</span></p>
-                        </div>
-                        <div class="border border-border-subtle p-3 bg-surface-muted hover:border-error transition-colors cursor-default">
-                            <span class="font-label-caps text-label-caps text-error block mb-1">REMOVED</span>
-                            <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">generateLegacyToken(User)</span></p>
-                        </div>
+                        <!-- Dynamic Summary Cards -->
                     </div>
                 </div>
             </div>
@@ -1011,6 +975,7 @@
                 };
                 buildFileTree(filesData);
             }
+            selectDiffFile('MyClass.java');
         }
 
         function buildFileTree(data) {
@@ -1299,6 +1264,238 @@
                 header.classList.add('justify-center');
                 body.style.display = 'none';
             }
+        }
+
+        const diffData = {
+            'MyClass.java': {
+                baseHeader: 'base / MyClass.java (v1)',
+                compareHeader: 'compare / MyClass.java (v2)',
+                baseCode: `<span class="text-text-low-contrast">1</span> package com.example;
+<span class="text-text-low-contrast">2</span> 
+<span class="text-text-low-contrast">3</span> public class MyClass {
+<span class="text-text-low-contrast">4</span>     private String name;
+<span class="text-text-low-contrast">5</span>     private int age;
+<div class="h-6"></div>
+<span class="text-text-low-contrast">6</span> 
+<span class="text-text-low-contrast">7</span>     public MyClass() {}
+<span class="text-text-low-contrast">8</span>     
+<div class="h-6"></div>
+<span class="text-text-low-contrast">9</span>     public void printInfo() {
+<span class="text-text-low-contrast">10</span>         System.out.println(name + ": " + age);
+<span class="text-text-low-contrast">11</span>     }
+<div class="h-6"></div>
+<span class="text-text-low-contrast">12</span> }`,
+                compareCode: `<span class="text-text-low-contrast">1</span> package com.example;
+<span class="text-text-low-contrast">2</span> 
+<span class="text-text-low-contrast">3</span> public class MyClass {
+<span class="text-text-low-contrast">4</span>     private String name;
+<span class="text-text-low-contrast">5</span>     private int age;
+<div class="bg-code-added bg-opacity-25 -mx-4 px-4 py-0.5 border-l-2 border-primary"><span class="text-primary">6</span>     private String email; // ADDED</div>
+<span class="text-text-low-contrast">7</span> 
+<span class="text-text-low-contrast">8</span>     public MyClass() {}
+<span class="text-text-low-contrast">9</span> 
+<div class="bg-code-added bg-opacity-25 -mx-4 px-4 py-0.5 border-l-2 border-primary"><span class="text-primary">10</span>     // START_MERGE</div>
+<span class="text-text-low-contrast">11</span>     public void printInfo() {
+<div class="bg-code-modified bg-opacity-25 -mx-4 px-4 py-0.5 border-l-2 border-secondary"><span class="text-secondary">12</span>         System.out.println(name + ": " + age + " (" + email + ")");</div>
+<span class="text-text-low-contrast">13</span>     }
+<div class="bg-code-added bg-opacity-25 -mx-4 px-4 py-0.5 border-l-2 border-primary"><span class="text-primary">14</span>     // END_MERGE</div>
+<span class="text-text-low-contrast">15</span> }`,
+                summary: `
+                    <div class="border border-border-subtle p-3 bg-surface-muted hover:border-primary transition-colors cursor-default">
+                        <span class="font-label-caps text-label-caps text-primary block mb-1">ADDED (2)</span>
+                        <p class="font-table-data text-table-data text-on-surface">Field: <span class="text-text-high-contrast">email</span></p>
+                        <p class="font-table-data text-table-data text-on-surface">Markers: <span class="text-text-high-contrast">START_MERGE / END_MERGE</span></p>
+                    </div>
+                    <div class="border border-border-subtle p-3 bg-surface-muted hover:border-secondary transition-colors cursor-default">
+                        <span class="font-label-caps text-label-caps text-secondary block mb-1">MODIFIED (1)</span>
+                        <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">printInfo()</span></p>
+                    </div>
+                    <div class="border border-border-subtle p-3 bg-surface-muted hover:border-error transition-colors cursor-default">
+                        <span class="font-label-caps text-label-caps text-error block mb-1">REMOVED (0)</span>
+                        <p class="font-table-data text-table-data text-text-low-contrast">No declarations removed</p>
+                    </div>
+                `
+            },
+            'AuthenticationService.java': {
+                baseHeader: 'base / HEAD~1',
+                compareHeader: 'compare / pr-feature-branch',
+                baseCode: `12 @Service
+13 public class AuthenticationService {
+14
+15     private final UserRepository userRepository;
+16     private final PasswordEncoder passwordEncoder;
+17     
+18     // Removed in new version
+<div class="bg-code-removed bg-opacity-25 -mx-4 px-4 py-1 border-l-2 border-error"><span class="text-error">19</span>     private final LegacyTokenProvider tokenProvider;</div>20
+21     public User authenticate(String username, String password) {
+22         User user = userRepository.findByUsername(username)
+23             .orElseThrow(() -> new AuthenticationException("User not found"));
+24
+<div class="bg-code-modified bg-opacity-25 -mx-4 px-4 py-1 border-l-2 border-secondary"><span class="text-secondary">25</span>         if (!passwordEncoder.matches(password, user.getPassword())) {
+26             throw new AuthenticationException("Invalid credentials");
+27         }</div>28
+29         return user;
+30     }
+31     
+32     // Method removed entirely
+<div class="bg-code-removed bg-opacity-25 -mx-4 px-4 py-2 border-l-2 border-error mt-2"><span class="text-error">33</span>     public String generateLegacyToken(User user) {
+34         return tokenProvider.createToken(user.getId());
+35     }</div>36 }`,
+                compareCode: `12 @Service
+13 public class AuthenticationService {
+14
+15     private final UserRepository userRepository;
+16     private final PasswordEncoder passwordEncoder;
+17     
+<div class="bg-code-added bg-opacity-25 -mx-4 px-4 py-1 border-l-2 border-primary"><span class="text-primary">18</span>     private final JwtTokenService jwtTokenService;
+19     private final AuditLogger auditLogger;</div>20
+21     public User authenticate(String username, String password) {
+22         User user = userRepository.findByUsername(username)
+23             .orElseThrow(() -> new AuthenticationException("User not found"));
+24
+<div class="bg-code-modified bg-opacity-25 -mx-4 px-4 py-2 border-l-2 border-secondary"><span class="text-secondary">25</span>         if (!passwordEncoder.matches(password, user.getPassword())) {
+26             auditLogger.logFailedAttempt(username);
+27             throw new AuthenticationException("Invalid credentials");
+28         }</div>29
+30         auditLogger.logSuccessfulLogin(username);
+31         return user;
+32     }
+33     
+<div class="bg-code-added bg-opacity-25 -mx-4 px-4 py-2 border-l-2 border-primary mt-2"><span class="text-primary">34</span>     public String generateToken(User user) {
+35         return jwtTokenService.generateToken(user);
+36     }</div>37 }`,
+                summary: `
+                    <div class="border border-border-subtle p-3 bg-surface-muted hover:border-primary transition-colors cursor-default">
+                        <span class="font-label-caps text-label-caps text-primary block mb-1">ADDED (2)</span>
+                        <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">generateToken(User)</span></p>
+                        <p class="font-table-data text-table-data text-on-surface">Field: <span class="text-text-high-contrast">jwtTokenService</span></p>
+                    </div>
+                    <div class="border border-border-subtle p-3 bg-surface-muted hover:border-secondary transition-colors cursor-default">
+                        <span class="font-label-caps text-label-caps text-secondary block mb-1">MODIFIED (1)</span>
+                        <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">authenticate(String, String)</span></p>
+                    </div>
+                    <div class="border border-border-subtle p-3 bg-surface-muted hover:border-error transition-colors cursor-default">
+                        <span class="font-label-caps text-label-caps text-error block mb-1">REMOVED (2)</span>
+                        <p class="font-table-data text-table-data text-on-surface">Method: <span class="text-text-high-contrast">generateLegacyToken(User)</span></p>
+                        <p class="font-table-data text-table-data text-on-surface">Field: <span class="text-text-high-contrast">tokenProvider</span></p>
+                    </div>
+                `
+            }
+        };
+
+        function selectDiffFile(fileName) {
+            const data = diffData[fileName];
+            if (!data) return;
+
+            document.getElementById('compare-file-header-label').innerText = fileName;
+            document.getElementById('compare-left-header').innerText = data.baseHeader;
+            document.getElementById('compare-right-header').innerText = data.compareHeader;
+            document.getElementById('compare-left-code-pane').innerHTML = data.baseCode;
+            document.getElementById('compare-right-code-pane').innerHTML = data.compareCode;
+            document.getElementById('compare-delta-grid').innerHTML = data.summary;
+
+            if (fileName === 'MyClass.java') {
+                document.getElementById('diff-btn-MyClass').className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
+                document.getElementById('diff-btn-AuthService').className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
+            } else {
+                document.getElementById('diff-btn-AuthService').className = "py-1 px-3 bg-surface-variant border border-border-subtle text-high-contrast text-xs font-code-md cursor-pointer transition-all";
+                document.getElementById('diff-btn-MyClass').className = "py-1 px-3 text-text-low-contrast hover:bg-surface-variant text-xs font-code-md cursor-pointer transition-all";
+            }
+        }
+
+        function runCompareSimulation() {
+            const baseDir = document.getElementById('compare-base-input').value;
+            const featDir = document.getElementById('compare-feature-input').value;
+            
+            const container = document.getElementById('typewriter-container');
+            const prompt = document.getElementById('active-prompt');
+            const selectVal = document.getElementById('selected-input');
+            
+            // Expand terminal if collapsed
+            const panel = document.getElementById('terminal-panel');
+            if (panel.classList.contains('w-12')) {
+                toggleTerminalCollapse();
+            }
+
+            prompt.style.display = 'none';
+            selectVal.innerText = '';
+
+            container.innerHTML = `
+                <div class="text-on-surface-variant">javalens@host:~/workspace$ ./run.sh --interactive</div>
+                <div class="text-on-surface mt-2">Select Operation Mode:</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[1]</span> ANALYZE   - Scan codebase and extract class signatures</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[2]</span> COMPARE   - Contrast two versions of files/folders</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[3]</span> MERGE     - Copy marked portions from source to destination</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[4]</span> CONFIG    - View and edit properties configurations</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[5]</span> EXIT      - Terminate tool</div>
+                <div class="text-on-surface mt-2"><span class="text-primary mr-2">⚡ Select action [1-5]:</span> <span class="text-text-high-contrast font-bold">2</span></div>
+                
+                <div class="text-primary font-bold mt-3">╔══════════════════════════════════════════════════════╗</div>
+                <div class="text-primary font-bold">║            ACTION: COMPARE JAVA VERSIONS             ║</div>
+                <div class="text-primary font-bold">╚══════════════════════════════════════════════════════╝</div>
+                <div class="text-on-surface">▶ Enter Old Version Path: ${baseDir}</div>
+                <div class="text-on-surface">▶ Enter New Version Path: ${featDir}</div>
+                <div class="text-on-surface">▶ Confirm comparison? (y/n) [y]: y</div>
+                
+                <div class="text-secondary-fixed-dim mt-2">[SYS] Loading base AST trees recursively...</div>
+            `;
+
+            const logs = [
+                "[INFO] Loading target features AST trees recursively...",
+                "[SYS] Constructing signatures index mappings...",
+                "  Compare Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0.0%",
+                "  Compare Progress: [██████████████████████████████] 100.0% | COMPLETE",
+                "[OK] Structural diff calculation complete.",
+                "[INFO] compare_methods.csv and compare_attributes.csv written successfully.",
+                "[SYS] Diff viewer caches updated."
+            ];
+
+            let index = 0;
+            function addLogLine() {
+                if (index < logs.length) {
+                    const line = document.createElement('div');
+                    line.className = "text-on-surface font-code-md";
+                    if (logs[index].includes("[OK]")) {
+                        line.className += " text-primary font-bold";
+                    } else if (logs[index].includes("Compare Progress:")) {
+                        line.className += " text-secondary-fixed-dim";
+                    }
+                    line.innerHTML = logs[index];
+                    
+                    if (index > 0 && logs[index].includes("Compare Progress:") && logs[index-1].includes("Compare Progress:")) {
+                        container.lastElementChild.innerHTML = logs[index];
+                    } else {
+                        container.appendChild(line);
+                    }
+
+                    index++;
+                    setTimeout(addLogLine, Math.random() * 150 + 100);
+                    
+                    const termBody = document.getElementById('terminal-body');
+                    termBody.scrollTop = termBody.scrollHeight;
+                } else {
+                    const endDiv = document.createElement('div');
+                    endDiv.innerHTML = `
+                        <div class="text-primary font-bold mt-2">✔ SUCCESS: Structural compare completed in 95ms.</div>
+                        
+                        <div class="text-on-surface mt-4">Select Operation Mode:</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[1]</span> ANALYZE   - Scan codebase and extract class signatures</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[2]</span> COMPARE   - Contrast two versions of files/folders</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[3]</span> MERGE     - Copy marked portions from source to destination</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[4]</span> CONFIG    - View and edit properties configurations</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[5]</span> EXIT      - Terminate tool</div>
+                    `;
+                    container.appendChild(endDiv);
+                    
+                    prompt.style.display = 'flex';
+                    
+                    const termBody = document.getElementById('terminal-body');
+                    termBody.scrollTop = termBody.scrollHeight;
+
+                    selectDiffFile('MyClass.java');
+                }
+            }
+            setTimeout(addLogLine, 300);
         }
     </script>
 </body>
