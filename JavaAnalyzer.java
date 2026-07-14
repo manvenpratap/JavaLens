@@ -62,10 +62,21 @@ public class JavaAnalyzer {
 
         // Walk directory for .java files
         List<Path> javaFiles = new ArrayList<>();
+        Path projectRoot = java.nio.file.Paths.get("").toAbsolutePath();
         Files.walkFileTree(sourceRoot, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                if (file.toString().endsWith(".java")) javaFiles.add(file);
+                if (file.toString().endsWith(".java")) {
+                    try {
+                        Path parentAbs = file.getParent().toAbsolutePath();
+                        if (parentAbs.equals(projectRoot)) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                    javaFiles.add(file);
+                }
                 return FileVisitResult.CONTINUE;
             }
         });
