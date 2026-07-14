@@ -1132,14 +1132,35 @@
             const selectVal = document.getElementById('selected-input');
             const classesMetric = document.getElementById('metric-classes');
             
-            // Reset state
-            container.innerHTML = '<div class="text-on-surface-variant">javalens@host:~/workspace$ java -jar javalens.jar --mode analyze</div>';
+            // Hide input prompt temporarily during scanning
             prompt.style.display = 'none';
             selectVal.innerText = '';
 
+            // Reset container to show the start of the interactive wizard
+            container.innerHTML = `
+                <div class="text-on-surface-variant">javalens@host:~/workspace$ ./run.sh --interactive</div>
+                <div class="text-on-surface mt-2">Select Operation Mode:</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[1]</span> ANALYZE   - Scan codebase and extract class signatures</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[2]</span> COMPARE   - Contrast two versions of files/folders</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[3]</span> MERGE     - Copy marked portions from source to destination</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[4]</span> CONFIG    - View and edit properties configurations</div>
+                <div class="text-on-surface">  <span class="text-primary font-bold">[5]</span> EXIT      - Terminate tool</div>
+                <div class="text-on-surface mt-2"><span class="text-primary mr-2">⚡ Select action [1-5]:</span> <span class="text-text-high-contrast font-bold">1</span></div>
+                
+                <div class="text-primary font-bold mt-3">╔══════════════════════════════════════════════════════╗</div>
+                <div class="text-primary font-bold">║             ACTION: CODEBASE ANALYSIS                ║</div>
+                <div class="text-primary font-bold">╚══════════════════════════════════════════════════════╝</div>
+                <div class="text-on-surface">▶ Enter Source Directory Path [.]: .</div>
+                <div class="text-on-surface">▶ Enter Output Directory Path [java_analysis_output]: java_analysis_output</div>
+                <div class="text-on-surface">▶ Enter Parallel Threads [10]: 10</div>
+                <div class="text-on-surface">▶ Confirm execution? (y/n) [y]: y</div>
+                
+                <div class="text-secondary-fixed-dim mt-2">[SYS] Initiating AST scan thread-pool...</div>
+            `;
+
             const logs = [
                 "[INFO] Loading properties configuration...",
-                "[SYS] Scanner thread-pool created with 8 concurrent tasks.",
+                "[SYS] Scanner thread-pool created with 10 concurrent tasks.",
                 "[INFO] Traversing repository folder structure recursively...",
                 "  Analyze Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0.0% | 0 files/s | ETA 0s",
                 "  Analyze Progress: [████████░░░░░░░░░░░░░░░░░░░░░░] 26.5% | 4500 files/s | ETA 3s",
@@ -1148,7 +1169,8 @@
                 "[OK] Extracted all Compilation Unit AST signatures cleanly.",
                 "[SYS] Discarding tree nodes from memory queue to free JVM heap.",
                 "[OK] Successfully parsed 14,285 classes.",
-                "[INFO] Reports generated: java_attributes.csv, java_methods.csv"
+                "[INFO] Reports generated: java_attributes.csv, java_methods.csv",
+                "[SYS] Auto-load dashboard database updated."
             ];
 
             let index = 0;
@@ -1178,9 +1200,26 @@
                     const termBody = document.getElementById('terminal-body');
                     termBody.scrollTop = termBody.scrollHeight;
                 } else {
+                    // Print success notice and reprint mode selection mode menu
+                    const endDiv = document.createElement('div');
+                    endDiv.innerHTML = `
+                        <div class="text-primary font-bold mt-2">✔ SUCCESS: Codebase analysis finished in 180ms.</div>
+                        
+                        <div class="text-on-surface mt-4">Select Operation Mode:</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[1]</span> ANALYZE   - Scan codebase and extract class signatures</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[2]</span> COMPARE   - Contrast two versions of files/folders</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[3]</span> MERGE     - Copy marked portions from source to destination</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[4]</span> CONFIG    - View and edit properties configurations</div>
+                        <div class="text-on-surface">  <span class="text-primary font-bold">[5]</span> EXIT      - Terminate tool</div>
+                    `;
+                    container.appendChild(endDiv);
+                    
+                    // Show final prompt at the bottom
                     prompt.style.display = 'flex';
-                    selectVal.innerText = ' 1';
                     classesMetric.innerText = '14,285';
+                    
+                    const termBody = document.getElementById('terminal-body');
+                    termBody.scrollTop = termBody.scrollHeight;
                 }
             }
             setTimeout(addLogLine, 300);
