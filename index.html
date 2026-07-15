@@ -414,9 +414,14 @@
                     <!-- Right tables (9 cols) -->
                     <div class="lg:col-span-9 bg-surface-deep border border-border-subtle flex flex-col h-full min-h-0 overflow-hidden">
                         <div class="p-3 border-b border-border-subtle bg-surface-container-low flex items-center justify-between">
-                            <div class="flex gap-2">
-                                <button onclick="toggleTableSubTab('methods')" id="subtab-methods" class="px-3 py-1 text-table-data font-table-data bg-surface-variant border border-border-subtle text-high-contrast cursor-pointer transition-all duration-150">Methods</button>
-                                <button onclick="toggleTableSubTab('attributes')" id="subtab-attributes" class="px-3 py-1 text-table-data font-table-data text-text-low-contrast hover:bg-surface-variant cursor-pointer transition-all duration-150">Attributes</button>
+                            <div class="flex items-center gap-4">
+                                <div class="flex gap-2">
+                                    <button onclick="toggleTableSubTab('methods')" id="subtab-methods" class="px-3 py-1 text-table-data font-table-data bg-surface-variant border border-border-subtle text-high-contrast cursor-pointer transition-all duration-150">Methods</button>
+                                    <button onclick="toggleTableSubTab('attributes')" id="subtab-attributes" class="px-3 py-1 text-table-data font-table-data text-text-low-contrast hover:bg-surface-variant cursor-pointer transition-all duration-150">Attributes</button>
+                                </div>
+                                <span class="text-[11px] text-text-low-contrast font-code-md select-all">
+                                    File: <span class="text-primary font-bold" id="table-active-file-label">ASTAnalyzer.java</span>
+                                </span>
                             </div>
                             <div class="flex gap-2">
                                 <a id="download-methods-csv" href="#" download class="flex items-center gap-1 text-table-data font-table-data text-primary hover:text-high-contrast px-2 py-1 border border-border-subtle cursor-pointer transition-colors">
@@ -1098,6 +1103,10 @@
                 if (fileHeader) {
                     fileHeader.innerText = '—';
                 }
+                const activeFileLabel = document.getElementById('table-active-file-label');
+                if (activeFileLabel) {
+                    activeFileLabel.innerText = '—';
+                }
                 return;
             }
             
@@ -1154,6 +1163,8 @@
 
             const fileName = fileKey.substring(fileKey.lastIndexOf('/') + 1);
             document.getElementById('analysis-file-header').innerText = fileName;
+            const activeFileLabel = document.getElementById('table-active-file-label');
+            if (activeFileLabel) activeFileLabel.innerText = fileName;
             renderAnalysisTable();
         }
 
