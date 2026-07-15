@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
-    <script src="java_report_data.js" onerror="console.log('No report data file found; using default demo dataset.')"></script>
+    <script id="report-data-script" src="java_report_data.js" onerror="console.log('No report data file found; using default demo dataset.')"></script>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>JavaLens - High-Performance AST Dashboard</title>
@@ -456,7 +456,7 @@
                             <input id="compare-feature-input" class="bg-surface-deep border-b border-border-subtle px-2 py-1 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary w-full" type="text" value="test_workspace/v2">
                         </div>
                     </div>
-                    <button onclick="runCompareSimulation()" class="btn-primary py-2 px-6 bg-primary text-surface-deep font-body-md text-xs font-bold border border-primary cursor-pointer flex items-center gap-1.5 flex-shrink-0 transition-all">
+                    <button onclick="runCompare()" class="btn-primary py-2 px-6 bg-primary text-surface-deep font-body-md text-xs font-bold border border-primary cursor-pointer flex items-center gap-1.5 flex-shrink-0 transition-all">
                         <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
                         Compare Codebases
                     </button>
@@ -606,7 +606,7 @@
 
                     <!-- Trigger CTA -->
                     <div class="flex justify-end border-t border-border-subtle pt-6" id="merge-action-div">
-                        <button onclick="triggerMergeSim()" class="py-3 px-8 bg-primary text-surface-deep font-body-md font-bold border border-primary hover:bg-opacity-90 transition-all cursor-pointer" id="merge-trigger-btn">
+                        <button onclick="triggerMerge()" class="py-3 px-8 bg-primary text-surface-deep font-body-md font-bold border border-primary hover:bg-opacity-90 transition-all cursor-pointer" id="merge-trigger-btn">
                             Initiate Code Merge
                         </button>
                     </div>
@@ -674,20 +674,24 @@
                         </div>
                         <div class="flex flex-col gap-2">
                             <label class="font-label-caps text-label-caps text-on-surface-variant">Default Output Directory</label>
-                            <input class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="java_analysis_output">
+                            <input id="settings-output-dir" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="java_analysis_output">
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="font-label-caps text-label-caps text-on-surface-variant">Parallel Analysis Threads</label>
+                            <input id="settings-threads" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="number" value="10">
                         </div>
                         <div class="flex flex-col gap-2">
                             <label class="font-label-caps text-label-caps text-on-surface-variant">Start Marker Tag</label>
-                            <input class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="// START_MERGE">
+                            <input id="settings-start-marker" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="// START_MERGE">
                         </div>
                         <div class="flex flex-col gap-2">
                             <label class="font-label-caps text-label-caps text-on-surface-variant">End Marker Tag</label>
-                            <input class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="// END_MERGE">
+                            <input id="settings-end-marker" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-code-md focus:outline-none focus:border-secondary w-full" type="text" value="// END_MERGE">
                         </div>
 
                         <div class="flex justify-end gap-3 mt-4 border-t border-border-subtle pt-4">
                             <button class="py-2 px-4 border border-border-subtle text-text-high-contrast hover:border-high-contrast transition-colors font-body-md text-body-md cursor-pointer">Reset</button>
-                            <button onclick="saveSettingsSim()" class="py-2 px-6 bg-primary text-surface-deep border border-primary font-body-md text-body-md font-bold hover:bg-opacity-90 transition-all cursor-pointer">Save Properties</button>
+                            <button onclick="saveSettings()" class="py-2 px-6 bg-primary text-surface-deep border border-primary font-body-md text-body-md font-bold hover:bg-opacity-90 transition-all cursor-pointer">Save Properties</button>
                         </div>
                     </div>
                 </section>
@@ -932,7 +936,11 @@
             if (settingsSrc) settingsSrc.value = activeWorkspace;
             
             closeWorkspaceModal();
-            triggerAnalyzeSim();
+            if (window.location.protocol.startsWith('http')) {
+                triggerRealAnalyze(wsPath);
+            } else {
+                triggerAnalyzeSim();
+            }
         }
 
         // 4. File Tree details data source loading
@@ -1941,6 +1949,325 @@
             }
             setTimeout(addLogLine, 300);
         }
+
+        // ── Real API Integration Methods ───────────────────────────────────────────
+        
+        async function fetchRealConfig() {
+            if (!window.location.protocol.startsWith('http')) return;
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                
+                const wsInput = document.getElementById('workspace-input-path');
+                if (wsInput && config.sourceFolder) wsInput.value = config.sourceFolder;
+                
+                const settingsSrc = document.getElementById('settings-source-folder');
+                if (settingsSrc && config.sourceFolder) settingsSrc.value = config.sourceFolder;
+                
+                const outDirInput = document.getElementById('settings-output-dir');
+                if (outDirInput && config.outputDir) outDirInput.value = config.outputDir;
+                
+                const startMarkerInput = document.getElementById('settings-start-marker');
+                if (startMarkerInput && config.startMarker) startMarkerInput.value = config.startMarker;
+                
+                const endMarkerInput = document.getElementById('settings-end-marker');
+                if (endMarkerInput && config.endMarker) endMarkerInput.value = config.endMarker;
+                
+                const threadsInput = document.getElementById('settings-threads');
+                if (threadsInput && config.threads) threadsInput.value = config.threads;
+
+                const compareOldInput = document.getElementById('compare-old-path');
+                if (compareOldInput && config.oldPath) compareOldInput.value = config.oldPath;
+
+                const compareNewInput = document.getElementById('compare-new-path');
+                if (compareNewInput && config.newPath) compareNewInput.value = config.newPath;
+
+                const mergeOldInput = document.getElementById('merge-old-path');
+                if (mergeOldInput && config.oldPath) mergeOldInput.value = config.oldPath;
+
+                const mergeNewInput = document.getElementById('merge-new-path');
+                if (mergeNewInput && config.newPath) mergeNewInput.value = config.newPath;
+                
+                updateDefaultOutputPreview();
+            } catch (e) {
+                console.error("Failed to fetch real config:", e);
+            }
+        }
+
+        function saveSettings() {
+            const srcDir = document.getElementById('settings-source-folder').value.trim();
+            const outDir = document.getElementById('settings-output-dir').value.trim();
+            const startMarker = document.getElementById('settings-start-marker').value;
+            const endMarker = document.getElementById('settings-end-marker').value;
+            const threads = document.getElementById('settings-threads').value.trim();
+            
+            if (window.location.protocol.startsWith('http')) {
+                fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `sourceFolder=${encodeURIComponent(srcDir)}&outputDir=${encodeURIComponent(outDir)}&startMarker=${encodeURIComponent(startMarker)}&endMarker=${encodeURIComponent(endMarker)}&threads=${encodeURIComponent(threads)}`
+                }).then(response => {
+                    if (response.ok) {
+                        showTermLog(`[OK] Properties stored inside analyzer.properties successfully.`);
+                    } else {
+                        showTermLog(`[ERROR] Failed to save properties to server.`);
+                    }
+                }).catch(e => {
+                    showTermLog(`[ERROR] Save properties request failed: ${e.message}`);
+                });
+            } else {
+                saveSettingsSim();
+            }
+        }
+
+        function triggerRealAnalyze(wsPath) {
+            switchTab('dashboard');
+            const container = document.getElementById('typewriter-container');
+            const prompt = document.getElementById('active-prompt');
+            const selectVal = document.getElementById('selected-input');
+            
+            const panel = document.getElementById('terminal-panel');
+            if (panel && panel.classList.contains('w-12')) {
+                toggleTerminalCollapse();
+            }
+            
+            prompt.style.display = 'none';
+            selectVal.innerText = '';
+            container.innerHTML = `
+                <div class="text-on-surface-variant">javalens@host:~/workspace$ ./run.sh --mode analyze --source ${wsPath}</div>
+                <div class="text-secondary-fixed-dim mt-2">[SYS] Initiating real-time AST codebase scan...</div>
+            `;
+            
+            const termBody = document.getElementById('terminal-body');
+            
+            runRealApiCommand(
+                '/api/analyze',
+                `sourceFolder=${encodeURIComponent(wsPath)}`,
+                (line) => {
+                    const div = document.createElement('div');
+                    div.className = "text-on-surface font-code-md text-xs";
+                    if (line.includes("[OK]") || line.includes("✔") || line.includes("SUCCESS")) {
+                        div.className += " text-primary font-bold";
+                    } else if (line.includes("[ERROR]") || line.includes("failed")) {
+                        div.className += " text-error font-bold";
+                    } else if (line.includes("Progress:")) {
+                        div.className += " text-secondary-fixed-dim";
+                    }
+                    div.innerHTML = line.replace(/ /g, '&nbsp;');
+                    
+                    if (line.includes("Progress:") && container.lastElementChild && container.lastElementChild.innerHTML.includes("Progress:")) {
+                        container.lastElementChild.innerHTML = div.innerHTML;
+                    } else {
+                        container.appendChild(div);
+                    }
+                    termBody.scrollTop = termBody.scrollHeight;
+                },
+                (success) => {
+                    prompt.style.display = 'flex';
+                    termBody.scrollTop = termBody.scrollHeight;
+                    if (success) {
+                        reloadReportData();
+                    }
+                }
+            );
+        }
+
+        function runCompare() {
+            if (!window.location.protocol.startsWith('http')) {
+                runCompareSimulation();
+                return;
+            }
+            
+            const baseDir = document.getElementById('compare-base-input').value.trim();
+            const featDir = document.getElementById('compare-feature-input').value.trim();
+            
+            const container = document.getElementById('typewriter-container');
+            const prompt = document.getElementById('active-prompt');
+            const selectVal = document.getElementById('selected-input');
+            
+            const panel = document.getElementById('terminal-panel');
+            if (panel && panel.classList.contains('w-12')) {
+                toggleTerminalCollapse();
+            }
+            
+            prompt.style.display = 'none';
+            selectVal.innerText = '';
+            container.innerHTML = `
+                <div class="text-on-surface-variant">javalens@host:~/workspace$ ./run.sh --mode compare --old ${baseDir} --new ${featDir}</div>
+                <div class="text-secondary-fixed-dim mt-2">[SYS] Initiating structural codebase compare...</div>
+            `;
+            
+            const termBody = document.getElementById('terminal-body');
+            
+            runRealApiCommand(
+                '/api/compare',
+                `oldPath=${encodeURIComponent(baseDir)}&newPath=${encodeURIComponent(featDir)}`,
+                (line) => {
+                    const div = document.createElement('div');
+                    div.className = "text-on-surface font-code-md text-xs";
+                    if (line.includes("[OK]") || line.includes("✔") || line.includes("SUCCESS")) {
+                        div.className += " text-primary font-bold";
+                    } else if (line.includes("[ERROR]") || line.includes("failed")) {
+                        div.className += " text-error font-bold";
+                    } else if (line.includes("Progress:")) {
+                        div.className += " text-secondary-fixed-dim";
+                    }
+                    div.innerHTML = line.replace(/ /g, '&nbsp;');
+                    
+                    if (line.includes("Progress:") && container.lastElementChild && container.lastElementChild.innerHTML.includes("Progress:")) {
+                        container.lastElementChild.innerHTML = div.innerHTML;
+                    } else {
+                        container.appendChild(div);
+                    }
+                    termBody.scrollTop = termBody.scrollHeight;
+                },
+                (success) => {
+                    prompt.style.display = 'flex';
+                    termBody.scrollTop = termBody.scrollHeight;
+                    if (success) {
+                        reloadReportData();
+                    }
+                }
+            );
+        }
+
+        function triggerMerge() {
+            if (!window.location.protocol.startsWith('http')) {
+                triggerMergeSim();
+                return;
+            }
+            
+            const srcPath = document.getElementById('merge-src').value.trim();
+            const destPath = document.getElementById('merge-dest').value.trim();
+            const startMarker = document.getElementById('settings-start-marker').value;
+            const endMarker = document.getElementById('settings-end-marker').value;
+            
+            const btn = document.getElementById('merge-trigger-btn');
+            btn.innerHTML = '<span class="flex items-center gap-2"><span class="material-symbols-outlined animate-spin text-sm">sync</span> Merging files...</span>';
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            btn.disabled = true;
+            
+            const container = document.getElementById('typewriter-container');
+            const prompt = document.getElementById('active-prompt');
+            const selectVal = document.getElementById('selected-input');
+            
+            const panel = document.getElementById('terminal-panel');
+            if (panel && panel.classList.contains('w-12')) {
+                toggleTerminalCollapse();
+            }
+            
+            prompt.style.display = 'none';
+            selectVal.innerText = '';
+            container.innerHTML = `
+                <div class="text-on-surface-variant">javalens@host:~/workspace$ ./run.sh --mode merge --old ${srcPath} --new ${destPath}</div>
+                <div class="text-secondary-fixed-dim mt-2">[SYS] Initiating marker-guided code merge...</div>
+            `;
+            
+            const termBody = document.getElementById('terminal-body');
+            
+            runRealApiCommand(
+                '/api/merge',
+                `oldPath=${encodeURIComponent(srcPath)}&newPath=${encodeURIComponent(destPath)}&startMarker=${encodeURIComponent(startMarker)}&endMarker=${encodeURIComponent(endMarker)}`,
+                (line) => {
+                    const div = document.createElement('div');
+                    div.className = "text-on-surface font-code-md text-xs";
+                    if (line.includes("[OK]") || line.includes("✔") || line.includes("SUCCESS")) {
+                        div.className += " text-primary font-bold";
+                    } else if (line.includes("[ERROR]") || line.includes("failed")) {
+                        div.className += " text-error font-bold";
+                    }
+                    div.innerHTML = line.replace(/ /g, '&nbsp;');
+                    container.appendChild(div);
+                    termBody.scrollTop = termBody.scrollHeight;
+                },
+                (success) => {
+                    btn.innerHTML = 'Initiate Code Merge';
+                    btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                    btn.disabled = false;
+                    prompt.style.display = 'flex';
+                    termBody.scrollTop = termBody.scrollHeight;
+                    
+                    if (success) {
+                        btn.style.display = 'none';
+                        const successPane = document.getElementById('merge-success-pane');
+                        if (successPane) successPane.classList.remove('hidden');
+                    }
+                }
+            );
+        }
+
+        async function runRealApiCommand(endpoint, bodyString, onLog, onDone) {
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: bodyString
+                });
+                
+                if (!response.body) {
+                    onLog("[ERROR] ReadableStream not supported or no body returned.");
+                    onDone(false);
+                    return;
+                }
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+                    
+                    for (const line of lines) {
+                        onLog(line);
+                    }
+                }
+                
+                if (buffer) {
+                    onLog(buffer);
+                }
+                onDone(true);
+            } catch (e) {
+                onLog("[ERROR] API Execution failed: " + e.message);
+                onDone(false);
+            }
+        }
+
+        function reloadReportData(callback) {
+            const oldScript = document.getElementById('report-data-script');
+            if (oldScript) oldScript.remove();
+            
+            const script = document.createElement('script');
+            script.id = 'report-data-script';
+            script.src = 'java_report_data.js?t=' + Date.now();
+            script.onload = () => {
+                initData();
+                if (callback) callback();
+            };
+            script.onerror = () => {
+                console.error("Failed to load java_report_data.js");
+            };
+            document.body.appendChild(script);
+        }
+
+        function showTermLog(text, className = "text-primary font-bold") {
+            const container = document.getElementById('typewriter-container');
+            if (container) {
+                const line = document.createElement('div');
+                line.className = className + " font-code-md text-xs mt-1";
+                line.innerText = text;
+                container.appendChild(line);
+                const termBody = document.getElementById('terminal-body');
+                if (termBody) termBody.scrollTop = termBody.scrollHeight;
+            }
+        }
+
+        // Fetch configs on page load
+        fetchRealConfig();
     </script>
 
     <!-- Workspace Selection Modal -->

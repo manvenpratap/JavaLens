@@ -35,6 +35,8 @@ public class JavaAnalyzer {
             CompareEngine.execute(config);
         } else if (config.getMode() == Config.Mode.MERGE) {
             MergeEngine.execute(config);
+        } else if (config.getMode() == Config.Mode.SERVER) {
+            WebServer.start(8080);
         } else {
             runAnalyze(config);
         }

@@ -8,7 +8,7 @@ import java.util.Properties;
 
 public class Config {
     public enum Mode {
-        ANALYZE, COMPARE, MERGE, INTERACTIVE
+        ANALYZE, COMPARE, MERGE, INTERACTIVE, SERVER
     }
 
     private Mode mode = Mode.ANALYZE;
@@ -153,7 +153,7 @@ public class Config {
         return config;
     }
 
-    private void loadProperties(String path) {
+    public void loadProperties(String path) {
         if (!Files.exists(Paths.get(path))) {
             return;
         }
@@ -227,4 +227,39 @@ public class Config {
     public String getActiveRunFolder() { return activeRunFolder; }
     public boolean isCompareEnabled() { return compareEnabled; }
     public boolean isMergeEnabled() { return mergeEnabled; }
+
+    // Setters
+    public void setMode(Mode mode) { this.mode = mode; }
+    public void setOldPath(String oldPath) { this.oldPath = oldPath; }
+    public void setNewPath(String newPath) { this.newPath = newPath; }
+    public void setStartMarker(String startMarker) { this.startMarker = startMarker; }
+    public void setEndMarker(String endMarker) { this.endMarker = endMarker; }
+    public void setOutputDir(String outputDir) { this.outputDir = outputDir; }
+    public void setThreads(int threads) { this.threads = threads; }
+    public void setSourceFolder(String sourceFolder) { this.sourceFolder = sourceFolder; }
+    public void setActiveRunFolder(String activeRunFolder) { this.activeRunFolder = activeRunFolder; }
+
+    public void saveProperties(String path) {
+        Properties props = new Properties();
+        File propFile = new File(path);
+        if (propFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(propFile)) {
+                props.load(fis);
+            } catch (IOException e) { /* ignore */ }
+        }
+        props.setProperty("enhancement.compare.enabled", String.valueOf(compareEnabled));
+        props.setProperty("enhancement.merge.enabled", String.valueOf(mergeEnabled));
+        props.setProperty("merge.start_marker", startMarker);
+        props.setProperty("merge.end_marker", endMarker);
+        props.setProperty("compare.output_dir", outputDir);
+        props.setProperty("active.run_folder", activeRunFolder);
+        props.setProperty("source.folder", sourceFolder);
+        props.setProperty("threads", String.valueOf(threads));
+
+        try (FileOutputStream fos = new FileOutputStream(propFile)) {
+            props.store(fos, "Saved configuration from JavaLens web API");
+        } catch (IOException e) {
+            System.err.println("Warning: Failed to save properties: " + e.getMessage());
+        }
+    }
 }
