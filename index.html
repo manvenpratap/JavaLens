@@ -380,6 +380,25 @@
                     <p class="font-body-lg text-body-lg text-on-surface-variant mt-1 max-w-2xl">Detailed structural breakdown of extracted methods, attributes, and access permissions.</p>
                 </section>
 
+                <!-- Interactive Path Input for Analysis -->
+                <section class="glass-panel p-3 flex flex-col md:flex-row items-center gap-4 justify-between">
+                    <div class="flex flex-grow w-full md:w-auto items-center gap-3">
+                        <div class="flex flex-col gap-1 w-full">
+                            <label class="font-label-caps text-label-caps text-on-surface-variant uppercase text-[10px]">Source Folder / Workspace Path</label>
+                            <div class="flex gap-2">
+                                <input id="analysis-source-input" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary flex-grow" type="text" value="." placeholder="e.g. . or test_workspace/v1">
+                                <button onclick="triggerAnalysisFolderBrowse()" class="py-2 px-3 bg-surface-variant hover:bg-surface-container-high border border-border-subtle text-xs text-text-high-contrast cursor-pointer transition-colors flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">folder</span> Browse...
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="runAnalysisFromTab()" class="btn-primary py-2 px-6 bg-primary text-surface-deep font-body-md text-xs font-bold border border-primary cursor-pointer flex items-center gap-1.5 flex-shrink-0 transition-all">
+                        <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+                        Scan Codebase
+                    </button>
+                </section>
+
                 <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow min-h-0">
                     <!-- File tree left (3 cols) -->
                     <div class="lg:col-span-3 bg-surface-container-low border border-border-subtle flex flex-col h-full min-h-0">
@@ -1963,6 +1982,9 @@
                 
                 const settingsSrc = document.getElementById('settings-source-folder');
                 if (settingsSrc && config.sourceFolder) settingsSrc.value = config.sourceFolder;
+
+                const analysisSrc = document.getElementById('analysis-source-input');
+                if (analysisSrc && config.sourceFolder) analysisSrc.value = config.sourceFolder;
                 
                 const outDirInput = document.getElementById('settings-output-dir');
                 if (outDirInput && config.outputDir) outDirInput.value = config.outputDir;
@@ -2288,6 +2310,48 @@
             
             // Local fallback to standard HTML webkitdirectory input
             document.getElementById('workspace-file-picker').click();
+        }
+
+        async function triggerAnalysisFolderBrowse() {
+            if (window.location.protocol.startsWith('http')) {
+                try {
+                    const response = await fetch('/api/browse', { method: 'POST' });
+                    if (response.status === 200) {
+                        const path = await response.text();
+                        if (path) {
+                            const input = document.getElementById('analysis-source-input');
+                            if (input) input.value = path;
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Native folder chooser failed or headless fallback: ", e);
+                }
+            }
+            document.getElementById('workspace-file-picker').click();
+        }
+
+        function runAnalysisFromTab() {
+            const wsPath = document.getElementById('analysis-source-input').value.trim();
+            if (!wsPath) {
+                alert('Please enter a source folder path.');
+                return;
+            }
+            activeWorkspace = wsPath;
+            
+            // Sync with other path inputs
+            const wsInput = document.getElementById('workspace-input-path');
+            if (wsInput) wsInput.value = activeWorkspace;
+            const settingsSrc = document.getElementById('settings-source-folder');
+            if (settingsSrc) settingsSrc.value = activeWorkspace;
+            
+            updateDefaultOutputPreview();
+            
+            if (window.location.protocol.startsWith('http')) {
+                triggerRealAnalyze(activeWorkspace);
+            } else {
+                triggerAnalyzeSim();
+            }
         }
 
         // Fetch configs on page load
