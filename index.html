@@ -2266,6 +2266,30 @@
             }
         }
 
+        async function triggerWorkspaceFolderBrowse() {
+            if (window.location.protocol.startsWith('http')) {
+                try {
+                    const response = await fetch('/api/browse', { method: 'POST' });
+                    if (response.status === 200) {
+                        const path = await response.text();
+                        if (path) {
+                            const wsInput = document.getElementById('workspace-input-path');
+                            if (wsInput) {
+                                wsInput.value = path;
+                                updateDefaultOutputPreview();
+                            }
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Native folder chooser failed or headless fallback: ", e);
+                }
+            }
+            
+            // Local fallback to standard HTML webkitdirectory input
+            document.getElementById('workspace-file-picker').click();
+        }
+
         // Fetch configs on page load
         fetchRealConfig();
     </script>
@@ -2291,7 +2315,7 @@
                 <label class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Workspace Path (Source Folder)</label>
                 <div class="flex gap-2">
                     <input id="workspace-input-path" class="bg-surface-deep border-b border-border-subtle px-3 py-2 text-text-high-contrast font-code-md text-xs focus:outline-none focus:border-primary flex-grow" type="text" value="/Volumes/Study/Projects/java-analyzer-project" oninput="updateDefaultOutputPreview()">
-                    <button onclick="document.getElementById('workspace-file-picker').click()" class="py-2 px-3 bg-surface-variant hover:bg-surface-container-high border border-border-subtle text-xs text-text-high-contrast cursor-pointer transition-colors flex items-center gap-1">
+                    <button onclick="triggerWorkspaceFolderBrowse()" class="py-2 px-3 bg-surface-variant hover:bg-surface-container-high border border-border-subtle text-xs text-text-high-contrast cursor-pointer transition-colors flex items-center gap-1">
                         <span class="material-symbols-outlined text-[14px]">folder</span> Browse...
                     </button>
                 </div>

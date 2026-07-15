@@ -1,6 +1,9 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import java.awt.EventQueue;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
@@ -17,6 +20,7 @@ public class WebServer {
     private static final PrintStream originalErr = System.err;
 
     public static void start(int preferredPort) throws IOException {
+        System.setProperty("java.awt.headless", "false");
         HttpServer server = null;
         int port = preferredPort;
         while (port < preferredPort + 100) {
@@ -37,6 +41,7 @@ public class WebServer {
         server.createContext("/api/analyze", new AnalyzeHandler());
         server.createContext("/api/compare", new CompareHandler());
         server.createContext("/api/merge", new MergeHandler());
+        server.createContext("/api/browse", new BrowseHandler());
         server.setExecutor(null); // default executor
         server.start();
         System.out.println("=================================================");
@@ -334,5 +339,48 @@ public class WebServer {
     private static String escapeJson(String raw) {
         if (raw == null) return "";
         return raw.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private static class BrowseHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+
+            if (java.awt.GraphicsEnvironment.isHeadless()) {
+                sendTextResponse(exchange, 500, "Error: Headless environment does not support file selection dialog.");
+                return;
+            }
+
+            final String[] selectedPath = new String[]{""};
+            try {
+                EventQueue.invokeAndWait(() -> {
+                    JFrame frame = new JFrame();
+                    frame.setAlwaysOnTop(true);
+                    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+                    JFileChooser chooser = new JFileChooser();
+                    chooser.setDialogTitle("Select JavaLens Workspace Folder");
+                    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+                    int returnVal = chooser.showOpenDialog(frame);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        selectedPath[0] = chooser.getSelectedFile().getAbsolutePath();
+                    }
+                    frame.dispose();
+                });
+            } catch (Exception e) {
+                sendTextResponse(exchange, 500, "Error: " + e.getMessage());
+                return;
+            }
+
+            if (!selectedPath[0].isEmpty()) {
+                sendTextResponse(exchange, 200, selectedPath[0]);
+            } else {
+                sendTextResponse(exchange, 204, "No folder selected");
+            }
+        }
     }
 }
