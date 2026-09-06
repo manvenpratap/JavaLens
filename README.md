@@ -1,132 +1,312 @@
-# JavaLens
+# JavaLens — Precision AST Static Analysis & Telemetry Engine
 
-An AST-based static analyzer for Java source repositories. Scans folders recursively, parsing file constructs using the standard Java Compiler Tree API. Includes directory-level analysis, diff comparison between versions, marker-guided merging, and a fully interactive terminal CLI wizard.
+[![Java 17+](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://openjdk.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen.svg)]()
+[![Architecture](https://img.shields.io/badge/architecture-stream--based-purple.svg)]()
+
+**JavaLens** is a high-performance, zero-external-dependency static analysis and codebase synthesis platform for Java repositories. Powered directly by the **Java Compiler Tree API** (`com.sun.source.tree`), JavaLens extracts deep semantic structures, field definitions, and overloaded method signatures with microsecond latency.
+
+It includes an interactive terminal wizard, high-throughput CLI modes, marker-guided code merging, a consolidated unified activity report generator, and a modern **Precision Dark Engineering** Web GUI.
 
 ---
 
-## Features
+## Key Capabilities
 
-* **Codebase Analysis**: Recursively extracts Java class attributes and overloaded method signatures into structured CSV datasets.
-* **Diff Comparator**: Evaluates attributes and method signatures between two codebases (or two files), generating delta reports (`comparison_attributes.csv` and `comparison_methods.csv`).
-* **Marker-Guided Merge**: Selectively copies blocks of code from a source repository (new version) to a destination repository (old version) governed by custom markers.
-* **Interactive CLI Wizard**: Configure modes, paths, thread sizes, and markers, monitor execution status, and view formatted CSV report tables directly in the terminal interface.
+* **Codebase AST Extraction**: Recursively parses compilation units to extract comprehensive field attributes, modifiers, initializers, annotations, and method signatures (return types, parameters, arity, exceptions, annotations, and member kind).
+* **Semantic Diff Comparator**: Contrasts two codebases (or individual files), categorizing member changes into `UNCHANGED`, `ADDED`, `MODIFIED`, and `REMOVED`.
+* **Marker-Guided Merge Engine**: Safely transfers marked code blocks between versions (e.g. `// START_MERGE ... // END_MERGE`) without disrupting outer structure.
+* **Unified Activity Report Pipeline**: Executes the end-to-end automated pipeline (**analyze baseline → analyze new feature → compare deltas → merge marker blocks → re-analyze merged output**), tracking which attributes and methods are `NEWLY_ADDED`, `ORIGINAL`, `MODIFIED_BY_MERGE`, or `REMOVED` in a single consolidated CSV report.
+* **Modern Web GUI Dashboard**: Built-in HTTP server (`-m server`) hosting a high-craft engineering console with real-time streaming telemetry, AST signature inspectors with live search & modifier chips, side-by-side synchronized diff viewers, and one-click CSV report exports.
+* **Interactive CLI Wizard**: Terminal guide (`-i` / `--interactive`) with ANSI colorized banners, step-by-step parameter prompts, progress monitors, and ASCII result tables.
+* **Self-Contained Fat JAR**: `javalens.jar` packages all compiled classes along with `README.md`, `index.html`, and `analyzer.properties` for instant zero-config portability.
 
 ---
 
 ## Requirements
 
-* **JDK 17 or higher** (JDK is required to support the Compiler APIs).
-* No external dependencies — compiled entirely using standard JDK libraries.
+* **JDK 17 or higher** (OpenJDK, Eclipse Temurin, Amazon Corretto, or Oracle JDK).
+* **Zero external libraries**: Built entirely with standard JDK modules (`jdk.compiler`, `java.desktop`, `jdk.httpserver`).
 
 ---
 
 ## Quick Start
 
-### 1. Build the JAR
-Run the appropriate compiler script in your terminal:
+### 1. Build the Self-Contained JAR
+Compile all classes and bundle `README.md`, `index.html`, and default `analyzer.properties` into `javalens.jar`:
 ```bash
-# Linux / macOS
+# macOS / Linux
 ./build.sh
 
 # Windows
 build.bat
 ```
 
-### 2. Launch the Interactive CLI Wizard (Recommended)
-Start the terminal guide by running with no arguments, or pass `-i` / `--interactive`:
+### 2. Launch the Web GUI (Recommended)
+Start the built-in HTTP server:
 ```bash
-# Run wizard
+./run.sh -m server
+```
+Open **[http://localhost:8080](http://localhost:8080)** in your browser to access the complete visual workspace.
+
+### 3. Launch the Interactive Terminal Wizard
+```bash
+# Interactive wizard
 ./run.sh -i
 
-# Or simply run with no arguments
+# Or launch with no arguments to default to the wizard
 ./run.sh
 ```
-This boots up the interactive setup, monitors parses in real-time, and outputs formatted color-coded ASCII summaries directly into the console!
 
-### 3. Run directly from the CLI (Non-interactive)
-You can launch any mode directly via the command line options:
+### 4. Run Directly via CLI
+```bash
+# Unified Pipeline & Report (Analyze -> Compare -> Merge -> Report)
+./run.sh --mode report --old /path/to/v1 --new /path/to/v2 --output-dir ./reports
 
-* **Analyze Mode**: Scans repository AST.
-  ```bash
-  ./run.sh --mode analyze --source /path/to/src --output-dir ./java_analysis_output
-  ```
-* **Compare Mode**: Generates a delta report of changes between two versions.
-  ```bash
-  ./run.sh --mode compare --old /path/to/old/src --new /path/to/new/src --output-dir ./diff_report
-  ```
-* **Merge Mode**: Merges code blocks between markers (default: `// START_MERGE` and `// END_MERGE`) from new to old source.
-  ```bash
-  ./run.sh --mode merge --old /path/to/old/src --new /path/to/new/src --start-marker "// START_MERGE" --end-marker "// END_MERGE"
-  ```
+# Scan a codebase
+./run.sh --mode analyze --source /path/to/src --output-dir ./java_analysis_output
+
+# Compare two versions
+./run.sh --mode compare --old /path/to/v1 --new /path/to/v2 --output-dir ./diff_report
+
+# Merge marked blocks
+./run.sh --mode merge --old /path/to/v1 --new /path/to/v2 --start-marker "// START_MERGE" --end-marker "// END_MERGE"
+```
 
 ---
 
-## Testing the Package
+## Execution Modes & CLI Reference
 
-We have provided a turnkey testing workspace containing test sources and an automated script:
+| Flag | Long Flag | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `-m` | `--mode` | Execution mode: `analyze`, `compare`, `merge`, `report`, `server`, `interactive` | `analyze` |
+| `-i` | `--interactive` | Launch interactive terminal CLI wizard | `false` |
+| `-s` | `--source` | Source directory or file to parse in `analyze` mode | `.` |
+| `-o` | `--old` | Baseline path (old version) for compare, merge, and report modes | `analyzer.properties` |
+| `-n` | `--new` | Feature path (new version) for compare, merge, and report modes | `analyzer.properties` |
+| | `--start-marker` | Boundary start marker string for inline merging | `// START_MERGE` |
+| | `--end-marker` | Boundary end marker string for inline merging | `// END_MERGE` |
+| | `--output-dir` | Target directory for generated CSV reports and run logs | `java_analysis_output` |
+| `-t` | `--threads` | Parallel worker thread count | Available CPU cores |
+| `-c` | `--config` | Path to custom properties configuration file | `analyzer.properties` |
+| `-h` | `--help` | Display syntax guide and option details | — |
+
+---
+
+## Unified Activity Report Pipeline
+
+The **Unified Activity Report** (`--mode report`) consolidates all engine activities into an automated 5-step workflow:
+
+```
+┌─────────────────┐     ┌─────────────────┐
+│ 1. Parse Old    │     │ 2. Parse New    │
+│    (Baseline)   │     │    (Feature)    │
+└────────┬────────┘     └────────┬────────┘
+         │                       │
+         └───────────┬───────────┘
+                     ▼
+         ┌───────────────────────┐
+         │ 3. Compare AST Diffs  │
+         └───────────┬───────────┘
+                     ▼
+         ┌───────────────────────┐
+         │ 4. Marker-Guided Merge│
+         └───────────┬───────────┘
+                     ▼
+         ┌───────────────────────┐
+         │ 5. Re-Analyze Merged  │
+         │    & Consolidate CSV  │
+         └───────────────────────┘
+```
+
+1. **Baseline Scan**: Indexes all attributes and methods in the original codebase (`--old`).
+2. **Feature Scan**: Indexes all attributes and methods in the incoming codebase (`--new`).
+3. **AST Comparison**: Writes standard `comparison_attributes.csv` and `comparison_methods.csv`.
+4. **Code Merge**: Inlines marked blocks from `--new` into destination files in `--old`.
+5. **Re-Analysis & Classification**: Parses the merged destination files and generates `javalens_report.csv`:
+   - **`NEWLY_ADDED`**: Attributes or methods introduced by the merge (`in_old=NO, in_new=YES, in_merged=YES`).
+   - **`ORIGINAL`**: Baseline constructs retained without modifications (`in_old=YES, in_new=YES, in_merged=YES`).
+   - **`MODIFIED_BY_MERGE`**: Baseline constructs altered during the merge operation.
+   - **`REMOVED`**: Constructs present in baseline but omitted from the merged output.
+
+Also outputs `merge_results.csv` tracking per-file status (`MERGED`, `SKIPPED`, `WARNING`, or `ERROR`).
+
+---
+
+## Web GUI Features
+
+When running with `--mode server` on port 8080:
+
+* **Console Overview**: High-level telemetry displaying indexed class count, parallel worker capacity, heap metrics, feature bento cards, and active run paths.
+* **AST Analysis Explorer**:
+  - Searchable package and file navigation tree.
+  - Subtabs for **Methods** and **Attributes**.
+  - Modifier filters (`All`, `Public`, `Private`, `Static`).
+  - Real-time substring search matching method names, parameter signatures, and variable types.
+* **Side-by-Side AST Diff Comparator**:
+  - Synchronized dual-pane scrolling.
+  - Status badges (`ADDED`, `MODIFIED`, `REMOVED`, `UNCHANGED`).
+  - File picker dropdown to quickly inspect individual class diffs.
+* **Marker Merge Workbench**: Visual review of source and destination directories, marker settings, and live streaming merge output.
+* **Unified Report Tab**:
+  - Configure old and new paths with native folder browse triggers.
+  - Live pipeline progress terminal with animated pulse and timer.
+  - Real-time summary metric cards (*Total Members*, *Newly Added*, *Original*, *Modified*).
+  - Searchable, filterable results table with status badges.
+  - Instant **Download CSV** button.
+* **Collapsible CLI Terminal**: Dockable interactive compiler terminal with real-time log streaming.
+* **Keyboard Shortcuts**:
+  - `1` – `6`: Direct tab navigation (Overview, Analysis, Compare, Merge, Report, Settings)
+  - `⌘K` / `Ctrl+K`: Open Workspace directory picker modal
+  - `T`: Toggle interactive terminal drawer
+  - `?`: Show Keyboard Shortcuts guide
+  - `Esc`: Close open modals or menus
+* **Responsive Mobile Drawer**: Full navigation support with touch-friendly drawer on viewports `< 768px`.
+
+---
+
+## REST API Reference
+
+The embedded server exposes clean HTTP endpoints:
+
+| Endpoint | Method | Parameters | Description |
+| :--- | :--- | :--- | :--- |
+| `/` or `/index.html` | `GET` | — | Serves the single-page Web GUI (from disk or bundled JAR resource) |
+| `/README.md` | `GET` | — | Serves the project documentation |
+| `/java_report_data.js` | `GET` | `_t` (cache-bust) | Serves the latest active run telemetry data as a JavaScript payload |
+| `/api/config` | `GET` | — | Returns current configuration properties as JSON |
+| `/api/config` | `POST` | `sourceFolder`, `outputDir`, `threads`, `startMarker`, `endMarker` | Updates and persists configuration to `analyzer.properties` |
+| `/api/analyze` | `POST` | `sourceFolder` | Runs codebase analysis with chunked streaming terminal output |
+| `/api/compare` | `POST` | `oldPath`, `newPath` | Runs AST comparison with chunked streaming terminal output |
+| `/api/merge` | `POST` | `oldPath`, `newPath`, `startMarker`, `endMarker` | Runs marker-guided merge with chunked streaming terminal output |
+| `/api/generate-report` | `POST` | `oldPath`, `newPath` | Runs the complete 5-step unified report pipeline with streaming logs |
+| `/api/report-csv` | `GET` | — | Downloads `javalens_report.csv` as a file attachment |
+| `/api/browse` | `POST` | — | Opens a native OS file/folder picker dialog and returns the selected path |
+
+---
+
+## Output CSV Formats
+
+### 1. Unified Activity Report (`javalens_report.csv`)
+| Column | Description |
+| :--- | :--- |
+| `file` | Relative path to the Java file |
+| `package` | Declared package name |
+| `class` | Fully qualified class name |
+| `member_type` | `ATTRIBUTE` or `METHOD` |
+| `member_name` | Name of the field or method |
+| `type` | Field data type or method return type |
+| `modifiers` | Access and storage modifiers (`public`, `private`, `static`, etc.) |
+| `annotations` | Annotations attached to the member |
+| `extra_info` | Initializer expression (for fields) or parameter types/exceptions (for methods) |
+| `in_old_version` | `YES` or `NO` |
+| `in_new_version` | `YES` or `NO` |
+| `in_merged_output` | `YES` or `NO` |
+| `status` | `NEWLY_ADDED`, `ORIGINAL`, `MODIFIED_BY_MERGE`, `REMOVED` |
+
+### 2. Merge Results (`merge_results.csv`)
+| Column | Description |
+| :--- | :--- |
+| `file` | Relative path of the processed destination file |
+| `status` | `MERGED`, `SKIPPED`, `WARNING`, or `ERROR` |
+| `message` | Operational outcome or reason for skip/error |
+
+### 3. Standard Analysis Datasets
+* **`java_attributes.csv`**: `file, package, class, attribute_name, attribute_type, modifiers, annotations, initializer`
+* **`java_methods.csv`**: `file, package, class, method_name, return_type, modifiers, parameters, parameter_count, throws, annotations, kind`
+
+### 4. Comparison Delta Datasets
+* **`comparison_attributes.csv`**: `status, file, package, class, attribute_name, attribute_type_old, attribute_type_new, modifiers_old, modifiers_new, annotations_old, annotations_new, initializer_old, initializer_new`
+* **`comparison_methods.csv`**: `status, file, package, class, method_name, return_type_old, return_type_new, modifiers_old, modifiers_new, parameters_old, parameters_new, throws_old, throws_new, annotations_old, annotations_new, kind_old, kind_new`
+
+---
+
+## Configuration (`analyzer.properties`)
+
+Engine directives can be customized in `analyzer.properties` or edited live via the Web GUI Settings tab:
+
+```properties
+# Merge Markers
+merge.start_marker=// START_MERGE
+merge.end_marker=// END_MERGE
+
+# Execution Directives
+source.folder=.
+threads=8
+enhancement.compare.enabled=true
+enhancement.merge.enabled=true
+
+# Output Routing
+compare.output_dir=java_analysis_output
+active.run_folder=java_analysis_output/run_20260906_112153
+```
+
+---
+
+## Scalability & Performance
+
+JavaLens implements a producer-consumer stream architecture:
+* **Zero-Heap Accumulation**: Individual syntax trees are pruned and released for garbage collection immediately after field and method signature extraction.
+* **No File Count Limit**: Opens and closes file descriptors sequentially through worker threads, allowing effortless analysis of **tens of thousands of source files** within bounded heap limits.
+
+### Performance Benchmarks (8-Core Apple Silicon / AMD Ryzen, SSD)
+
+| Codebase Size | JVM Memory | Duration |
+| :--- | :--- | :--- |
+| **500 classes** | ~100 MB heap | < 1 second |
+| **5,000 classes** | ~250 MB heap | 8–15 seconds |
+| **20,000 classes** | ~500 MB heap | 35–60 seconds |
+| **100,000+ classes** | ~1 GB heap | ~3–5 minutes |
+
+---
+
+## Automated Test Suite
+
+A turnkey test workspace is provided in `test_workspace/` (`v1` baseline and `v2` feature). Execute the automated test suite to validate all 5 engine components:
+
 ```bash
-# Linux / macOS
+# macOS / Linux
 chmod +x test.sh
 ./test.sh
 
 # Windows
 test.bat
 ```
-This automatically compiles the codebase, scans test assets, runs diff delta validations, performs a code block merge, and outputs the resulting reports directly to your console.
+
+The script runs:
+1. **Compilation Validation**: Rebuilds `javalens.jar` with all embedded assets.
+2. **Analyze Mode Validation**: Verifies AST signature extraction.
+3. **Compare Mode Validation**: Verifies field and method delta calculation.
+4. **Merge Mode Validation**: Tests marker-guided block substitution.
+5. **Unified Report Pipeline Validation**: Executes the full 5-stage pipeline and verifies `javalens_report.csv` generation.
 
 ---
 
-## Scalability & Performance
+## Project Structure
 
-JavaLens features a parallelized parser built on Java's `ExecutorService` and structured as a producer-consumer model:
-* **Memory Management**: Rather than loading all file syntax trees into the JVM heap simultaneously, trees are discarded and garbage-collected as soon as their extracted signatures are sent to the output writer queue.
-* **No File Count Limit**: The stream-based architecture opens and releases files sequentially, allowing the application to process **hundreds of thousands of classes** without running out of memory or OS file handles.
-
-### Performance Benchmarks (8-Core CPU, SSD)
-
-| Codebase Size (Classes) | Memory Allocation | Processing Duration |
-| :--- | :--- | :--- |
-| **500 classes** | ~100 MB heap | ~2 seconds |
-| **5,000 classes** | ~250 MB heap | ~15–30 seconds |
-| **20,000 classes** | ~500 MB heap | ~1–2 minutes |
-| **100,000+ classes** | ~1 GB heap | ~5–7 minutes |
-
-Use the `--threads` (`-t`) option to fine-tune parallelism.
-
----
-
-## Configuration (`analyzer.properties`)
-
-Fine-tune operations and disable/enable components in `analyzer.properties` (or edit these values directly in the wizard config editor menu):
-```properties
-# Enable/disable enhancements
-enhancement.compare.enabled=true
-enhancement.merge.enabled=true
-
-# Custom merging markers
-merge.start_marker=// START_MERGE
-merge.end_marker=// END_MERGE
-
-# Default directories and network settings
-compare.output_dir=java_analysis_output
-threads=8
+```
+javalens/
+├── JavaAnalyzer.java        # CLI entry point, analyze engine, progress reporter
+├── Config.java              # Configuration options, CLI parser, properties persistence
+├── InteractiveCli.java      # Terminal console wizard with colorized ANSI guide
+├── CompareEngine.java       # High-throughput AST diff comparator
+├── MergeEngine.java         # Marker-guided inline block merger with result tracking
+├── ReportGenerator.java     # Automated 5-stage pipeline and unified CSV report generator
+├── ParserUtil.java          # Compiler Tree API bindings, CSV/JSON serialization
+├── WebServer.java           # Embedded HTTP server with chunked log streaming & REST APIs
+├── JavaModel.java           # Internal representation of a parsed Java compilation unit
+├── AttributeModel.java      # Model for class fields and variable declarations
+├── MethodModel.java         # Model for constructors, methods, and parameters
+├── index.html               # Precision Dark Engineering SPA Web GUI
+├── analyzer.properties      # Engine properties and active run pointer
+├── build.sh / build.bat     # Build script packaging self-contained javalens.jar
+├── run.sh / run.bat         # Launch wrapper setting JDK 17 environment
+├── test.sh / test.bat       # 5-stage automated test suite
+└── test_workspace/          # Multi-version testing fixtures (v1 baseline, v2 feature)
 ```
 
 ---
 
-## Output Formats
+## License
 
-All outputs are structured as standard CSVs under your defined output folder.
-
-### Analysis Reports
-* **`java_attributes.csv`**: Contains `file`, `package`, `class`, `attribute_name`, `attribute_type`, `modifiers`, `annotations`, and `initializer`.
-* **`java_methods.csv`**: Contains `file`, `package`, `class`, `method_name`, `return_type`, `modifiers`, `parameters`, `parameter_count`, `throws`, `annotations`, and `kind` (`method` or `constructor`).
-
-### Comparison Reports
-* **`comparison_attributes.csv`** & **`comparison_methods.csv`**:
-  * `status`: Indicates what changed (`ADDED`, `REMOVED`, or `MODIFIED`).
-  * `class`: Fully qualified name of the class.
-  * `attribute_name` / `method_signature`: Unique identifier of the field or signature.
-  * `old_type` / `old_details`: Field type or signature parameters in the old codebase.
-  * `new_type` / `new_details`: Field type or signature parameters in the new codebase.
-
+This project is open-source software licensed under the **MIT License**.

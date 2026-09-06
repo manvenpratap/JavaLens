@@ -3,8 +3,8 @@ echo "=================================================="
 echo "              JAVALENS TEST SUITE RUN             "
 echo "=================================================="
 
-# Create directories
-mkdir -p test_out
+# Clean and create directories
+rm -rf test_out && mkdir -p test_out
 
 # 1. Compile codebase
 echo -e "\n1. Compiling codebase..."

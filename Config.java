@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -154,12 +155,26 @@ public class Config {
     }
 
     public void loadProperties(String path) {
-        if (!Files.exists(Paths.get(path))) {
-            return;
-        }
         Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream(path)) {
-            props.load(fis);
+        boolean loaded = false;
+        if (Files.exists(Paths.get(path))) {
+            try (FileInputStream fis = new FileInputStream(path)) {
+                props.load(fis);
+                loaded = true;
+            } catch (IOException e) {
+                System.err.println("Warning: Failed to load properties from " + path + ": " + e.getMessage());
+            }
+        } else {
+            String resPath = path.startsWith("/") ? path : "/" + path;
+            try (InputStream is = Config.class.getResourceAsStream(resPath)) {
+                if (is != null) {
+                    props.load(is);
+                    loaded = true;
+                }
+            } catch (IOException ignored) {}
+        }
+
+        if (loaded) {
             compareEnabled = Boolean.parseBoolean(props.getProperty("enhancement.compare.enabled", "true"));
             mergeEnabled = Boolean.parseBoolean(props.getProperty("enhancement.merge.enabled", "true"));
             startMarker = props.getProperty("merge.start_marker", startMarker);
@@ -170,10 +185,10 @@ public class Config {
                 outputDir = activeRunFolder;
             }
             if (props.containsKey("threads")) {
-                threads = Integer.parseInt(props.getProperty("threads"));
+                try {
+                    threads = Integer.parseInt(props.getProperty("threads"));
+                } catch (NumberFormatException ignored) {}
             }
-        } catch (IOException | NumberFormatException e) {
-            System.err.println("Warning: Failed to load properties from " + path + ": " + e.getMessage());
         }
     }
 

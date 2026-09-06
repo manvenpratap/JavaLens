@@ -3,6 +3,10 @@ echo ==================================================
 echo               JAVALENS TEST SUITE RUN             
 echo ==================================================
 
+rem Clean and create directories
+if exist test_out rd /s /q test_out
+mkdir test_out
+
 rem 1. Compile codebase
 echo.
 echo 1. Compiling codebase...

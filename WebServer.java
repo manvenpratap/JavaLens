@@ -57,16 +57,48 @@ public class WebServer {
         public void handle(HttpExchange exchange) throws IOException {
             String pathStr = exchange.getRequestURI().getPath();
             if (pathStr.equals("/") || pathStr.equals("/index.html")) {
+                byte[] content = null;
                 Path indexFile = Paths.get("index.html");
                 if (Files.exists(indexFile)) {
-                    byte[] content = Files.readAllBytes(indexFile);
+                    content = Files.readAllBytes(indexFile);
+                } else {
+                    try (InputStream is = WebServer.class.getResourceAsStream("/index.html")) {
+                        if (is != null) {
+                            content = is.readAllBytes();
+                        }
+                    }
+                }
+
+                if (content != null) {
                     exchange.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
                     exchange.sendResponseHeaders(200, content.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(content);
                     os.close();
                 } else {
-                    sendTextResponse(exchange, 404, "index.html not found in working directory.");
+                    sendTextResponse(exchange, 404, "index.html not found.");
+                }
+            } else if (pathStr.equals("/README.md") || pathStr.equals("/readme")) {
+                byte[] content = null;
+                Path readmeFile = Paths.get("README.md");
+                if (Files.exists(readmeFile)) {
+                    content = Files.readAllBytes(readmeFile);
+                } else {
+                    try (InputStream is = WebServer.class.getResourceAsStream("/README.md")) {
+                        if (is != null) {
+                            content = is.readAllBytes();
+                        }
+                    }
+                }
+
+                if (content != null) {
+                    exchange.getResponseHeaders().set("Content-Type", "text/markdown; charset=utf-8");
+                    exchange.sendResponseHeaders(200, content.length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(content);
+                    os.close();
+                } else {
+                    sendTextResponse(exchange, 404, "README.md not found.");
                 }
             } else {
                 sendTextResponse(exchange, 404, "Not Found");
