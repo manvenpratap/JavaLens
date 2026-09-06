@@ -81,6 +81,9 @@ public class WebServer {
 
                 if (content != null) {
                     exchange.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
+                    exchange.getResponseHeaders().set("Cache-Control", "no-cache, no-store, must-revalidate");
+                    exchange.getResponseHeaders().set("Pragma", "no-cache");
+                    exchange.getResponseHeaders().set("Expires", "0");
                     exchange.sendResponseHeaders(200, content.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(content);
