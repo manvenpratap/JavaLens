@@ -42,6 +42,8 @@ public class WebServer {
         server.createContext("/api/compare", new CompareHandler());
         server.createContext("/api/merge", new MergeHandler());
         server.createContext("/api/browse", new BrowseHandler());
+        server.createContext("/api/generate-report", new GenerateReportHandler());
+        server.createContext("/api/report-csv", new ReportCsvHandler());
         server.setExecutor(null); // default executor
         server.start();
         System.out.println("=================================================");
@@ -254,6 +256,85 @@ public class WebServer {
                 System.setErr(originalErr);
                 clientOut.close();
             }
+        }
+    }
+
+    private static class GenerateReportHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+
+            Map<String, String> params = parseBodyParams(exchange);
+            Config config = new Config();
+            config.loadProperties("analyzer.properties");
+            if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
+            if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
+            if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
+            if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
+            if (params.containsKey("outputDir")) config.setOutputDir(params.get("outputDir"));
+            config.saveProperties("analyzer.properties");
+
+            exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+            exchange.sendResponseHeaders(200, 0); // chunked
+            OutputStream clientOut = exchange.getResponseBody();
+
+            PrintStream customOut = new PrintStream(new DualOutputStream(originalOut, clientOut));
+            PrintStream customErr = new PrintStream(new DualOutputStream(originalErr, clientOut));
+
+            System.setOut(customOut);
+            System.setErr(customErr);
+
+            try {
+                Path reportPath = ReportGenerator.generateFullReport(config);
+                System.out.println("\n[GUI] Full report pipeline completed successfully.");
+                System.out.println("[REPORT_PATH] " + reportPath.toAbsolutePath());
+            } catch (Exception e) {
+                System.err.println("\n[ERROR] Report generation failed: " + e.getMessage());
+                e.printStackTrace(System.err);
+            } finally {
+                System.setOut(originalOut);
+                System.setErr(originalErr);
+                clientOut.close();
+            }
+        }
+    }
+
+    private static class ReportCsvHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+
+            // Find the latest report CSV from the active run folder
+            Config config = new Config();
+            config.loadProperties("analyzer.properties");
+            String activeFolder = config.getActiveRunFolder();
+
+            Path reportCsv = null;
+            if (!activeFolder.isEmpty()) {
+                Path candidate = Paths.get(activeFolder).resolve("javalens_report.csv");
+                if (Files.exists(candidate)) {
+                    reportCsv = candidate;
+                }
+            }
+
+            if (reportCsv == null) {
+                sendTextResponse(exchange, 404, "No report CSV found. Run Generate Report first.");
+                return;
+            }
+
+            byte[] content = Files.readAllBytes(reportCsv);
+            exchange.getResponseHeaders().set("Content-Type", "text/csv; charset=utf-8");
+            exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"javalens_report.csv\"");
+            exchange.sendResponseHeaders(200, content.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(content);
+            os.close();
         }
     }
 

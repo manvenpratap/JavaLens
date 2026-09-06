@@ -239,6 +239,10 @@
                 <span class="material-symbols-outlined text-brand-purple text-lg" aria-hidden="true">call_merge</span>
                 <span>Marker Merge</span>
             </button>
+            <button onclick="switchTab('report'); toggleMobileNav(false);" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded text-brand-textNormal font-medium hover:bg-brand-raised transition-colors">
+                <span class="material-symbols-outlined text-brand-primary text-lg" aria-hidden="true">summarize</span>
+                <span>Unified Report</span>
+            </button>
             <button onclick="switchTab('settings'); toggleMobileNav(false);" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded text-brand-textNormal font-medium hover:bg-brand-raised transition-colors">
                 <span class="material-symbols-outlined text-brand-textMuted text-lg" aria-hidden="true">settings</span>
                 <span>Engine Settings</span>
@@ -307,12 +311,20 @@
                 <span class="font-mono text-[10px] text-brand-textDim hidden lg:inline">4</span>
             </button>
             
+            <button onclick="switchTab('report')" id="nav-report" class="w-full text-left flex items-center justify-between px-3.5 py-2.5 rounded text-brand-textNormal font-medium hover:bg-brand-raised hover:text-brand-textBright transition-colors duration-150 cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[19px] text-brand-primary" aria-hidden="true">summarize</span>
+                    <span class="text-sm">Report</span>
+                </div>
+                <span class="font-mono text-[10px] text-brand-textDim hidden lg:inline">5</span>
+            </button>
+
             <button onclick="switchTab('settings')" id="nav-settings" class="w-full text-left flex items-center justify-between px-3.5 py-2.5 rounded text-brand-textNormal font-medium hover:bg-brand-raised hover:text-brand-textBright transition-colors duration-150 cursor-pointer">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-[19px] text-brand-textMuted" aria-hidden="true">settings</span>
                     <span class="text-sm">Settings</span>
                 </div>
-                <span class="font-mono text-[10px] text-brand-textDim hidden lg:inline">5</span>
+                <span class="font-mono text-[10px] text-brand-textDim hidden lg:inline">6</span>
             </button>
         </nav>
 
@@ -855,7 +867,124 @@
                     </div>
 
                     <!-- ═════════════════════════════════════════════════════════════════════════════
-                         5. TAB: CONFIGURATION & SETTINGS
+                         5. TAB: UNIFIED REPORT
+                         ═════════════════════════════════════════════════════════════════════════════ -->
+                    <div id="tab-report" class="hidden h-full flex flex-col gap-5 overflow-y-auto pb-16 animate-fade-in">
+                        <section class="max-w-4xl w-full mx-auto">
+                            <div class="pb-3 border-b border-brand-border/60 mb-5">
+                                <h2 class="font-mono text-xl md:text-2xl font-bold text-brand-textBright tracking-tight">Unified Activity Report</h2>
+                                <p class="text-sm text-brand-textMuted mt-1">
+                                    Runs the full pipeline — <span class="text-brand-cyan font-semibold">Analyze</span> → <span class="text-brand-primary font-semibold">Compare</span> → <span class="text-brand-purple font-semibold">Merge</span> → <span class="text-brand-textBright font-semibold">Report CSV</span> — in one step.
+                                </p>
+                            </div>
+
+                            <!-- Pipeline Config Form -->
+                            <div class="glass-card p-5 rounded-lg space-y-4 mb-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-mono text-brand-textMuted mb-1.5 uppercase tracking-wider" for="report-old-path">Old Version Path</label>
+                                        <div class="flex gap-2">
+                                            <input id="report-old-path" type="text" value="test_workspace/v1" placeholder="/path/to/old/version" class="w-full px-3 py-2 bg-brand-obsidian border border-brand-border rounded text-sm text-brand-textBright font-mono placeholder:text-brand-textDim focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/30 outline-none transition-colors" aria-label="Old version path">
+                                            <button onclick="browseForPath('report-old-path')" class="px-2.5 py-2 bg-brand-raised hover:bg-brand-border border border-brand-border rounded text-brand-textBright transition-colors cursor-pointer" aria-label="Browse for old path" title="Browse folder">
+                                                <span class="material-symbols-outlined text-base">folder_open</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-mono text-brand-textMuted mb-1.5 uppercase tracking-wider" for="report-new-path">New Version Path</label>
+                                        <div class="flex gap-2">
+                                            <input id="report-new-path" type="text" value="test_workspace/v2" placeholder="/path/to/new/version" class="w-full px-3 py-2 bg-brand-obsidian border border-brand-border rounded text-sm text-brand-textBright font-mono placeholder:text-brand-textDim focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/30 outline-none transition-colors" aria-label="New version path">
+                                            <button onclick="browseForPath('report-new-path')" class="px-2.5 py-2 bg-brand-raised hover:bg-brand-border border border-brand-border rounded text-brand-textBright transition-colors cursor-pointer" aria-label="Browse for new path" title="Browse folder">
+                                                <span class="material-symbols-outlined text-base">folder_open</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap items-end gap-4">
+                                    <button onclick="runReportPipeline()" id="report-generate-btn" class="px-5 py-2.5 bg-brand-primary/20 hover:bg-brand-primary/30 border border-brand-primary/50 rounded-lg text-sm font-semibold text-brand-primary flex items-center gap-2 transition-all cursor-pointer">
+                                        <span class="material-symbols-outlined text-lg">play_arrow</span>
+                                        Generate Full Report
+                                    </button>
+                                    <button onclick="downloadReportCsv()" id="report-download-btn" class="px-4 py-2.5 bg-brand-raised hover:bg-brand-border border border-brand-border rounded-lg text-sm font-medium text-brand-textBright flex items-center gap-2 transition-colors cursor-pointer hidden">
+                                        <span class="material-symbols-outlined text-lg">download</span>
+                                        Download CSV
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Pipeline Progress Terminal -->
+                            <div id="report-terminal" class="glass-card rounded-lg overflow-hidden mb-5 hidden">
+                                <div class="bg-brand-obsidian/80 px-4 py-2 border-b border-brand-border flex items-center justify-between">
+                                    <span class="font-mono text-xs text-brand-textMuted flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-brand-primary animate-pulse" id="report-pulse" aria-hidden="true"></span>
+                                        Pipeline Output
+                                    </span>
+                                    <span class="font-mono text-[10px] text-brand-textDim" id="report-timer">0.0s</span>
+                                </div>
+                                <div id="report-output" class="p-4 max-h-60 overflow-y-auto font-mono text-xs text-brand-textNormal bg-brand-obsidian/60 whitespace-pre-wrap leading-relaxed"></div>
+                            </div>
+
+                            <!-- Summary Cards -->
+                            <div id="report-summary" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5 hidden">
+                                <div class="glass-card p-4 rounded-lg text-center">
+                                    <div class="text-2xl font-bold text-brand-textBright font-mono" id="report-total-members">0</div>
+                                    <div class="text-xs text-brand-textMuted mt-1">Total Members</div>
+                                </div>
+                                <div class="glass-card p-4 rounded-lg text-center">
+                                    <div class="text-2xl font-bold text-brand-primary font-mono" id="report-newly-added">0</div>
+                                    <div class="text-xs text-brand-textMuted mt-1">Newly Added</div>
+                                </div>
+                                <div class="glass-card p-4 rounded-lg text-center">
+                                    <div class="text-2xl font-bold text-brand-cyan font-mono" id="report-original">0</div>
+                                    <div class="text-xs text-brand-textMuted mt-1">Original</div>
+                                </div>
+                                <div class="glass-card p-4 rounded-lg text-center">
+                                    <div class="text-2xl font-bold text-brand-purple font-mono" id="report-modified">0</div>
+                                    <div class="text-xs text-brand-textMuted mt-1">Modified</div>
+                                </div>
+                            </div>
+
+                            <!-- Report Results Table -->
+                            <div id="report-table-container" class="glass-card rounded-lg overflow-hidden hidden">
+                                <div class="px-4 py-3 border-b border-brand-border flex items-center justify-between flex-wrap gap-2">
+                                    <h3 class="font-mono text-sm font-semibold text-brand-textBright">Unified Report Data</h3>
+                                    <div class="flex items-center gap-2">
+                                        <input id="report-filter" type="text" placeholder="Filter by file, class, name…" class="px-3 py-1.5 bg-brand-obsidian border border-brand-border rounded text-xs text-brand-textBright font-mono placeholder:text-brand-textDim focus:border-brand-primary outline-none w-48" oninput="filterReportTable()">
+                                        <select id="report-status-filter" onchange="filterReportTable()" class="px-2 py-1.5 bg-brand-obsidian border border-brand-border rounded text-xs text-brand-textBright font-mono cursor-pointer focus:border-brand-primary outline-none">
+                                            <option value="">All Statuses</option>
+                                            <option value="NEWLY_ADDED">Newly Added</option>
+                                            <option value="ORIGINAL">Original</option>
+                                            <option value="MODIFIED_BY_MERGE">Modified</option>
+                                            <option value="REMOVED">Removed</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                                    <table class="w-full text-xs font-mono">
+                                        <thead class="bg-brand-surface/80 sticky top-0 z-10">
+                                            <tr class="text-brand-textMuted">
+                                                <th class="px-3 py-2 text-left font-medium">File</th>
+                                                <th class="px-3 py-2 text-left font-medium">Class</th>
+                                                <th class="px-3 py-2 text-left font-medium">Type</th>
+                                                <th class="px-3 py-2 text-left font-medium">Name</th>
+                                                <th class="px-3 py-2 text-left font-medium">Data Type</th>
+                                                <th class="px-3 py-2 text-left font-medium">Modifiers</th>
+                                                <th class="px-3 py-2 text-left font-medium">In Old</th>
+                                                <th class="px-3 py-2 text-left font-medium">In New</th>
+                                                <th class="px-3 py-2 text-left font-medium">In Merged</th>
+                                                <th class="px-3 py-2 text-left font-medium">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="report-table-body" class="divide-y divide-brand-border/40"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- ═════════════════════════════════════════════════════════════════════════════
+                         6. TAB: CONFIGURATION & SETTINGS
                          ═════════════════════════════════════════════════════════════════════════════ -->
                     <div id="tab-settings" class="hidden h-full flex flex-col gap-5 overflow-y-auto pb-16 animate-fade-in">
                         <section class="max-w-2xl w-full mx-auto">
@@ -1116,7 +1245,7 @@
 
         // 2. Navigation & Tabs Management
         function switchTab(tabId) {
-            const tabs = ['dashboard', 'analysis', 'compare', 'merge', 'settings'];
+            const tabs = ['dashboard', 'analysis', 'compare', 'merge', 'report', 'settings'];
             tabs.forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 const nav = document.getElementById(`nav-${t}`);
@@ -1353,6 +1482,9 @@
 
                 buildFileTree(filesData);
                 renderCompareSummary(report);
+                if (report.report && Array.isArray(report.report) && report.report.length > 0) {
+                    renderReportTable(report.report);
+                }
             } else {
                 // Empty state initialization
                 document.getElementById('workspace-header-title').innerText = '— (No active scan)';
@@ -1954,6 +2086,22 @@
                     if (em) em.value = config.endMarker;
                     if (me) me.value = config.endMarker;
                 }
+                if (config.oldPath) {
+                    const ro = document.getElementById('report-old-path');
+                    const cb = document.getElementById('compare-base-input');
+                    const md = document.getElementById('merge-dest');
+                    if (ro) ro.value = config.oldPath;
+                    if (cb) cb.value = config.oldPath;
+                    if (md) md.value = config.oldPath;
+                }
+                if (config.newPath) {
+                    const rn = document.getElementById('report-new-path');
+                    const cf = document.getElementById('compare-feature-input');
+                    const ms = document.getElementById('merge-src');
+                    if (rn) rn.value = config.newPath;
+                    if (cf) cf.value = config.newPath;
+                    if (ms) ms.value = config.newPath;
+                }
                 updateDefaultOutputPreview();
             } catch (e) {
                 console.warn("Real config sync unavailable:", e.message);
@@ -2080,6 +2228,204 @@
                     }
                 }
             );
+        }
+
+        // ── Report Pipeline & Unified Report Controls ──────────────────────────────
+        async function browseForPath(inputId) {
+            if (window.location.protocol.startsWith('http')) {
+                try {
+                    const res = await fetch('/api/browse', { method: 'POST' });
+                    if (res.status === 200) {
+                        const path = await res.text();
+                        if (path) {
+                            const input = document.getElementById(inputId);
+                            if (input) input.value = path;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Browse failed:", e.message);
+                }
+            }
+        }
+
+        let reportTimerInterval = null;
+        let activeReportData = [];
+
+        function runReportPipeline() {
+            const oldPath = document.getElementById('report-old-path')?.value.trim() || 'test_workspace/v1';
+            const newPath = document.getElementById('report-new-path')?.value.trim() || 'test_workspace/v2';
+
+            const btn = document.getElementById('report-generate-btn');
+            const term = document.getElementById('report-terminal');
+            const output = document.getElementById('report-output');
+            const timerEl = document.getElementById('report-timer');
+            const pulse = document.getElementById('report-pulse');
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Running Pipeline…';
+            }
+
+            if (term) term.classList.remove('hidden');
+            if (output) output.innerHTML = '';
+            if (pulse) pulse.classList.remove('hidden');
+
+            const startTime = Date.now();
+            if (reportTimerInterval) clearInterval(reportTimerInterval);
+            reportTimerInterval = setInterval(() => {
+                if (timerEl) timerEl.innerText = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
+            }, 100);
+
+            function logReport(line) {
+                if (!output) return;
+                const div = document.createElement('div');
+                div.className = "py-0.5 font-mono text-xs";
+                if (line.includes("[ERROR]")) div.className += " text-brand-rose font-bold";
+                else if (line.includes("completed successfully") || line.includes("Unified Report :")) div.className += " text-brand-primary font-bold";
+                else if (line.startsWith("▸")) div.className += " text-brand-cyan font-semibold mt-1";
+                else div.className += " text-brand-textNormal";
+                div.innerText = line;
+                output.appendChild(div);
+                output.scrollTop = output.scrollHeight;
+                logToTerminal(line, div.className);
+            }
+
+            logReport(`[SYS] Triggering unified pipeline: old=${oldPath} -> new=${newPath}`);
+
+            if (!window.location.protocol.startsWith('http')) {
+                setTimeout(() => {
+                    clearInterval(reportTimerInterval);
+                    if (pulse) pulse.classList.add('hidden');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">play_arrow</span> Generate Full Report';
+                    }
+                    logReport("[SIM] Pipeline execution simulated.");
+                    showToast("Simulation mode: Pipeline complete", "info");
+                }, 1200);
+                return;
+            }
+
+            runRealApiStream(
+                '/api/generate-report',
+                `oldPath=${encodeURIComponent(oldPath)}&newPath=${encodeURIComponent(newPath)}`,
+                (line) => logReport(line),
+                (success) => {
+                    clearInterval(reportTimerInterval);
+                    if (pulse) pulse.classList.add('hidden');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">play_arrow</span> Generate Full Report';
+                    }
+
+                    if (success) {
+                        showToast("Unified report generated successfully!", "success");
+                        document.getElementById('report-download-btn')?.classList.remove('hidden');
+                        reloadReportData();
+                    } else {
+                        showToast("Report generation pipeline encountered an error", "error");
+                    }
+                }
+            );
+        }
+
+        function downloadReportCsv() {
+            window.location.href = '/api/report-csv';
+        }
+
+        function renderReportTable(reportData) {
+            if (!Array.isArray(reportData) || reportData.length === 0) return;
+            activeReportData = reportData;
+
+            let newlyAddedCount = 0;
+            let originalCount = 0;
+            let modifiedCount = 0;
+
+            reportData.forEach(r => {
+                const s = (r.status || '').toUpperCase();
+                if (s === 'NEWLY_ADDED') newlyAddedCount++;
+                else if (s === 'MODIFIED_BY_MERGE' || s === 'MODIFIED') modifiedCount++;
+                else if (s === 'ORIGINAL' || s === 'UNCHANGED') originalCount++;
+            });
+
+            const totalEl = document.getElementById('report-total-members');
+            const newEl = document.getElementById('report-newly-added');
+            const origEl = document.getElementById('report-original');
+            const modEl = document.getElementById('report-modified');
+
+            if (totalEl) totalEl.innerText = reportData.length;
+            if (newEl) newEl.innerText = newlyAddedCount;
+            if (origEl) origEl.innerText = originalCount;
+            if (modEl) modEl.innerText = modifiedCount;
+
+            document.getElementById('report-summary')?.classList.remove('hidden');
+            document.getElementById('report-table-container')?.classList.remove('hidden');
+            document.getElementById('report-download-btn')?.classList.remove('hidden');
+
+            filterReportTable();
+        }
+
+        function filterReportTable() {
+            const tbody = document.getElementById('report-table-body');
+            if (!tbody) return;
+
+            const q = (document.getElementById('report-filter')?.value || '').toLowerCase().trim();
+            const statusFilter = (document.getElementById('report-status-filter')?.value || '').toUpperCase().trim();
+
+            const filtered = activeReportData.filter(r => {
+                if (statusFilter && (r.status || '').toUpperCase() !== statusFilter) return false;
+                if (!q) return true;
+                return (r.file || '').toLowerCase().includes(q) ||
+                       (r.class || '').toLowerCase().includes(q) ||
+                       (r.member_name || '').toLowerCase().includes(q) ||
+                       (r.type || '').toLowerCase().includes(q) ||
+                       (r.modifiers || '').toLowerCase().includes(q);
+            });
+
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-brand-textMuted italic">No matching report rows found.</td></tr>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            filtered.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-brand-raised/50 transition-colors";
+
+                let statusBadge = '';
+                const st = (r.status || '').toUpperCase();
+                if (st === 'NEWLY_ADDED') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">NEWLY ADDED</span>';
+                } else if (st === 'MODIFIED_BY_MERGE' || st === 'MODIFIED') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/15 text-purple-400 border border-purple-500/30">MODIFIED</span>';
+                } else if (st === 'ORIGINAL' || st === 'UNCHANGED') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">ORIGINAL</span>';
+                } else if (st === 'REMOVED') {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">REMOVED</span>';
+                } else {
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">${escapeHTML(st)}</span>`;
+                }
+
+                const memberTypeBadge = r.member_type === 'ATTRIBUTE'
+                    ? '<span class="text-amber-400 font-semibold text-[11px]">ATTR</span>'
+                    : '<span class="text-cyan-400 font-semibold text-[11px]">METH</span>';
+
+                tr.innerHTML = `
+                    <td class="px-3 py-2 text-brand-textBright truncate max-w-[140px]" title="${escapeHTML(r.file || '')}">${escapeHTML(r.file ? r.file.substring(r.file.lastIndexOf('/') + 1) : '')}</td>
+                    <td class="px-3 py-2 text-brand-textNormal truncate max-w-[120px]" title="${escapeHTML(r.class || '')}">${escapeHTML(r.class || '')}</td>
+                    <td class="px-3 py-2">${memberTypeBadge}</td>
+                    <td class="px-3 py-2 font-bold text-brand-textBright truncate max-w-[140px]" title="${escapeHTML(r.member_name || '')}">${escapeHTML(r.member_name || '')}</td>
+                    <td class="px-3 py-2 text-brand-primary truncate max-w-[110px]" title="${escapeHTML(r.type || '')}">${escapeHTML(r.type || '')}</td>
+                    <td class="px-3 py-2 text-brand-textMuted truncate max-w-[90px]" title="${escapeHTML(r.modifiers || '')}">${escapeHTML(r.modifiers || '')}</td>
+                    <td class="px-3 py-2 ${r.in_old_version === 'YES' ? 'text-brand-primary' : 'text-brand-textDim'}">${escapeHTML(r.in_old_version || '')}</td>
+                    <td class="px-3 py-2 ${r.in_new_version === 'YES' ? 'text-brand-primary' : 'text-brand-textDim'}">${escapeHTML(r.in_new_version || '')}</td>
+                    <td class="px-3 py-2 ${r.in_merged_output === 'YES' ? 'text-brand-primary font-bold' : 'text-brand-textDim'}">${escapeHTML(r.in_merged_output || '')}</td>
+                    <td class="px-3 py-2">${statusBadge}</td>
+                `;
+                fragment.appendChild(tr);
+            });
+            tbody.appendChild(fragment);
         }
 
         async function runRealApiStream(endpoint, bodyString, onLog, onDone) {
@@ -2290,7 +2636,8 @@
                 else if (e.key === '2') switchTab('analysis');
                 else if (e.key === '3') switchTab('compare');
                 else if (e.key === '4') switchTab('merge');
-                else if (e.key === '5') switchTab('settings');
+                else if (e.key === '5') switchTab('report');
+                else if (e.key === '6') switchTab('settings');
                 else if (e.key.toLowerCase() === 't') toggleTerminalPanel();
                 else if (e.key === '?') showShortcutsModal();
             }

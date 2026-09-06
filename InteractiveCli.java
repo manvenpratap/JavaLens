@@ -18,9 +18,10 @@ public class InteractiveCli {
             System.out.println("  \u001B[36;1m[1]\u001B[0m \u001B[1mANALYZE\u001B[0m   - Scan codebase and extract class signatures");
             System.out.println("  \u001B[36;1m[2]\u001B[0m \u001B[1mCOMPARE\u001B[0m   - Contrast two versions of files/folders");
             System.out.println("  \u001B[36;1m[3]\u001B[0m \u001B[1mMERGE\u001B[0m     - Copy marked portions from source to destination");
-            System.out.println("  \u001B[33;1m[4]\u001B[0m \u001B[1mCONFIG\u001B[0m    - View and edit properties configurations");
-            System.out.println("  \u001B[31;1m[5]\u001B[0m \u001B[1mEXIT\u001B[0m      - Terminate tool");
-            System.out.print("\u001B[35;1m⚡ Select action [1-5]: \u001B[0m");
+            System.out.println("  \u001B[32;1m[4]\u001B[0m \u001B[1mREPORT\u001B[0m    - Full pipeline: analyze, compare, merge & unified report");
+            System.out.println("  \u001B[33;1m[5]\u001B[0m \u001B[1mCONFIG\u001B[0m    - View and edit properties configurations");
+            System.out.println("  \u001B[31;1m[6]\u001B[0m \u001B[1mEXIT\u001B[0m      - Terminate tool");
+            System.out.print("\u001B[35;1m⚡ Select action [1-6]: \u001B[0m");
 
             String choice = scanner.nextLine().trim();
             switch (choice) {
@@ -34,13 +35,16 @@ public class InteractiveCli {
                     runMergeFlow();
                     break;
                 case "4":
-                    runConfigFlow();
+                    runReportFlow();
                     break;
                 case "5":
+                    runConfigFlow();
+                    break;
+                case "6":
                     System.out.println("\n\u001B[32;1m✔ Exiting JavaLens. Goodbye!\u001B[0m");
                     return;
                 default:
-                    System.out.println("\u001B[31;1m⚠ Invalid selection. Please choose an option from 1 to 5.\u001B[0m");
+                    System.out.println("\u001B[31;1m⚠ Invalid selection. Please choose an option from 1 to 6.\u001B[0m");
             }
         }
     }
@@ -185,6 +189,46 @@ public class InteractiveCli {
             System.out.println("\u001B[32;1m✔ SUCCESS: Marked source blocks successfully merged.\u001B[0m");
         } catch (Exception e) {
             System.out.println("\u001B[31;1m❌ FAILED: Merge operation failed: " + e.getMessage() + "\u001B[0m");
+            e.printStackTrace();
+        }
+    }
+
+    private static void runReportFlow() {
+        System.out.println("\n\u001B[35;1m╔══════════════════════════════════════════════════════╗\u001B[0m");
+        System.out.println("\u001B[35;1m║     ACTION: FULL PIPELINE & UNIFIED REPORT           ║\u001B[0m");
+        System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
+
+        String oldPath = promptInput("Enter Old Version Path (folder or file)", currentConfig.getOldPath());
+        if (oldPath.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Old version path is required.\u001B[0m");
+            return;
+        }
+
+        String newPath = promptInput("Enter New Version Path (folder or file)", currentConfig.getNewPath());
+        if (newPath.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: New version path is required.\u001B[0m");
+            return;
+        }
+
+        String outDir = promptInput("Enter Output Directory Path", currentConfig.getOutputDir());
+        String threadStr = promptInput("Enter Parallel Threads", String.valueOf(currentConfig.getThreads()));
+        int threads = parseThreadCount(threadStr);
+
+        System.out.print("\u001B[33;1m▶ Run analyze, compare, merge & generate unified report? (y/n) [y]: \u001B[0m");
+        String confirm = scanner.nextLine().trim().toLowerCase();
+        if (confirm.equals("n")) {
+            System.out.println("\u001B[90mOperation aborted.\u001B[0m");
+            return;
+        }
+
+        System.out.println("\n\u001B[33m[SYS] Starting unified pipeline...\u001B[0m");
+        try {
+            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "report", "-o", oldPath, "-n", newPath, "--output-dir", outDir, "-t", String.valueOf(threads)));
+            Config config = Config.parse(argsList.toArray(new String[0]));
+            Path reportCsv = ReportGenerator.generateFullReport(config);
+            System.out.println("\u001B[32;1m✔ SUCCESS: Unified report generated at: " + reportCsv.toAbsolutePath() + "\u001B[0m");
+        } catch (Exception e) {
+            System.out.println("\u001B[31;1m❌ FAILED: Pipeline failed: " + e.getMessage() + "\u001B[0m");
             e.printStackTrace();
         }
     }

@@ -23,9 +23,9 @@ echo -e "\n2. Running Analyze Mode on test_workspace/v1..."
 ./run.sh --mode analyze --source test_workspace/v1 --output-dir test_out/analyze_out
 
 echo -e "\nAttributes Output CSV:"
-cat test_out/analyze_out/java_attributes.csv
+cat test_out/analyze_out/*/java_attributes.csv
 echo -e "\nMethods Output CSV:"
-cat test_out/analyze_out/java_methods.csv
+cat test_out/analyze_out/*/java_methods.csv
 
 # 3. Test Compare Mode
 echo -e "\n3. Running Compare Mode between v1 and v2..."
@@ -37,11 +37,19 @@ echo -e "\nMethods Compare Delta CSV:"
 cat test_out/compare_out/comparison_methods.csv
 
 # 4. Test Merge Mode
-echo -e "\n4. Running Merge Mode (coping v2 markers into v1)..."
+echo -e "\n4. Running Merge Mode (copying v2 markers into v1)..."
 ./run.sh --mode merge --old test_workspace/v1 --new test_workspace/v2 --start-marker "// START_MERGE" --end-marker "// END_MERGE"
 
 echo -e "\nMerged v1/MyClass.java contents:"
 cat test_workspace/v1/MyClass.java
+
+# 5. Test Report Mode
+echo -e "\n5. Running Unified Report Mode (analyze -> compare -> merge -> report)..."
+cp test_workspace/v1_backup.java test_workspace/v1/MyClass.java
+./run.sh --mode report --old test_workspace/v1 --new test_workspace/v2 --output-dir test_out/report_out
+
+echo -e "\nUnified Report CSV:"
+cat test_out/report_out/*/javalens_report.csv
 
 # Restore test files
 mv test_workspace/v1_backup.java test_workspace/v1/MyClass.java

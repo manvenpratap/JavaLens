@@ -6,7 +6,19 @@ import java.util.*;
 
 public class MergeEngine {
 
-    public static void execute(Config config) throws Exception {
+    public static class MergeResult {
+        public final String relPath;
+        public final String status;
+        public final String message;
+
+        public MergeResult(String relPath, String status, String message) {
+            this.relPath = relPath;
+            this.status = status;
+            this.message = message;
+        }
+    }
+
+    public static List<MergeResult> execute(Config config) throws Exception {
         Path oldPath = Paths.get(config.getOldPath()).toAbsolutePath().normalize();
         Path newPath = Paths.get(config.getNewPath()).toAbsolutePath().normalize();
         String startMarker = config.getStartMarker();
@@ -27,31 +39,39 @@ public class MergeEngine {
         System.out.println("  End marker                : \"" + endMarker + "\"");
         System.out.println();
 
+        List<MergeResult> results;
         if (!oldIsDir) {
             // Merge single files
-            mergeSingleFiles(newPath, oldPath, startMarker, endMarker);
+            results = mergeSingleFiles(newPath, oldPath, startMarker, endMarker);
         } else {
             // Merge directories
-            mergeDirectories(newPath, oldPath, startMarker, endMarker);
+            results = mergeDirectories(newPath, oldPath, startMarker, endMarker);
         }
 
         System.out.println("\nMerge process completed.");
+        return results;
     }
 
-    private static void mergeSingleFiles(Path sourceFile, Path destFile, String startMarker, String endMarker) {
+    private static List<MergeResult> mergeSingleFiles(Path sourceFile, Path destFile, String startMarker, String endMarker) {
+        List<MergeResult> results = new ArrayList<>();
         try {
             boolean merged = mergeFileContents(sourceFile, destFile, startMarker, endMarker);
             if (merged) {
                 System.out.println("Successfully merged: " + destFile.getFileName());
+                results.add(new MergeResult(destFile.getFileName().toString(), "MERGED", "Successfully merged"));
             } else {
                 System.out.println("Skipped (no markers or no changes): " + destFile.getFileName());
+                results.add(new MergeResult(destFile.getFileName().toString(), "SKIPPED", "No markers or no changes"));
             }
         } catch (Exception e) {
             System.err.println("Error merging file " + destFile.getFileName() + ": " + e.getMessage());
+            results.add(new MergeResult(destFile.getFileName().toString(), "ERROR", e.getMessage()));
         }
+        return results;
     }
 
-    private static void mergeDirectories(Path sourceDir, Path destDir, String startMarker, String endMarker) throws IOException {
+    private static List<MergeResult> mergeDirectories(Path sourceDir, Path destDir, String startMarker, String endMarker) throws IOException {
+        List<MergeResult> results = new ArrayList<>();
         List<Path> sourceFiles = new ArrayList<>();
         Files.walkFileTree(sourceDir, new SimpleFileVisitor<>() {
             @Override
@@ -76,18 +96,23 @@ public class MergeEngine {
                     if (merged) {
                         System.out.println("  [MERGED]  " + rel);
                         mergedCount++;
+                        results.add(new MergeResult(rel, "MERGED", "Successfully merged"));
                     } else {
                         skippedCount++;
+                        results.add(new MergeResult(rel, "SKIPPED", "No markers or no changes"));
                     }
                 } catch (Exception e) {
                     System.err.println("  [ERROR]   " + rel + " : " + e.getMessage());
+                    results.add(new MergeResult(rel, "ERROR", e.getMessage()));
                 }
             } else {
                 System.out.println("  [WARNING] Destination file does not exist, skipped: " + rel);
+                results.add(new MergeResult(rel, "WARNING", "Destination file does not exist"));
             }
         }
 
         System.out.printf("Summary: %d files merged, %d files skipped.%n", mergedCount, skippedCount);
+        return results;
     }
 
     private static boolean mergeFileContents(Path sourceFile, Path destFile, String startMarker, String endMarker) throws IOException {

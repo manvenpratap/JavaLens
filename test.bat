@@ -23,10 +23,10 @@ call run.bat --mode analyze --source test_workspace\v1 --output-dir test_out\ana
 
 echo.
 echo Attributes Output CSV:
-type test_out\analyze_out\java_attributes.csv
+for /d %%d in (test_out\analyze_out\run_*) do type %%d\java_attributes.csv
 echo.
 echo Methods Output CSV:
-type test_out\analyze_out\java_methods.csv
+for /d %%d in (test_out\analyze_out\run_*) do type %%d\java_methods.csv
 
 rem 3. Test Compare Mode
 echo.
@@ -42,12 +42,22 @@ type test_out\compare_out\comparison_methods.csv
 
 rem 4. Test Merge Mode
 echo.
-echo 4. Running Merge Mode (coping v2 markers into v1)...
+echo 4. Running Merge Mode (copying v2 markers into v1)...
 call run.bat --mode merge --old test_workspace\v1 --new test_workspace\v2 --start-marker "// START_MERGE" --end-marker "// END_MERGE"
 
 echo.
 echo Merged v1\MyClass.java contents:
 type test_workspace\v1\MyClass.java
+
+rem 5. Test Report Mode
+echo.
+echo 5. Running Unified Report Mode (analyze -^> compare -^> merge -^> report)...
+copy /Y test_workspace\v1_backup.java test_workspace\v1\MyClass.java > nul
+call run.bat --mode report --old test_workspace\v1 --new test_workspace\v2 --output-dir test_out\report_out
+
+echo.
+echo Unified Report CSV:
+for /d %%d in (test_out\report_out\run_*) do type %%d\javalens_report.csv
 
 rem Restore test files
 move /Y test_workspace\v1_backup.java test_workspace\v1\MyClass.java > nul

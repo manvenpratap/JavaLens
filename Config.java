@@ -8,7 +8,7 @@ import java.util.Properties;
 
 public class Config {
     public enum Mode {
-        ANALYZE, COMPARE, MERGE, INTERACTIVE, SERVER
+        ANALYZE, COMPARE, MERGE, INTERACTIVE, SERVER, REPORT
     }
 
     private Mode mode = Mode.ANALYZE;
@@ -49,7 +49,7 @@ public class Config {
                             try {
                                 config.mode = Mode.valueOf(modeStr);
                             } catch (IllegalArgumentException e) {
-                                System.err.println("Invalid mode: " + modeStr + ". Expected analyze, compare, merge, or interactive.");
+                                System.err.println("Invalid mode: " + modeStr + ". Expected analyze, compare, merge, interactive, server, or report.");
                                 System.exit(1);
                             }
                         }
@@ -139,7 +139,7 @@ public class Config {
                 System.err.println("Error: Source folder (-s / --source) is required in analyze mode.");
                 System.exit(1);
             }
-            if ((config.mode == Mode.COMPARE || config.mode == Mode.MERGE) && 
+            if ((config.mode == Mode.COMPARE || config.mode == Mode.MERGE || config.mode == Mode.REPORT) && 
                 (config.oldPath.isEmpty() || config.newPath.isEmpty())) {
                 System.err.println("Error: Both --old (-o) and --new (-n) paths are required in " + config.mode.name().toLowerCase() + " mode.");
                 System.exit(1);
@@ -202,7 +202,7 @@ public class Config {
         System.out.println("  java -jar javalens.jar [options]");
         System.out.println();
         System.out.println("Options:");
-        System.out.println("  -m, --mode <analyze|compare|merge|interactive>   Execution mode (default: analyze)");
+        System.out.println("  -m, --mode <analyze|compare|merge|interactive|server|report>   Execution mode (default: analyze)");
         System.out.println("  -i, --interactive                                Start interactive console wizard");
         System.out.println("  -s, --source <path>                             Source folder for analysis (analyze mode)");
         System.out.println("  -o, --old <path>                    Path to old version of file/directory (compare/merge modes)");

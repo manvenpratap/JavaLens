@@ -190,6 +190,12 @@ public class ParserUtil {
         Path compMethFile = outputDir.resolve("comparison_methods.csv");
         String compMethJson = csvToJson(compMethFile);
 
+        Path reportFile = outputDir.resolve("javalens_report.csv");
+        String reportJson = csvToJson(reportFile);
+
+        Path mergeResultsFile = outputDir.resolve("merge_results.csv");
+        String mergeResultsJson = csvToJson(mergeResultsFile);
+
         String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                                .format(java.time.LocalDateTime.now());
 
@@ -201,7 +207,9 @@ public class ParserUtil {
         js.append("  \"attributes\": ").append(attrJson).append(",\n");
         js.append("  \"methods\": ").append(methJson).append(",\n");
         js.append("  \"compare_attributes\": ").append(compAttrJson).append(",\n");
-        js.append("  \"compare_methods\": ").append(compMethJson).append("\n");
+        js.append("  \"compare_methods\": ").append(compMethJson).append(",\n");
+        js.append("  \"report\": ").append(reportJson).append(",\n");
+        js.append("  \"merge_results\": ").append(mergeResultsJson).append("\n");
         js.append("};\n");
 
         try {
