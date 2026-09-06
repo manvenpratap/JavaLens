@@ -1,3 +1,12 @@
+package com.javalens.engine;
+
+import com.javalens.Config;
+import com.javalens.JavaAnalyzer;
+import com.javalens.model.AttributeModel;
+import com.javalens.model.JavaModel;
+import com.javalens.model.MethodModel;
+import com.javalens.parser.ParserUtil;
+
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;

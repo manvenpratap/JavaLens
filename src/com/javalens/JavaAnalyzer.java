@@ -1,3 +1,15 @@
+package com.javalens;
+
+import com.javalens.cli.InteractiveCli;
+import com.javalens.engine.CompareEngine;
+import com.javalens.engine.MergeEngine;
+import com.javalens.engine.ReportGenerator;
+import com.javalens.model.AttributeModel;
+import com.javalens.model.JavaModel;
+import com.javalens.model.MethodModel;
+import com.javalens.parser.ParserUtil;
+import com.javalens.web.WebServer;
+
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -8,18 +20,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Java Analyzer — uses the built-in JDK Compiler Tree API (no external JARs).
  *
- * Compile:  javac JavaAnalyzer.java
+ * Compile:  javac -d bin $(find src -name "*.java")
  * Run:      java -jar javalens.jar <source-folder> [output-dir] [threads]
  */
 public class JavaAnalyzer {
 
     // ── CSV headers ───────────────────────────────────────────────────────────
 
-    static final String[] ATTR_HDR = {
+    public static final String[] ATTR_HDR = {
         "file", "package", "class", "attribute_name", "attribute_type",
         "modifiers", "annotations", "initializer"
     };
-    static final String[] METH_HDR = {
+    public static final String[] METH_HDR = {
         "file", "package", "class", "method_name", "return_type",
         "modifiers", "parameters", "parameter_count", "throws", "annotations", "kind"
     };
@@ -230,4 +242,3 @@ public class JavaAnalyzer {
         return v;
     }
 }
-

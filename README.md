@@ -367,24 +367,33 @@ The script runs:
 
 ```
 javalens/
-├── JavaAnalyzer.java        # CLI entry point, analyze engine, progress reporter
-├── Config.java              # Configuration options, CLI parser, properties persistence
-├── InteractiveCli.java      # Terminal console wizard with colorized ANSI guide
-├── CompareEngine.java       # High-throughput AST diff comparator
-├── MergeEngine.java         # Marker-guided inline block merger with result tracking
-├── ReportGenerator.java     # Automated 5-stage pipeline and unified CSV report generator
-├── ParserUtil.java          # Compiler Tree API bindings, CSV/JSON serialization
-├── WebServer.java           # Embedded HTTP server with chunked log streaming & REST APIs
-├── JavaModel.java           # Internal representation of a parsed Java compilation unit
-├── AttributeModel.java      # Model for class fields and variable declarations
-├── MethodModel.java         # Model for constructors, methods, and parameters
-├── index.html               # Precision Dark Engineering SPA Web GUI
-├── javalens.conf            # Standard engine configuration file
-├── analyzer.properties      # Legacy properties and active run pointer
-├── build.sh / build.bat     # Build script packaging self-contained javalens.jar
-├── run.sh / run.bat         # Launch wrapper setting JDK 17 environment
-├── test.sh / test.bat       # 5-stage automated test suite
-└── test_workspace/          # Multi-version testing fixtures (v1 baseline, v2 feature)
+├── src/
+│   └── com/
+│       └── javalens/
+│           ├── JavaAnalyzer.java        # CLI entry point, analyze engine, progress reporter
+│           ├── Config.java              # Configuration options, CLI parser, .conf file persistence
+│           ├── cli/
+│           │   └── InteractiveCli.java  # Terminal console wizard with colorized ANSI guide
+│           ├── engine/
+│           │   ├── CompareEngine.java   # High-throughput AST diff comparator
+│           │   ├── MergeEngine.java     # Marker-guided inline block merger with result tracking
+│           │   └── ReportGenerator.java # Automated 5-stage pipeline and unified CSV report generator
+│           ├── model/
+│           │   ├── JavaModel.java       # Internal representation of a parsed Java compilation unit
+│           │   ├── AttributeModel.java  # Model for class fields and variable declarations
+│           │   └── MethodModel.java     # Model for constructors, methods, and parameters
+│           ├── parser/
+│           │   └── ParserUtil.java      # Compiler Tree API bindings, CSV/JSON serialization
+│           └── web/
+│               └── WebServer.java       # Embedded HTTP server with chunked log streaming & REST APIs
+├── bin/                                 # Compiled bytecode directory (.class files)
+├── index.html                           # Precision Dark Engineering SPA Web GUI
+├── javalens.conf                        # Standard engine configuration file
+├── analyzer.properties                  # Legacy properties and active run pointer
+├── build.sh / build.bat                 # Build scripts compiling src/ to bin/ & packaging javalens.jar
+├── run.sh / run.bat                     # Launch wrapper setting JDK 17 environment
+├── test.sh / test.bat                   # 6-stage automated test suite
+└── test_workspace/                      # Multi-version testing fixtures (v1 baseline, v2 feature)
 ```
 
 ---

@@ -1,3 +1,11 @@
+package com.javalens.web;
+
+import com.javalens.Config;
+import com.javalens.JavaAnalyzer;
+import com.javalens.engine.CompareEngine;
+import com.javalens.engine.MergeEngine;
+import com.javalens.engine.ReportGenerator;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;

@@ -1,3 +1,9 @@
+package com.javalens.parser;
+
+import com.javalens.model.AttributeModel;
+import com.javalens.model.JavaModel;
+import com.javalens.model.MethodModel;
+
 import com.sun.source.tree.*;
 import com.sun.source.util.*;
 import javax.tools.*;
@@ -58,75 +64,68 @@ public class ParserUtil {
 
                     // ── Methods ──────────────────────────────────────────────
                     else if (member instanceof MethodTree mt) {
-                        boolean isCtor = mt.getReturnType() == null;
+                        String mname   = mt.getName().toString();
+                        boolean isCtor = "<init>".equals(mname);
                         String rtype   = isCtor ? "(constructor)"
-                                                : mt.getReturnType().toString();
-                        String name    = mt.getName().toString();
-                        // Skip synthetic default constructor with no body
-                        if (name.equals("<init>") && mt.getBody() == null) continue;
+                                                : (mt.getReturnType() != null ? mt.getReturnType().toString() : "void");
+                        String mods    = modifiers(mt.getModifiers());
+                        String anns    = annotations(mt.getModifiers());
+                        String kind    = isCtor ? "constructor" : "method";
 
-                        String mods = modifiers(mt.getModifiers());
-                        String parameters = params(mt.getParameters());
-                        int paramCount = mt.getParameters().size();
-                        String throwsL = throwsList(mt.getThrows());
-                        String anns = annotations(mt.getModifiers());
-                        String kind = isCtor ? "constructor" : "method";
-                        String pTypes = paramTypes(mt.getParameters());
+                        // Parameters: "Type name, Type name"
+                        String params = mt.getParameters().stream()
+                                          .map(p -> p.getType() + " " + p.getName())
+                                          .collect(Collectors.joining(", "));
+
+                        // Types-only signature for overload identification: "Type,Type"
+                        String paramTypes = mt.getParameters().stream()
+                                              .map(p -> p.getType().toString())
+                                              .collect(Collectors.joining(","));
+
+                        int pCount = mt.getParameters().size();
+
+                        String throwsList = mt.getThrows().stream()
+                                              .map(Object::toString)
+                                              .collect(Collectors.joining(", "));
 
                         model.addMethod(new MethodModel(
-                            relPath, pkg, className, name, rtype, mods, parameters, paramCount,
-                            throwsL, anns, kind, pTypes
+                            relPath, pkg, className, mname, rtype, mods,
+                            params, pCount, throwsList, anns, kind, paramTypes
                         ));
                     }
                 }
             }
         }
-
-        if (model == null) {
-            model = new JavaModel(relPath, "");
-        }
-        return model;
+        return model != null ? model : new JavaModel(relPath, "");
     }
 
-    private static String modifiers(ModifiersTree m) {
-        return m.getFlags().stream()
-                .map(f -> f.name().toLowerCase())
-                .collect(Collectors.joining(" "));
+    // ── AST extraction helpers ────────────────────────────────────────────────
+
+    private static String modifiers(ModifiersTree modTree) {
+        if (modTree == null) return "";
+        return modTree.getFlags().stream()
+                      .map(f -> f.name().toLowerCase())
+                      .collect(Collectors.joining(" "));
     }
 
-    private static String annotations(ModifiersTree m) {
-        return m.getAnnotations().stream()
-                .map(a -> "@" + a.getAnnotationType())
-                .collect(Collectors.joining(" "));
-    }
-
-    private static String params(List<? extends VariableTree> params) {
-        return params.stream()
-                .map(p -> p.getType() + " " + p.getName())
-                .collect(Collectors.joining(", "));
-    }
-
-    private static String paramTypes(List<? extends VariableTree> params) {
-        return params.stream()
-                .map(p -> p.getType() != null ? p.getType().toString().replaceAll("\\s+", "") : "")
-                .collect(Collectors.joining(","));
-    }
-
-    private static String throwsList(List<? extends ExpressionTree> throws_) {
-        return throws_.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
+    private static String annotations(ModifiersTree modTree) {
+        if (modTree == null) return "";
+        return modTree.getAnnotations().stream()
+                      .map(a -> "@" + a.getAnnotationType())
+                      .collect(Collectors.joining(" "));
     }
 
     private static String truncate(String s, int max) {
-        return s.length() > max ? s.substring(0, max) + "..." : s;
+        if (s == null) return "";
+        s = s.replace("\r", " ").replace("\n", " ").trim();
+        return s.length() <= max ? s : s.substring(0, max - 3) + "...";
     }
 
-    public static String csvToJson(Path csvFile) {
-        if (!Files.exists(csvFile)) {
-            return "[]";
-        }
-        try (BufferedReader br = Files.newBufferedReader(csvFile)) {
+    // ── CSV to JSON serialization ─────────────────────────────────────────────
+
+    public static String csvToJson(Path csvPath) {
+        if (!Files.exists(csvPath)) return "[]";
+        try (BufferedReader br = Files.newBufferedReader(csvPath)) {
             String headerLine = br.readLine();
             if (headerLine == null) return "[]";
             String[] headers = parseCsvLine(headerLine);

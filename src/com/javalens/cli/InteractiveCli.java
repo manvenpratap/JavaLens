@@ -1,3 +1,11 @@
+package com.javalens.cli;
+
+import com.javalens.Config;
+import com.javalens.JavaAnalyzer;
+import com.javalens.engine.CompareEngine;
+import com.javalens.engine.MergeEngine;
+import com.javalens.engine.ReportGenerator;
+
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
