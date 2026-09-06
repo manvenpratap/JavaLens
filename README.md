@@ -82,13 +82,15 @@ Open **[http://localhost:8080](http://localhost:8080)** in your browser to acces
 | `-m` | `--mode` | Execution mode: `analyze`, `compare`, `merge`, `report`, `server`, `interactive` | `analyze` |
 | `-i` | `--interactive` | Launch interactive terminal CLI wizard | `false` |
 | `-s` | `--source` | Source directory or file to parse in `analyze` mode | `.` |
-| `-o` | `--old` | Baseline path (old version) for compare, merge, and report modes | `analyzer.properties` |
-| `-n` | `--new` | Feature path (new version) for compare, merge, and report modes | `analyzer.properties` |
+| `-o` | `--old` | Baseline path (old version) for compare, merge, and report modes | `javalens.conf` |
+| `-n` | `--new` | Feature path (new version) for compare, merge, and report modes | `javalens.conf` |
 | | `--start-marker` | Boundary start marker string for inline merging | `// START_MERGE` |
 | | `--end-marker` | Boundary end marker string for inline merging | `// END_MERGE` |
 | | `--output-dir` | Target directory for generated CSV reports and run logs | `java_analysis_output` |
 | `-t` | `--threads` | Parallel worker thread count | Available CPU cores |
-| `-c` | `--config` | Path to custom properties configuration file | `analyzer.properties` |
+| `-p` | `--port` | Web server port for GUI mode (`--mode server`) | `8080` |
+| `-c` | `--config` | Path to `.conf` or properties config file on local machine | `javalens.conf` |
+| | `--save-config` | Write current runtime configuration to `.conf` file and exit | `javalens.conf` |
 | `-h` | `--help` | Display syntax guide and option details | — |
 
 ---
@@ -130,6 +132,85 @@ The **Unified Activity Report** (`--mode report`) consolidates all engine activi
    - **`REMOVED`**: Constructs present in baseline but omitted from the merged output.
 
 Also outputs `merge_results.csv` tracking per-file status (`MERGED`, `SKIPPED`, `WARNING`, or `ERROR`).
+
+---
+
+## Local Configuration & `.conf` File System
+
+JavaLens supports storing all runtime directives in a standard `.conf` file on your local machine.
+
+### Configuration Discovery Hierarchy
+When JavaLens starts, it resolves configuration files in the following precedence order:
+1. **Explicit CLI Flag**: `-c <path>` or `--config <path>`
+2. **Environment Variable**: `JAVALENS_CONF` (if pointing to an existing file)
+3. **Local Directory**: `./javalens.conf`
+4. **Legacy Properties**: `./analyzer.properties` (for backwards compatibility)
+5. **User Home Directory**: `~/.javalens.conf`
+6. **Classpath Fallback**: Embedded `javalens.conf` inside `javalens.jar`
+
+### Sample `javalens.conf`
+```properties
+# ===================================================================
+# JavaLens Configuration File (javalens.conf)
+# Precision AST Static Analysis, Code Comparator & Merge Telemetry
+# ===================================================================
+
+# Execution Mode: analyze, compare, merge, report, server, interactive
+mode=analyze
+
+# Default Analysis Source Path (file or directory)
+source.folder=.
+
+# Baseline Old Version Path (used in compare, merge, and report modes)
+old.path=/path/to/baseline/v1
+
+# Feature New Version Path (used in compare, merge, and report modes)
+new.path=/path/to/feature/v2
+
+# Output Directory for Generated Reports, CSVs, and Telemetry Data
+output.dir=java_analysis_output
+
+# Active Run Output Folder Context
+active.run_folder=
+
+# Parallel Worker Thread Pool Size (0 = available CPU cores)
+threads=8
+
+# Marker-Guided Merge Boundaries
+merge.start_marker=// START_MERGE
+merge.end_marker=// END_MERGE
+
+# Feature Engine Toggles
+enhancement.compare.enabled=true
+enhancement.merge.enabled=true
+
+# Web GUI Server Port
+server.port=8080
+```
+
+### Saving Configuration via CLI
+Export or update your local machine configuration directly:
+```bash
+# Save active CLI arguments to default javalens.conf
+./run.sh --source src/main/java --threads 16 --port 8080 --save-config
+
+# Save to custom configuration path anywhere on the local machine
+./run.sh --old v1 --new v2 --threads 8 --save-config /path/to/my_project.conf
+```
+
+### Configuring via Web GUI
+Navigate to the **Settings** tab in the Web GUI (`http://localhost:8080`):
+- **Active Local Conf Path**: Specify the exact location of your `.conf` file.
+- **Browse**: Open a native file picker to select an existing `.conf` file on disk.
+- **Load**: Immediately reload and inspect parameters from the specified `.conf` file.
+- **Save to Conf File**: Atomically write all visual UI fields into the `.conf` file on your machine.
+- **Download .conf**: One-click download of the active configuration.
+
+### Configuring via Interactive CLI Wizard
+From the terminal menu, choose **`[5] CONFIG`**:
+- View all 12 directives with ANSI color highlighting.
+- Modify individual parameters interactively.
+- Press **`[S]`** to save to the active `.conf` file, **`[W]`** to write to a custom file path, or **`[L]`** to load an existing `.conf` file from disk.
 
 ---
 
@@ -298,7 +379,8 @@ javalens/
 ├── AttributeModel.java      # Model for class fields and variable declarations
 ├── MethodModel.java         # Model for constructors, methods, and parameters
 ├── index.html               # Precision Dark Engineering SPA Web GUI
-├── analyzer.properties      # Engine properties and active run pointer
+├── javalens.conf            # Standard engine configuration file
+├── analyzer.properties      # Legacy properties and active run pointer
 ├── build.sh / build.bat     # Build script packaging self-contained javalens.jar
 ├── run.sh / run.bat         # Launch wrapper setting JDK 17 environment
 ├── test.sh / test.bat       # 5-stage automated test suite

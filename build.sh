@@ -6,8 +6,8 @@ fi
 echo "Compiling JavaAnalyzer..."
 javac *.java
 if [ $? -eq 0 ]; then
-    jar cfe javalens.jar JavaAnalyzer *.class README.md index.html analyzer.properties
-    echo "Build successful! JAR created: javalens.jar (including README.md, index.html, analyzer.properties)"
+    jar cfe javalens.jar JavaAnalyzer *.class README.md index.html analyzer.properties javalens.conf
+    echo "Build successful! JAR created: javalens.jar (including README.md, index.html, analyzer.properties, javalens.conf)"
 else
     echo "Compilation failed. Make sure you have a JDK 17+ installed."
     exit 1

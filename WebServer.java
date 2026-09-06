@@ -38,6 +38,8 @@ public class WebServer {
         server.createContext("/", new StaticHandler());
         server.createContext("/java_report_data.js", new ReportDataHandler());
         server.createContext("/api/config", new ConfigHandler());
+        server.createContext("/api/config/load", new ConfigLoadHandler());
+        server.createContext("/api/config/download", new ConfigDownloadHandler());
         server.createContext("/api/analyze", new AnalyzeHandler());
         server.createContext("/api/compare", new CompareHandler());
         server.createContext("/api/merge", new MergeHandler());
@@ -100,6 +102,27 @@ public class WebServer {
                 } else {
                     sendTextResponse(exchange, 404, "README.md not found.");
                 }
+            } else if (pathStr.equals("/javalens.conf") || pathStr.equals("/analyzer.properties")) {
+                Config config = new Config();
+                config.load();
+                File f = new File(config.getConfigFilePath());
+                byte[] content = null;
+                if (f.exists()) {
+                    content = Files.readAllBytes(f.toPath());
+                } else {
+                    try (InputStream is = WebServer.class.getResourceAsStream("/javalens.conf")) {
+                        if (is != null) content = is.readAllBytes();
+                    }
+                }
+                if (content != null) {
+                    exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+                    exchange.sendResponseHeaders(200, content.length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(content);
+                    os.close();
+                } else {
+                    sendTextResponse(exchange, 404, "Configuration file not found.");
+                }
             } else {
                 sendTextResponse(exchange, 404, "Not Found");
             }
@@ -128,19 +151,24 @@ public class WebServer {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             Config config = new Config();
-            config.loadProperties("analyzer.properties");
+            config.load();
 
             if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
                 String json = String.format(
-                    "{\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\"}",
+                    "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b}",
+                    escapeJson(config.getConfigFilePath()),
+                    escapeJson(config.getMode().name().toLowerCase()),
                     escapeJson(config.getSourceFolder()),
                     escapeJson(config.getOutputDir()),
                     config.getThreads(),
+                    config.getServerPort(),
                     escapeJson(config.getActiveRunFolder()),
                     escapeJson(config.getOldPath()),
                     escapeJson(config.getNewPath()),
                     escapeJson(config.getStartMarker()),
-                    escapeJson(config.getEndMarker())
+                    escapeJson(config.getEndMarker()),
+                    config.isCompareEnabled(),
+                    config.isMergeEnabled()
                 );
                 exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
                 byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
@@ -150,22 +178,107 @@ public class WebServer {
                 os.close();
             } else if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
                 Map<String, String> params = parseBodyParams(exchange);
+                String targetPath = params.get("configFilePath");
+                if (targetPath != null && !targetPath.trim().isEmpty()) {
+                    config.setConfigFilePath(targetPath.trim());
+                }
+                if (params.containsKey("mode")) {
+                    try { config.setMode(Config.Mode.valueOf(params.get("mode").trim().toUpperCase())); } catch (Exception ignored) {}
+                }
                 if (params.containsKey("sourceFolder")) config.setSourceFolder(params.get("sourceFolder"));
                 if (params.containsKey("outputDir")) config.setOutputDir(params.get("outputDir"));
                 if (params.containsKey("threads")) {
                     try { config.setThreads(Integer.parseInt(params.get("threads"))); } catch (Exception ignored) {}
                 }
+                if (params.containsKey("serverPort")) {
+                    try { config.setServerPort(Integer.parseInt(params.get("serverPort"))); } catch (Exception ignored) {}
+                }
                 if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
                 if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
                 if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
                 if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
+                if (params.containsKey("compareEnabled")) config.setCompareEnabled(Boolean.parseBoolean(params.get("compareEnabled")));
+                if (params.containsKey("mergeEnabled")) config.setMergeEnabled(Boolean.parseBoolean(params.get("mergeEnabled")));
 
-                // Save properties
-                config.saveProperties("analyzer.properties");
-                sendTextResponse(exchange, 200, "Config updated successfully");
+                // Save to active .conf file on local machine
+                config.save();
+                sendTextResponse(exchange, 200, "Configuration saved successfully to " + config.getConfigFilePath());
             } else {
                 exchange.sendResponseHeaders(405, -1);
             }
+        }
+    }
+
+    private static class ConfigLoadHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+            Map<String, String> params = parseBodyParams(exchange);
+            String path = params.get("configFilePath");
+            if (path == null || path.trim().isEmpty()) {
+                sendTextResponse(exchange, 400, "Missing configFilePath parameter");
+                return;
+            }
+            File f = new File(path.trim());
+            if (!f.exists()) {
+                sendTextResponse(exchange, 404, "Configuration file not found on local machine: " + path);
+                return;
+            }
+            Config config = new Config();
+            config.loadProperties(path.trim());
+            String json = String.format(
+                "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b}",
+                escapeJson(config.getConfigFilePath()),
+                escapeJson(config.getMode().name().toLowerCase()),
+                escapeJson(config.getSourceFolder()),
+                escapeJson(config.getOutputDir()),
+                config.getThreads(),
+                config.getServerPort(),
+                escapeJson(config.getActiveRunFolder()),
+                escapeJson(config.getOldPath()),
+                escapeJson(config.getNewPath()),
+                escapeJson(config.getStartMarker()),
+                escapeJson(config.getEndMarker()),
+                config.isCompareEnabled(),
+                config.isMergeEnabled()
+            );
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, bytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(bytes);
+            os.close();
+        }
+    }
+
+    private static class ConfigDownloadHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+            Config config = new Config();
+            config.load();
+            File f = new File(config.getConfigFilePath());
+            byte[] bytes;
+            String filename = "javalens.conf";
+            if (f.exists()) {
+                bytes = Files.readAllBytes(f.toPath());
+                filename = f.getName();
+            } else {
+                config.save();
+                bytes = Files.readAllBytes(new File(config.getConfigFilePath()).toPath());
+            }
+            exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+            exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+            exchange.sendResponseHeaders(200, bytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(bytes);
+            os.close();
         }
     }
 
@@ -179,13 +292,13 @@ public class WebServer {
 
             Map<String, String> params = parseBodyParams(exchange);
             Config config = new Config();
-            config.loadProperties("analyzer.properties");
+            config.load();
             if (params.containsKey("sourceFolder")) config.setSourceFolder(params.get("sourceFolder"));
             if (params.containsKey("outputDir")) config.setOutputDir(params.get("outputDir"));
             if (params.containsKey("threads")) {
                 try { config.setThreads(Integer.parseInt(params.get("threads"))); } catch (Exception ignored) {}
             }
-            config.saveProperties("analyzer.properties");
+            config.save();
 
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
             exchange.sendResponseHeaders(200, 0); // chunked transfer
@@ -221,10 +334,10 @@ public class WebServer {
 
             Map<String, String> params = parseBodyParams(exchange);
             Config config = new Config();
-            config.loadProperties("analyzer.properties");
+            config.load();
             if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
             if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
-            config.saveProperties("analyzer.properties");
+            config.save();
 
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
             exchange.sendResponseHeaders(200, 0); // chunked
@@ -238,9 +351,9 @@ public class WebServer {
 
             try {
                 CompareEngine.execute(config);
-                System.out.println("\n[GUI] Comparison completed successfully.");
+                System.out.println("\n[GUI] Semantic comparison completed successfully.");
             } catch (Exception e) {
-                System.err.println("\n[ERROR] Comparison failed: " + e.getMessage());
+                System.err.println("\n[ERROR] Semantic comparison failed: " + e.getMessage());
                 e.printStackTrace(System.err);
             } finally {
                 System.setOut(originalOut);
@@ -260,12 +373,12 @@ public class WebServer {
 
             Map<String, String> params = parseBodyParams(exchange);
             Config config = new Config();
-            config.loadProperties("analyzer.properties");
+            config.load();
             if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
             if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
             if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
             if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
-            config.saveProperties("analyzer.properties");
+            config.save();
 
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
             exchange.sendResponseHeaders(200, 0); // chunked
@@ -301,13 +414,13 @@ public class WebServer {
 
             Map<String, String> params = parseBodyParams(exchange);
             Config config = new Config();
-            config.loadProperties("analyzer.properties");
+            config.load();
             if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
             if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
             if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
             if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
             if (params.containsKey("outputDir")) config.setOutputDir(params.get("outputDir"));
-            config.saveProperties("analyzer.properties");
+            config.save();
 
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
             exchange.sendResponseHeaders(200, 0); // chunked
@@ -342,9 +455,8 @@ public class WebServer {
                 return;
             }
 
-            // Find the latest report CSV from the active run folder
             Config config = new Config();
-            config.loadProperties("analyzer.properties");
+            config.load();
             String activeFolder = config.getActiveRunFolder();
 
             Path reportCsv = null;
@@ -414,7 +526,6 @@ public class WebServer {
         String body = bos.toString(StandardCharsets.UTF_8.name());
         
         if (body.startsWith("{")) {
-            // Very simple JSON parser for string-only flat key-values (e.g. {"key": "value"})
             body = body.substring(1, body.length() - 1);
             String[] pairs = body.split(",");
             for (String pair : pairs) {
@@ -426,7 +537,6 @@ public class WebServer {
                 }
             }
         } else {
-            // URL Form parameters
             String[] pairs = body.split("&");
             for (String pair : pairs) {
                 String[] kv = pair.split("=", 2);
@@ -467,6 +577,9 @@ public class WebServer {
                 return;
             }
 
+            Map<String, String> params = parseBodyParams(exchange);
+            final String modeParam = params.getOrDefault("mode", "directories");
+
             final String[] selectedPath = new String[]{""};
             try {
                 EventQueue.invokeAndWait(() -> {
@@ -475,8 +588,16 @@ public class WebServer {
                     frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
                     JFileChooser chooser = new JFileChooser();
-                    chooser.setDialogTitle("Select JavaLens Workspace Folder");
-                    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    if ("files".equalsIgnoreCase(modeParam)) {
+                        chooser.setDialogTitle("Select JavaLens Configuration File (.conf)");
+                        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    } else if ("files_and_directories".equalsIgnoreCase(modeParam)) {
+                        chooser.setDialogTitle("Select File or Directory");
+                        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                    } else {
+                        chooser.setDialogTitle("Select JavaLens Workspace Folder");
+                        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    }
 
                     int returnVal = chooser.showOpenDialog(frame);
                     if (returnVal == JFileChooser.APPROVE_OPTION) {

@@ -234,64 +234,108 @@ public class InteractiveCli {
     }
 
     private static void runConfigFlow() {
-        System.out.println("\n\u001B[35;1m╔══════════════════════════════════════════════════════╗\u001B[0m");
-        System.out.println("\u001B[35;1m║             EDIT PROPERTIES CONFIGURATION            ║\u001B[0m");
-        System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
-        System.out.println("  \u001B[36m[1]\u001B[0m Compare Enhancement  : \u001B[33m" + currentConfig.isCompareEnabled() + "\u001B[0m");
-        System.out.println("  \u001B[36m[2]\u001B[0m Merge Enhancement    : \u001B[33m" + currentConfig.isMergeEnabled() + "\u001B[0m");
-        System.out.println("  \u001B[36m[3]\u001B[0m Merge Start Marker   : \u001B[33m" + currentConfig.getStartMarker() + "\u001B[0m");
-        System.out.println("  \u001B[36m[4]\u001B[0m Merge End Marker     : \u001B[33m" + currentConfig.getEndMarker() + "\u001B[0m");
-        System.out.println("  \u001B[36m[5]\u001B[0m Default Output Dir   : \u001B[33m" + currentConfig.getOutputDir() + "\u001B[0m");
-        System.out.println("  \u001B[36m[6]\u001B[0m Default Threads      : \u001B[33m" + currentConfig.getThreads() + "\u001B[0m");
-        System.out.println("  \u001B[31m[7]\u001B[0m BACK TO MAIN MENU");
-        System.out.print("\u001B[35;1m⚡ Select config item [1-7]: \u001B[0m");
+        while (true) {
+            System.out.println("\n\u001B[35;1m╔══════════════════════════════════════════════════════╗\u001B[0m");
+            System.out.println("\u001B[35;1m║             CONFIGURATION & .CONF SETTINGS           ║\u001B[0m");
+            System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
+            System.out.println("  \u001B[90mActive File           :\u001B[0m \u001B[32;1m" + currentConfig.getConfigFilePath() + "\u001B[0m");
+            System.out.println("  \u001B[36m[1]\u001B[0m Execution Mode       : \u001B[33m" + currentConfig.getMode().name().toLowerCase() + "\u001B[0m");
+            System.out.println("  \u001B[36m[2]\u001B[0m Default Source Folder: \u001B[33m" + currentConfig.getSourceFolder() + "\u001B[0m");
+            System.out.println("  \u001B[36m[3]\u001B[0m Baseline Old Path    : \u001B[33m" + currentConfig.getOldPath() + "\u001B[0m");
+            System.out.println("  \u001B[36m[4]\u001B[0m Feature New Path     : \u001B[33m" + currentConfig.getNewPath() + "\u001B[0m");
+            System.out.println("  \u001B[36m[5]\u001B[0m Output Directory     : \u001B[33m" + currentConfig.getOutputDir() + "\u001B[0m");
+            System.out.println("  \u001B[36m[6]\u001B[0m Parallel Threads     : \u001B[33m" + currentConfig.getThreads() + "\u001B[0m");
+            System.out.println("  \u001B[36m[7]\u001B[0m Web Server Port      : \u001B[33m" + currentConfig.getServerPort() + "\u001B[0m");
+            System.out.println("  \u001B[36m[8]\u001B[0m Merge Start Marker   : \u001B[33m" + currentConfig.getStartMarker() + "\u001B[0m");
+            System.out.println("  \u001B[36m[9]\u001B[0m Merge End Marker     : \u001B[33m" + currentConfig.getEndMarker() + "\u001B[0m");
+            System.out.println("  \u001B[36m[10]\u001B[0m Compare Enabled     : \u001B[33m" + currentConfig.isCompareEnabled() + "\u001B[0m");
+            System.out.println("  \u001B[36m[11]\u001B[0m Merge Enabled       : \u001B[33m" + currentConfig.isMergeEnabled() + "\u001B[0m");
+            System.out.println("  ──────────────────────────────────────────────────────");
+            System.out.println("  \u001B[32;1m[S]\u001B[0m SAVE configuration to active .conf file");
+            System.out.println("  \u001B[32;1m[W]\u001B[0m WRITE configuration to custom .conf file path");
+            System.out.println("  \u001B[34;1m[L]\u001B[0m LOAD configuration from .conf file path");
+            System.out.println("  \u001B[31m[B]\u001B[0m BACK TO MAIN MENU");
+            System.out.print("\u001B[35;1m⚡ Select option [1-11, S, W, L, B]: \u001B[0m");
 
-        String choice = scanner.nextLine().trim();
-        if (choice.equals("7") || choice.isEmpty()) {
-            return;
-        }
-
-        Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream("analyzer.properties")) {
-            props.load(fis);
-        } catch (IOException e) { /* ignore */ }
-
-        switch (choice) {
-            case "1":
-                System.out.print("Enable compare engine? (true/false): ");
-                props.setProperty("enhancement.compare.enabled", scanner.nextLine().trim());
-                break;
-            case "2":
-                System.out.print("Enable merge engine? (true/false): ");
-                props.setProperty("enhancement.merge.enabled", scanner.nextLine().trim());
-                break;
-            case "3":
-                System.out.print("Enter Start Marker: ");
-                props.setProperty("merge.start_marker", scanner.nextLine().trim());
-                break;
-            case "4":
-                System.out.print("Enter End Marker: ");
-                props.setProperty("merge.end_marker", scanner.nextLine().trim());
-                break;
-            case "5":
-                System.out.print("Enter Default Output Dir: ");
-                props.setProperty("compare.output_dir", scanner.nextLine().trim());
-                break;
-            case "6":
-                System.out.print("Enter Default Threads: ");
-                props.setProperty("threads", scanner.nextLine().trim());
-                break;
-            default:
-                System.out.println("\u001B[31;1m⚠ Invalid option.\u001B[0m");
+            String choice = scanner.nextLine().trim().toUpperCase();
+            if (choice.equals("B") || choice.isEmpty()) {
                 return;
-        }
+            }
 
-        try (FileOutputStream fos = new FileOutputStream("analyzer.properties")) {
-            props.store(fos, "Updated via terminal interactive config menu");
-            System.out.println("\u001B[32;1m✔ Config saved to 'analyzer.properties'. Reloading...\u001B[0m");
-            currentConfig = Config.parse(new String[0]); // Reload
-        } catch (IOException e) {
-            System.out.println("\u001B[31;1m❌ Failed to save config: " + e.getMessage() + "\u001B[0m");
+            switch (choice) {
+                case "1":
+                    System.out.print("Enter mode (analyze, compare, merge, report, server, interactive): ");
+                    String m = scanner.nextLine().trim().toUpperCase();
+                    try { currentConfig.setMode(Config.Mode.valueOf(m)); } catch (Exception e) { System.out.println("\u001B[31mInvalid mode.\u001B[0m"); }
+                    break;
+                case "2":
+                    System.out.print("Enter default source folder: ");
+                    currentConfig.setSourceFolder(scanner.nextLine().trim());
+                    break;
+                case "3":
+                    System.out.print("Enter baseline old path: ");
+                    currentConfig.setOldPath(scanner.nextLine().trim());
+                    break;
+                case "4":
+                    System.out.print("Enter feature new path: ");
+                    currentConfig.setNewPath(scanner.nextLine().trim());
+                    break;
+                case "5":
+                    System.out.print("Enter output directory: ");
+                    currentConfig.setOutputDir(scanner.nextLine().trim());
+                    break;
+                case "6":
+                    System.out.print("Enter thread pool size: ");
+                    try { currentConfig.setThreads(Integer.parseInt(scanner.nextLine().trim())); } catch (Exception ignored) {}
+                    break;
+                case "7":
+                    System.out.print("Enter web server port: ");
+                    try { currentConfig.setServerPort(Integer.parseInt(scanner.nextLine().trim())); } catch (Exception ignored) {}
+                    break;
+                case "8":
+                    System.out.print("Enter merge start marker: ");
+                    currentConfig.setStartMarker(scanner.nextLine().trim());
+                    break;
+                case "9":
+                    System.out.print("Enter merge end marker: ");
+                    currentConfig.setEndMarker(scanner.nextLine().trim());
+                    break;
+                case "10":
+                    System.out.print("Enable compare engine? (true/false): ");
+                    currentConfig.setCompareEnabled(Boolean.parseBoolean(scanner.nextLine().trim()));
+                    break;
+                case "11":
+                    System.out.print("Enable merge engine? (true/false): ");
+                    currentConfig.setMergeEnabled(Boolean.parseBoolean(scanner.nextLine().trim()));
+                    break;
+                case "S":
+                    currentConfig.save();
+                    System.out.println("\u001B[32;1m✔ Configuration successfully saved to: " + currentConfig.getConfigFilePath() + "\u001B[0m");
+                    break;
+                case "W":
+                    System.out.print("Enter target .conf file path on local machine: ");
+                    String customPath = scanner.nextLine().trim();
+                    if (!customPath.isEmpty()) {
+                        currentConfig.saveProperties(customPath);
+                        System.out.println("\u001B[32;1m✔ Configuration written to: " + customPath + "\u001B[0m");
+                    }
+                    break;
+                case "L":
+                    System.out.print("Enter .conf file path to load: ");
+                    String loadPath = scanner.nextLine().trim();
+                    if (!loadPath.isEmpty()) {
+                        File lf = new File(loadPath);
+                        if (lf.exists()) {
+                            currentConfig.loadProperties(loadPath);
+                            System.out.println("\u001B[32;1m✔ Configuration reloaded from: " + loadPath + "\u001B[0m");
+                        } else {
+                            System.out.println("\u001B[31;1m⚠ File does not exist: " + loadPath + "\u001B[0m");
+                        }
+                    }
+                    break;
+                default:
+                    System.out.println("\u001B[31;1m⚠ Invalid option.\u001B[0m");
+            }
         }
     }
 

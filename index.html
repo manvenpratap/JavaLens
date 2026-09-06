@@ -987,48 +987,141 @@
                          6. TAB: CONFIGURATION & SETTINGS
                          ═════════════════════════════════════════════════════════════════════════════ -->
                     <div id="tab-settings" class="hidden h-full flex flex-col gap-5 overflow-y-auto pb-16 animate-fade-in">
-                        <section class="max-w-2xl w-full mx-auto">
-                            <div class="pb-3 border-b border-brand-border/60 mb-5">
-                                <h2 class="font-mono text-xl md:text-2xl font-bold text-brand-textBright tracking-tight">Engine Properties</h2>
-                                <p class="text-sm text-brand-textMuted mt-1">
-                                    Configure core analyzer runtime directives inside <code class="text-brand-primary font-mono">analyzer.properties</code>.
-                                </p>
+                        <section class="max-w-3xl w-full mx-auto">
+                            <div class="pb-3 border-b border-brand-border/60 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <h2 class="font-mono text-xl md:text-2xl font-bold text-brand-textBright tracking-tight flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-brand-primary text-2xl">settings</span>
+                                        <span>Configuration &amp; Local .conf Storage</span>
+                                    </h2>
+                                    <p class="text-sm text-brand-textMuted mt-1">
+                                        Configure and persist all JavaLens runtime directives directly in a <code class="text-brand-primary font-mono">.conf</code> file on your local machine.
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="downloadConfFile()" title="Download current .conf file" class="px-3 py-1.5 bg-brand-card hover:bg-brand-raised border border-brand-border rounded text-xs text-brand-textNormal hover:text-brand-textBright transition-colors flex items-center gap-1.5 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[15px]" aria-hidden="true">download</span>
+                                        <span>Download .conf</span>
+                                    </button>
+                                </div>
                             </div>
 
-                            <form onsubmit="event.preventDefault(); saveSettings();" class="glass-card p-6 rounded-lg space-y-4">
-                                <div>
-                                    <label for="settings-source-folder" class="font-mono text-xs text-brand-textMuted block mb-1">Default Analysis Source Path</label>
-                                    <input id="settings-source-folder" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="." placeholder="e.g. . or src" autocomplete="off">
-                                </div>
-
-                                <div>
-                                    <label for="settings-output-dir" class="font-mono text-xs text-brand-textMuted block mb-1">Default Output Directory</label>
-                                    <input id="settings-output-dir" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="java_analysis_output" autocomplete="off">
-                                </div>
-
-                                <div>
-                                    <label for="settings-threads" class="font-mono text-xs text-brand-textMuted block mb-1">Parallel Thread Pool Size</label>
-                                    <input id="settings-threads" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="number" min="1" max="64" value="8" autocomplete="off">
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="settings-start-marker" class="font-mono text-xs text-brand-textMuted block mb-1">Merge Start Marker</label>
-                                        <input id="settings-start-marker" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="// START_MERGE" autocomplete="off">
+                            <form onsubmit="event.preventDefault(); saveSettings();" class="space-y-5">
+                                <!-- Conf File Path Card -->
+                                <div class="glass-card p-4 rounded-lg border border-brand-primary/30 bg-brand-obsidian/80 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <label for="settings-conf-file" class="font-mono text-xs font-bold text-brand-primary flex items-center gap-1.5">
+                                            <span class="material-symbols-outlined text-[16px]">tune</span>
+                                            <span>Active Local Configuration File (.conf)</span>
+                                        </label>
+                                        <span class="text-[11px] font-mono text-brand-textMuted">Local Machine Path</span>
                                     </div>
-                                    <div>
-                                        <label for="settings-end-marker" class="font-mono text-xs text-brand-textMuted block mb-1">Merge End Marker</label>
-                                        <input id="settings-end-marker" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="// END_MERGE" autocomplete="off">
+                                    <div class="flex gap-2">
+                                        <input id="settings-conf-file" class="bg-brand-card border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary flex-1" type="text" value="javalens.conf" placeholder="e.g. javalens.conf or /Users/name/.javalens.conf" autocomplete="off">
+                                        <button type="button" onclick="browseConfFile()" title="Browse for .conf file on disk" class="px-3 py-2 bg-brand-raised hover:bg-brand-border border border-brand-border rounded text-xs font-mono text-brand-textNormal hover:text-brand-textBright transition-colors flex items-center gap-1 cursor-pointer">
+                                            <span class="material-symbols-outlined text-[15px]">folder_open</span>
+                                            <span class="hidden sm:inline">Browse</span>
+                                        </button>
+                                        <button type="button" onclick="loadSettingsFromPath()" title="Reload settings from this file" class="px-3 py-2 bg-brand-raised hover:bg-brand-border border border-brand-border rounded text-xs font-mono text-brand-textNormal hover:text-brand-textBright transition-colors flex items-center gap-1 cursor-pointer">
+                                            <span class="material-symbols-outlined text-[15px]">sync</span>
+                                            <span class="hidden sm:inline">Load</span>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center justify-end gap-3 pt-4 border-t border-brand-border">
-                                    <button type="button" onclick="fetchRealConfig()" class="px-4 py-2 bg-brand-card hover:bg-brand-raised border border-brand-border rounded text-xs text-brand-textNormal hover:text-brand-textBright transition-colors">
-                                        Reset to Saved
+                                <!-- Core Directives Card -->
+                                <div class="glass-card p-5 rounded-lg space-y-4">
+                                    <h3 class="font-mono text-xs font-bold text-brand-textBright uppercase tracking-wider border-b border-brand-border/40 pb-2">
+                                        Core Execution &amp; Paths
+                                    </h3>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="settings-mode" class="font-mono text-xs text-brand-textMuted block mb-1">Default Execution Mode</label>
+                                            <select id="settings-mode" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full">
+                                                <option value="analyze">ANALYZE (Codebase AST Parser)</option>
+                                                <option value="compare">COMPARE (Semantic AST Diff)</option>
+                                                <option value="merge">MERGE (Marker-Guided Merge)</option>
+                                                <option value="report">REPORT (Full Unified Pipeline)</option>
+                                                <option value="server">SERVER (Web GUI Host)</option>
+                                                <option value="interactive">INTERACTIVE (Terminal CLI)</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label for="settings-source-folder" class="font-mono text-xs text-brand-textMuted block mb-1">Analysis Source Folder / File</label>
+                                            <input id="settings-source-folder" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="." placeholder="e.g. . or src" autocomplete="off">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="settings-old-path" class="font-mono text-xs text-brand-textMuted block mb-1">Baseline Old Path (Compare/Merge/Report)</label>
+                                            <input id="settings-old-path" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" placeholder="e.g. /path/to/v1" autocomplete="off">
+                                        </div>
+
+                                        <div>
+                                            <label for="settings-new-path" class="font-mono text-xs text-brand-textMuted block mb-1">Feature New Path (Compare/Merge/Report)</label>
+                                            <input id="settings-new-path" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" placeholder="e.g. /path/to/v2" autocomplete="off">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                            <label for="settings-output-dir" class="font-mono text-xs text-brand-textMuted block mb-1">Output Directory</label>
+                                            <input id="settings-output-dir" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="java_analysis_output" autocomplete="off">
+                                        </div>
+
+                                        <div>
+                                            <label for="settings-threads" class="font-mono text-xs text-brand-textMuted block mb-1">Worker Threads</label>
+                                            <input id="settings-threads" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="number" min="1" max="128" value="8" autocomplete="off">
+                                        </div>
+
+                                        <div>
+                                            <label for="settings-server-port" class="font-mono text-xs text-brand-textMuted block mb-1">Web Server Port</label>
+                                            <input id="settings-server-port" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="number" min="1024" max="65535" value="8080" autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Merge Directives & Feature Toggles Card -->
+                                <div class="glass-card p-5 rounded-lg space-y-4">
+                                    <h3 class="font-mono text-xs font-bold text-brand-textBright uppercase tracking-wider border-b border-brand-border/40 pb-2">
+                                        Merge Markers &amp; Feature Engines
+                                    </h3>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="settings-start-marker" class="font-mono text-xs text-brand-textMuted block mb-1">Merge Start Marker</label>
+                                            <input id="settings-start-marker" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="// START_MERGE" autocomplete="off">
+                                        </div>
+                                        <div>
+                                            <label for="settings-end-marker" class="font-mono text-xs text-brand-textMuted block mb-1">Merge End Marker</label>
+                                            <input id="settings-end-marker" class="bg-brand-obsidian border border-brand-border rounded px-3 py-2 text-brand-textBright font-mono text-xs focus:outline-none focus:border-brand-primary w-full" type="text" value="// END_MERGE" autocomplete="off">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                        <label class="flex items-center gap-2.5 cursor-pointer bg-brand-obsidian/60 p-2.5 rounded border border-brand-border/60 hover:border-brand-border">
+                                            <input id="settings-compare-enabled" type="checkbox" checked class="accent-brand-primary w-4 h-4 rounded">
+                                            <span class="text-xs text-brand-textBright font-mono font-medium">Enable Compare Engine</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-2.5 cursor-pointer bg-brand-obsidian/60 p-2.5 rounded border border-brand-border/60 hover:border-brand-border">
+                                            <input id="settings-merge-enabled" type="checkbox" checked class="accent-brand-primary w-4 h-4 rounded">
+                                            <span class="text-xs text-brand-textBright font-mono font-medium">Enable Merge Engine</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between gap-3 pt-2">
+                                    <button type="button" onclick="fetchRealConfig()" class="px-4 py-2 bg-brand-card hover:bg-brand-raised border border-brand-border rounded text-xs text-brand-textNormal hover:text-brand-textBright transition-colors flex items-center gap-1.5 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[15px]">restart_alt</span>
+                                        <span>Reset to Saved</span>
                                     </button>
-                                    <button type="submit" class="px-5 py-2 bg-brand-primary hover:bg-brand-primaryHover text-brand-obsidian font-mono font-bold text-xs rounded transition-all shadow-md shadow-brand-primary/10 flex items-center gap-1.5 cursor-pointer">
-                                        <span class="material-symbols-outlined text-[15px]" aria-hidden="true">save</span>
-                                        <span>Save Properties</span>
+                                    <button type="submit" class="px-6 py-2.5 bg-brand-primary hover:bg-brand-primaryHover text-brand-obsidian font-mono font-bold text-xs rounded transition-all shadow-md shadow-brand-primary/10 flex items-center gap-1.5 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">save</span>
+                                        <span>Save to Conf File</span>
                                     </button>
                                 </div>
                             </form>
@@ -2054,85 +2147,192 @@
                 const res = await fetch('/api/config');
                 if (!res.ok) return;
                 const config = await res.json();
-
-                if (config.sourceFolder) {
-                    activeWorkspace = config.sourceFolder;
-                    const wsInput = document.getElementById('workspace-input-path');
-                    const setInput = document.getElementById('settings-source-folder');
-                    const anaInput = document.getElementById('analysis-source-input');
-                    if (wsInput) wsInput.value = config.sourceFolder;
-                    if (setInput) setInput.value = config.sourceFolder;
-                    if (anaInput) anaInput.value = config.sourceFolder;
-                    document.getElementById('workspace-header-title').innerText = config.sourceFolder;
-                }
-                if (config.outputDir) {
-                    const outInput = document.getElementById('settings-output-dir');
-                    if (outInput) outInput.value = config.outputDir;
-                }
-                if (config.threads) {
-                    const threadInput = document.getElementById('settings-threads');
-                    if (threadInput) threadInput.value = config.threads;
-                    document.getElementById('metric-threads').innerText = config.threads;
-                }
-                if (config.startMarker) {
-                    const sm = document.getElementById('settings-start-marker');
-                    const mm = document.getElementById('merge-start-marker');
-                    if (sm) sm.value = config.startMarker;
-                    if (mm) mm.value = config.startMarker;
-                }
-                if (config.endMarker) {
-                    const em = document.getElementById('settings-end-marker');
-                    const me = document.getElementById('merge-end-marker');
-                    if (em) em.value = config.endMarker;
-                    if (me) me.value = config.endMarker;
-                }
-                if (config.oldPath) {
-                    const ro = document.getElementById('report-old-path');
-                    const cb = document.getElementById('compare-base-input');
-                    const md = document.getElementById('merge-dest');
-                    if (ro) ro.value = config.oldPath;
-                    if (cb) cb.value = config.oldPath;
-                    if (md) md.value = config.oldPath;
-                }
-                if (config.newPath) {
-                    const rn = document.getElementById('report-new-path');
-                    const cf = document.getElementById('compare-feature-input');
-                    const ms = document.getElementById('merge-src');
-                    if (rn) rn.value = config.newPath;
-                    if (cf) cf.value = config.newPath;
-                    if (ms) ms.value = config.newPath;
-                }
-                updateDefaultOutputPreview();
+                applyConfigToUI(config);
             } catch (e) {
                 console.warn("Real config sync unavailable:", e.message);
             }
         }
 
+        function applyConfigToUI(config) {
+            if (!config) return;
+            if (config.configFilePath) {
+                const cfInput = document.getElementById('settings-conf-file');
+                if (cfInput) cfInput.value = config.configFilePath;
+            }
+            if (config.mode) {
+                const modeSelect = document.getElementById('settings-mode');
+                if (modeSelect) modeSelect.value = config.mode.toLowerCase();
+            }
+            if (config.sourceFolder) {
+                activeWorkspace = config.sourceFolder;
+                const wsInput = document.getElementById('workspace-input-path');
+                const setInput = document.getElementById('settings-source-folder');
+                const anaInput = document.getElementById('analysis-source-input');
+                if (wsInput) wsInput.value = config.sourceFolder;
+                if (setInput) setInput.value = config.sourceFolder;
+                if (anaInput) anaInput.value = config.sourceFolder;
+                const headerTitle = document.getElementById('workspace-header-title');
+                if (headerTitle) headerTitle.innerText = config.sourceFolder;
+            }
+            if (config.outputDir) {
+                const outInput = document.getElementById('settings-output-dir');
+                if (outInput) outInput.value = config.outputDir;
+            }
+            if (config.threads) {
+                const threadInput = document.getElementById('settings-threads');
+                if (threadInput) threadInput.value = config.threads;
+                const metricThreads = document.getElementById('metric-threads');
+                if (metricThreads) metricThreads.innerText = config.threads;
+            }
+            if (config.serverPort) {
+                const portInput = document.getElementById('settings-server-port');
+                if (portInput) portInput.value = config.serverPort;
+            }
+            if (config.startMarker) {
+                const sm = document.getElementById('settings-start-marker');
+                const mm = document.getElementById('merge-start-marker');
+                if (sm) sm.value = config.startMarker;
+                if (mm) mm.value = config.startMarker;
+            }
+            if (config.endMarker) {
+                const em = document.getElementById('settings-end-marker');
+                const me = document.getElementById('merge-end-marker');
+                if (em) em.value = config.endMarker;
+                if (me) me.value = config.endMarker;
+            }
+            if (config.oldPath) {
+                const so = document.getElementById('settings-old-path');
+                const ro = document.getElementById('report-old-path');
+                const cb = document.getElementById('compare-base-input');
+                const md = document.getElementById('merge-dest');
+                if (so) so.value = config.oldPath;
+                if (ro) ro.value = config.oldPath;
+                if (cb) cb.value = config.oldPath;
+                if (md) md.value = config.oldPath;
+            }
+            if (config.newPath) {
+                const sn = document.getElementById('settings-new-path');
+                const rn = document.getElementById('report-new-path');
+                const cf = document.getElementById('compare-feature-input');
+                const ms = document.getElementById('merge-src');
+                if (sn) sn.value = config.newPath;
+                if (rn) rn.value = config.newPath;
+                if (cf) cf.value = config.newPath;
+                if (ms) ms.value = config.newPath;
+            }
+            if (typeof config.compareEnabled === 'boolean') {
+                const ce = document.getElementById('settings-compare-enabled');
+                if (ce) ce.checked = config.compareEnabled;
+            }
+            if (typeof config.mergeEnabled === 'boolean') {
+                const me = document.getElementById('settings-merge-enabled');
+                if (me) me.checked = config.mergeEnabled;
+            }
+            updateDefaultOutputPreview();
+        }
+
         function saveSettings() {
+            const confPath = document.getElementById('settings-conf-file')?.value.trim() || 'javalens.conf';
+            const mode = document.getElementById('settings-mode')?.value.trim() || 'analyze';
             const srcDir = document.getElementById('settings-source-folder')?.value.trim() || '.';
+            const oldPath = document.getElementById('settings-old-path')?.value.trim() || '';
+            const newPath = document.getElementById('settings-new-path')?.value.trim() || '';
             const outDir = document.getElementById('settings-output-dir')?.value.trim() || 'java_analysis_output';
+            const threads = document.getElementById('settings-threads')?.value || '8';
+            const serverPort = document.getElementById('settings-server-port')?.value || '8080';
             const startMarker = document.getElementById('settings-start-marker')?.value || '// START_MERGE';
             const endMarker = document.getElementById('settings-end-marker')?.value || '// END_MERGE';
-            const threads = document.getElementById('settings-threads')?.value || '8';
+            const compareEnabled = document.getElementById('settings-compare-enabled')?.checked ? 'true' : 'false';
+            const mergeEnabled = document.getElementById('settings-merge-enabled')?.checked ? 'true' : 'false';
 
             if (window.location.protocol.startsWith('http')) {
+                const params = new URLSearchParams({
+                    configFilePath: confPath,
+                    mode: mode,
+                    sourceFolder: srcDir,
+                    oldPath: oldPath,
+                    newPath: newPath,
+                    outputDir: outDir,
+                    threads: threads,
+                    serverPort: serverPort,
+                    startMarker: startMarker,
+                    endMarker: endMarker,
+                    compareEnabled: compareEnabled,
+                    mergeEnabled: mergeEnabled
+                });
+
                 fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `sourceFolder=${encodeURIComponent(srcDir)}&outputDir=${encodeURIComponent(outDir)}&startMarker=${encodeURIComponent(startMarker)}&endMarker=${encodeURIComponent(endMarker)}&threads=${encodeURIComponent(threads)}`
+                    body: params.toString()
                 }).then(res => {
                     if (res.ok) {
-                        showToast("Properties successfully saved to analyzer.properties", "success");
-                        logToTerminal(`[CONFIG] Properties stored: threads=${threads}, src=${srcDir}`, "text-brand-primary font-bold");
+                        showToast(`Configuration saved to ${confPath}`, "success");
+                        logToTerminal(`[CONFIG] Stored configuration in: ${confPath}`, "text-brand-primary font-bold");
                     } else {
                         showToast("Server rejected settings update", "error");
                     }
                 }).catch(e => {
-                    showToast(`Failed to save properties: ${e.message}`, "error");
+                    showToast(`Failed to save configuration: ${e.message}`, "error");
                 });
             } else {
-                showToast("Simulation mode: Settings stored locally", "success");
+                showToast("Simulation mode: Settings stored in memory", "success");
                 logToTerminal(`[SIM] Properties saved into memory configuration.`, "text-brand-primary");
+            }
+        }
+
+        async function loadSettingsFromPath() {
+            const confPath = document.getElementById('settings-conf-file')?.value.trim();
+            if (!confPath) {
+                showToast("Please enter a valid configuration file path", "error");
+                return;
+            }
+            if (!window.location.protocol.startsWith('http')) return;
+            try {
+                const res = await fetch('/api/config/load', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `configFilePath=${encodeURIComponent(confPath)}`
+                });
+                if (res.ok) {
+                    const config = await res.json();
+                    applyConfigToUI(config);
+                    showToast(`Loaded configuration from ${confPath}`, "success");
+                    logToTerminal(`[CONFIG] Reloaded configuration from: ${confPath}`, "text-brand-cyan");
+                } else {
+                    const err = await res.text();
+                    showToast(err || "Failed to load configuration", "error");
+                }
+            } catch (e) {
+                showToast(`Load failed: ${e.message}`, "error");
+            }
+        }
+
+        function downloadConfFile() {
+            if (window.location.protocol.startsWith('http')) {
+                window.location.href = '/api/config/download';
+            } else {
+                showToast("Cannot download in simulation mode", "info");
+            }
+        }
+
+        async function browseConfFile() {
+            if (!window.location.protocol.startsWith('http')) return;
+            try {
+                const res = await fetch('/api/browse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'mode=files'
+                });
+                if (res.status === 200) {
+                    const path = await res.text();
+                    if (path && path.trim()) {
+                        document.getElementById('settings-conf-file').value = path.trim();
+                        loadSettingsFromPath();
+                    }
+                }
+            } catch (e) {
+                console.warn("Browse error:", e.message);
             }
         }
 

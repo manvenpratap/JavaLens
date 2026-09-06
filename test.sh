@@ -51,6 +51,14 @@ cp test_workspace/v1_backup.java test_workspace/v1/MyClass.java
 echo -e "\nUnified Report CSV:"
 cat test_out/report_out/*/javalens_report.csv
 
+# 6. Test Configuration .conf File Mode
+echo -e "\n6. Testing .conf configuration file workflow..."
+./run.sh --source test_workspace/v1 --output-dir test_out/conf_test_out --threads 4 --save-config test_out/custom.conf
+echo "Saved config file:"
+cat test_out/custom.conf
+echo -e "\nRunning Analyze using saved .conf:"
+./run.sh --config test_out/custom.conf
+
 # Restore test files
 mv test_workspace/v1_backup.java test_workspace/v1/MyClass.java
 rm -rf test_out
