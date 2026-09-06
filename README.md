@@ -19,7 +19,7 @@ It includes an interactive terminal wizard, high-throughput CLI modes, marker-gu
 * **Unified Activity Report Pipeline**: Executes the end-to-end automated pipeline (**analyze baseline → analyze new feature → compare deltas → merge marker blocks → re-analyze merged output**), tracking which attributes and methods are `NEWLY_ADDED`, `ORIGINAL`, `MODIFIED_BY_MERGE`, or `REMOVED` in a single consolidated CSV report.
 * **Modern Web GUI Dashboard**: Built-in HTTP server (`-m server`) hosting a high-craft engineering console with real-time streaming telemetry, AST signature inspectors with live search & modifier chips, side-by-side synchronized diff viewers, and one-click CSV report exports.
 * **Interactive CLI Wizard**: Terminal guide (`-i` / `--interactive`) with ANSI colorized banners, step-by-step parameter prompts, progress monitors, and ASCII result tables.
-* **Self-Contained Fat JAR**: `javalens.jar` packages all compiled classes along with `README.md`, `index.html`, and `analyzer.properties` for instant zero-config portability.
+* **Self-Contained Fat JAR**: `javalens.jar` packages all compiled modular classes along with `README.md`, `index.html`, `analyzer.properties`, and `javalens.conf` for instant zero-config portability.
 
 ---
 
@@ -33,7 +33,7 @@ It includes an interactive terminal wizard, high-throughput CLI modes, marker-gu
 ## Quick Start
 
 ### 1. Build the Self-Contained JAR
-Compile all classes and bundle `README.md`, `index.html`, and default `analyzer.properties` into `javalens.jar`:
+Compile all modular packages and bundle `README.md`, `index.html`, `analyzer.properties`, and `javalens.conf` into `javalens.jar`:
 ```bash
 # macOS / Linux
 ./build.sh
@@ -254,15 +254,18 @@ The embedded server exposes clean HTTP endpoints:
 | :--- | :--- | :--- | :--- |
 | `/` or `/index.html` | `GET` | — | Serves the single-page Web GUI (from disk or bundled JAR resource) |
 | `/README.md` | `GET` | — | Serves the project documentation |
+| `/javalens.conf` | `GET` | — | Serves active `.conf` configuration file content |
 | `/java_report_data.js` | `GET` | `_t` (cache-bust) | Serves the latest active run telemetry data as a JavaScript payload |
 | `/api/config` | `GET` | — | Returns current configuration properties as JSON |
-| `/api/config` | `POST` | `sourceFolder`, `outputDir`, `threads`, `startMarker`, `endMarker` | Updates and persists configuration to `analyzer.properties` |
-| `/api/analyze` | `POST` | `sourceFolder` | Runs codebase analysis with chunked streaming terminal output |
+| `/api/config` | `POST` | `sourceFolder`, `outputDir`, `threads`, `oldPath`, `newPath`, `startMarker`, `endMarker`, `compareEnabled`, `mergeEnabled` | Updates and persists configuration to the active `.conf` file on local machine |
+| `/api/config/load` | `POST` | `configFilePath` | Loads and parses a `.conf` configuration file from an arbitrary local machine path |
+| `/api/config/download` | `GET` | — | Downloads the active `.conf` configuration file as a file attachment |
+| `/api/analyze` | `POST` | `sourceFolder`, `outputDir`, `threads` | Runs codebase analysis with chunked streaming terminal output |
 | `/api/compare` | `POST` | `oldPath`, `newPath` | Runs AST comparison with chunked streaming terminal output |
 | `/api/merge` | `POST` | `oldPath`, `newPath`, `startMarker`, `endMarker` | Runs marker-guided merge with chunked streaming terminal output |
-| `/api/generate-report` | `POST` | `oldPath`, `newPath` | Runs the complete 5-step unified report pipeline with streaming logs |
+| `/api/generate-report` | `POST` | `oldPath`, `newPath`, `startMarker`, `endMarker`, `outputDir` | Runs the complete 5-step unified report pipeline with streaming logs |
 | `/api/report-csv` | `GET` | — | Downloads `javalens_report.csv` as a file attachment |
-| `/api/browse` | `POST` | — | Opens a native OS file/folder picker dialog and returns the selected path |
+| `/api/browse` | `POST` | `mode` (`directories`, `files`, `files_and_directories`) | Opens a native OS file/folder picker dialog and returns the selected path |
 
 ---
 
@@ -302,24 +305,47 @@ The embedded server exposes clean HTTP endpoints:
 
 ---
 
-## Configuration (`analyzer.properties`)
+## Configuration File Directives (`javalens.conf`)
 
-Engine directives can be customized in `analyzer.properties` or edited live via the Web GUI Settings tab:
+Engine directives can be customized in `javalens.conf` (or legacy `analyzer.properties`), or edited live via the Web GUI Settings tab and Interactive CLI:
 
 ```properties
-# Merge Markers
+# ===================================================================
+# JavaLens Configuration File (javalens.conf)
+# Precision AST Static Analysis, Code Comparator & Merge Telemetry
+# ===================================================================
+
+# Execution Mode: analyze, compare, merge, report, server, interactive
+mode=analyze
+
+# Default Analysis Source Path (file or directory)
+source.folder=.
+
+# Baseline Old Version Path (used in compare, merge, and report modes)
+old.path=/path/to/baseline/v1
+
+# Feature New Version Path (used in compare, merge, and report modes)
+new.path=/path/to/feature/v2
+
+# Output Directory for Generated Reports, CSVs, and Telemetry Data
+output.dir=java_analysis_output
+
+# Active Run Output Folder Context
+active.run_folder=java_analysis_output/run_20260906_112153
+
+# Parallel Worker Thread Pool Size (0 = available CPU cores)
+threads=8
+
+# Marker-Guided Merge Boundaries
 merge.start_marker=// START_MERGE
 merge.end_marker=// END_MERGE
 
-# Execution Directives
-source.folder=.
-threads=8
+# Feature Engine Toggles
 enhancement.compare.enabled=true
 enhancement.merge.enabled=true
 
-# Output Routing
-compare.output_dir=java_analysis_output
-active.run_folder=java_analysis_output/run_20260906_112153
+# Web GUI Server Port
+server.port=8080
 ```
 
 ---
@@ -343,7 +369,7 @@ JavaLens implements a producer-consumer stream architecture:
 
 ## Automated Test Suite
 
-A turnkey test workspace is provided in `test_workspace/` (`v1` baseline and `v2` feature). Execute the automated test suite to validate all 5 engine components:
+A turnkey test workspace is provided in `test_workspace/` (`v1` baseline and `v2` feature). Execute the automated test suite to validate all 6 engine components:
 
 ```bash
 # macOS / Linux
@@ -360,6 +386,7 @@ The script runs:
 3. **Compare Mode Validation**: Verifies field and method delta calculation.
 4. **Merge Mode Validation**: Tests marker-guided block substitution.
 5. **Unified Report Pipeline Validation**: Executes the full 5-stage pipeline and verifies `javalens_report.csv` generation.
+6. **Configuration .conf Validation**: Validates writing via `--save-config` and reloading execution via `--config`.
 
 ---
 
