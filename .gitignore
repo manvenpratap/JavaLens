@@ -12,6 +12,9 @@ java_analysis_output/
 test_out/
 test_workspace/*_backup.java
 
+# Runtime-generated data
+java_report_data.js
+
 # OS specific files
 .DS_Store
 Thumbs.db
