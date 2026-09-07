@@ -1008,7 +1008,7 @@
                             <div class="pb-3 border-b border-zinc-800 mb-5">
                                 <h2 class="font-mono text-lg md:text-xl font-semibold text-zinc-100 tracking-tight">Marker-Guided Code Merge</h2>
                                 <p class="text-xs text-zinc-400 mt-1">
-                                    Selectively copy designated methods and refactored logic from a new repository to a target codebase governed by boundary tags.
+                                    Read files from two input folders and create the merged versions in the output folder. Files from Folder 1 not in Folder 2 are preserved in the output folder.
                                 </p>
                             </div>
 
@@ -1016,14 +1016,27 @@
                                 <!-- Paths Card -->
                                 <div class="surface-card p-5 rounded-lg space-y-4">
                                     <h3 class="font-mono text-xs font-semibold text-zinc-300 uppercase tracking-wider">1. Path Parameters</h3>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
-                                            <label for="merge-src" class="font-mono text-xs text-zinc-500 block mb-1">Source Repository (With Markers)</label>
-                                            <input id="merge-src" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="test_workspace/v2" autocomplete="off">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label for="merge-dest" class="font-mono text-xs text-zinc-400 block">Input Folder 1 (Base)</label>
+                                                <button type="button" onclick="browseForPath('merge-dest')" class="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors">Browse</button>
+                                            </div>
+                                            <input id="merge-dest" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="samples/v1" autocomplete="off">
                                         </div>
                                         <div>
-                                            <label for="merge-dest" class="font-mono text-xs text-zinc-500 block mb-1">Destination Repository (Target)</label>
-                                            <input id="merge-dest" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="test_workspace/v1" autocomplete="off">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label for="merge-src" class="font-mono text-xs text-zinc-400 block">Input Folder 2 (With Markers)</label>
+                                                <button type="button" onclick="browseForPath('merge-src')" class="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors">Browse</button>
+                                            </div>
+                                            <input id="merge-src" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="samples/v2" autocomplete="off">
+                                        </div>
+                                        <div>
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label for="merge-output" class="font-mono text-xs text-zinc-400 block">Output Folder (Merged)</label>
+                                                <button type="button" onclick="browseForPath('merge-output')" class="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors">Browse</button>
+                                            </div>
+                                            <input id="merge-output" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="java_analysis_output/merged" autocomplete="off">
                                         </div>
                                     </div>
                                 </div>
@@ -3124,8 +3137,9 @@
         }
 
         function triggerMerge() {
-            const src = document.getElementById('merge-src')?.value.trim() || 'test_workspace/v2';
-            const dest = document.getElementById('merge-dest')?.value.trim() || 'test_workspace/v1';
+            const folder1 = document.getElementById('merge-dest')?.value.trim() || 'samples/v1';
+            const folder2 = document.getElementById('merge-src')?.value.trim() || 'samples/v2';
+            const outputDir = document.getElementById('merge-output')?.value.trim() || 'java_analysis_output/merged';
             const sm = document.getElementById('merge-start-marker')?.value || '// START_MERGE';
             const em = document.getElementById('merge-end-marker')?.value || '// END_MERGE';
 
@@ -3143,14 +3157,14 @@
                     }
                     document.getElementById('merge-success-pane')?.classList.remove('hidden');
                     showToast("Simulated merge executed cleanly", "success");
-                    logToTerminal("[SIM] Transferred marked code blocks to destination.", "text-emerald-400");
+                    logToTerminal("[SIM] Created merged versions in " + outputDir, "text-emerald-400");
                 }, 800);
                 return;
             }
 
             runRealApiStream(
                 '/api/merge',
-                `oldPath=${encodeURIComponent(src)}&newPath=${encodeURIComponent(dest)}&startMarker=${encodeURIComponent(sm)}&endMarker=${encodeURIComponent(em)}`,
+                `oldPath=${encodeURIComponent(folder1)}&newPath=${encodeURIComponent(folder2)}&outputDir=${encodeURIComponent(outputDir)}&startMarker=${encodeURIComponent(sm)}&endMarker=${encodeURIComponent(em)}`,
                 (line) => logToTerminal(line, "text-zinc-300"),
                 (success) => {
                     if (btn) {

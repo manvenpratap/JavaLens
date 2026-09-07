@@ -103,14 +103,22 @@ public class ReportGenerator {
 
         // ── Step 4: Execute merge ───────────────────────────────────────────
         System.out.println("▸ Step 4/5: Merging new into old (marker-guided)...");
-        List<MergeEngine.MergeResult> mergeResults = MergeEngine.execute(config);
+        Path mergedFolder = runFolder.resolve("merged");
+        Files.createDirectories(mergedFolder);
+        Config mergeConfig = new Config();
+        mergeConfig.setOldPath(oldPath.toString());
+        mergeConfig.setNewPath(newPath.toString());
+        mergeConfig.setOutputDir(mergedFolder.toString());
+        mergeConfig.setStartMarker(config.getStartMarker());
+        mergeConfig.setEndMarker(config.getEndMarker());
+        List<MergeEngine.MergeResult> mergeResults = MergeEngine.execute(mergeConfig);
         int mergedCount = (int) mergeResults.stream().filter(r -> "MERGED".equals(r.status)).count();
         System.out.println("  " + mergedCount + " file(s) merged, " +
-                          (mergeResults.size() - mergedCount) + " skipped/warned.");
+                          (mergeResults.size() - mergedCount) + " copied/preserved/added.");
 
         // ── Step 5: Re-parse merged output & generate report ───────────────
         System.out.println("▸ Step 5/5: Re-analyzing merged output & generating reports...");
-        Map<String, JavaModel> mergedModels = parseAllFiles(oldPath);
+        Map<String, JavaModel> mergedModels = parseAllFiles(mergedFolder);
         System.out.println("  Found " + mergedModels.size() + " Java file(s) in merged output.");
 
         // Write analysis CSVs from merged output

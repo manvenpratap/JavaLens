@@ -164,16 +164,21 @@ public class InteractiveCli {
         System.out.println("\u001B[35;1m║            ACTION: MARKER-GUIDED MERGE               ║\u001B[0m");
         System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
 
-        String destPath = promptInput("Enter Destination Path (Old version to modify)", currentConfig.getOldPath());
-        if (destPath.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: Destination path is required.\u001B[0m");
+        String folder1 = promptInput("Enter Input Folder 1 (Base version)", currentConfig.getOldPath());
+        if (folder1.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Input Folder 1 is required.\u001B[0m");
             return;
         }
 
-        String srcPath = promptInput("Enter Source Path (New version with markers)", currentConfig.getNewPath());
-        if (srcPath.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: Source path is required.\u001B[0m");
+        String folder2 = promptInput("Enter Input Folder 2 (With markers)", currentConfig.getNewPath());
+        if (folder2.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Input Folder 2 is required.\u001B[0m");
             return;
+        }
+
+        String outDir = promptInput("Enter Output Folder (Merged Result)", currentConfig.getOutputDir());
+        if (outDir.isEmpty()) {
+            outDir = "java_analysis_output/merged";
         }
 
         String startMarker = promptInput("Enter Start Marker", currentConfig.getStartMarker());
@@ -181,20 +186,20 @@ public class InteractiveCli {
         String threadStr = promptInput("Enter Parallel Threads", String.valueOf(currentConfig.getThreads()));
         int threads = parseThreadCount(threadStr);
 
-        System.out.print("\u001B[31;1m⚠ WARNING: This will overwrite code inside marked blocks in destination files. Continue? (y/n) [y]: \u001B[0m");
+        System.out.print("\u001B[33;1m▶ Merged files will be created in: " + outDir + ". Continue? (y/n) [y]: \u001B[0m");
         String confirm = scanner.nextLine().trim().toLowerCase();
         if (confirm.equals("n")) {
             System.out.println("\u001B[90mOperation aborted.\u001B[0m");
             return;
         }
 
-        System.out.println("\n\u001B[33m[SYS] Initiating marker scanner and inline merge...\u001B[0m");
+        System.out.println("\n\u001B[33m[SYS] Initiating marker scanner and merge to output folder...\u001B[0m");
         try {
-            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "merge", "-o", destPath, "-n", srcPath, "--start-marker", startMarker, "--end-marker", endMarker, "-t", String.valueOf(threads)));
+            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "merge", "-o", folder1, "-n", folder2, "--output-dir", outDir, "--start-marker", startMarker, "--end-marker", endMarker, "-t", String.valueOf(threads)));
             Config config = Config.parse(argsList.toArray(new String[0]));
             
             MergeEngine.execute(config);
-            System.out.println("\u001B[32;1m✔ SUCCESS: Marked source blocks successfully merged.\u001B[0m");
+            System.out.println("\u001B[32;1m✔ SUCCESS: Merged files written to " + outDir + ".\u001B[0m");
         } catch (Exception e) {
             System.out.println("\u001B[31;1m❌ FAILED: Merge operation failed: " + e.getMessage() + "\u001B[0m");
             e.printStackTrace();

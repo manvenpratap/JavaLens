@@ -391,6 +391,7 @@ public class WebServer {
             config.load();
             if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
             if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
+            if (params.containsKey("outputDir")) config.setOutputDir(params.get("outputDir"));
             if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
             if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
             config.save();

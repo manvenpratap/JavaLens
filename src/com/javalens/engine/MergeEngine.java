@@ -23,105 +23,156 @@ public class MergeEngine {
     }
 
     public static List<MergeResult> execute(Config config) throws Exception {
-        Path oldPath = Paths.get(config.getOldPath()).toAbsolutePath().normalize();
-        Path newPath = Paths.get(config.getNewPath()).toAbsolutePath().normalize();
+        Path folder1 = Paths.get(config.getOldPath()).toAbsolutePath().normalize();
+        Path folder2 = Paths.get(config.getNewPath()).toAbsolutePath().normalize();
         String startMarker = config.getStartMarker();
         String endMarker = config.getEndMarker();
 
-        boolean oldIsDir = Files.isDirectory(oldPath);
-        boolean newIsDir = Files.isDirectory(newPath);
+        boolean oldIsDir = Files.isDirectory(folder1);
+        boolean newIsDir = Files.isDirectory(folder2);
 
         if (oldIsDir != newIsDir) {
             System.err.println("Error: Cannot merge. Both paths must be either files or directories.");
             System.exit(1);
         }
 
+        // Determine destination output directory
+        Path outputDir = Paths.get(config.getOutputDir()).toAbsolutePath().normalize();
+        if (oldIsDir && outputDir.getFileName() != null && outputDir.getFileName().toString().equals("java_analysis_output")) {
+            outputDir = outputDir.resolve("merged");
+        }
+        Files.createDirectories(outputDir);
+
         System.out.println("Starting Java Marker-Guided Merge...");
-        System.out.println("  Source (new version)      : " + newPath);
-        System.out.println("  Destination (old version) : " + oldPath);
-        System.out.println("  Start marker              : \"" + startMarker + "\"");
-        System.out.println("  End marker                : \"" + endMarker + "\"");
+        System.out.println("  Input Folder 1 (Base)      : " + folder1);
+        System.out.println("  Input Folder 2 (Markers)   : " + folder2);
+        System.out.println("  Output Folder (Merged)     : " + outputDir);
+        System.out.println("  Start marker               : \"" + startMarker + "\"");
+        System.out.println("  End marker                 : \"" + endMarker + "\"");
         System.out.println();
 
         List<MergeResult> results;
         if (!oldIsDir) {
             // Merge single files
-            results = mergeSingleFiles(newPath, oldPath, startMarker, endMarker);
+            results = mergeSingleFiles(folder2, folder1, outputDir, startMarker, endMarker);
         } else {
             // Merge directories
-            results = mergeDirectories(newPath, oldPath, startMarker, endMarker);
+            results = mergeDirectories(folder1, folder2, outputDir, startMarker, endMarker);
         }
 
         System.out.println("\nMerge process completed.");
         return results;
     }
 
-    private static List<MergeResult> mergeSingleFiles(Path sourceFile, Path destFile, String startMarker, String endMarker) {
+    private static List<MergeResult> mergeSingleFiles(Path sourceFile, Path baseFile, Path outputTarget, String startMarker, String endMarker) {
         List<MergeResult> results = new ArrayList<>();
         try {
-            boolean merged = mergeFileContents(sourceFile, destFile, startMarker, endMarker);
-            if (merged) {
-                System.out.println("Successfully merged: " + destFile.getFileName());
-                results.add(new MergeResult(destFile.getFileName().toString(), "MERGED", "Successfully merged"));
+            Path destOut = outputTarget;
+            if (Files.isDirectory(outputTarget)) {
+                destOut = outputTarget.resolve(baseFile.getFileName());
+            } else if (destOut.getParent() != null) {
+                Files.createDirectories(destOut.getParent());
+            }
+            boolean modified = mergeFileContentsToOutput(sourceFile, baseFile, destOut, startMarker, endMarker);
+            if (modified) {
+                System.out.println("Successfully merged to: " + destOut);
+                results.add(new MergeResult(destOut.getFileName().toString(), "MERGED", "Successfully merged to " + destOut));
             } else {
-                System.out.println("Skipped (no markers or no changes): " + destFile.getFileName());
-                results.add(new MergeResult(destFile.getFileName().toString(), "SKIPPED", "No markers or no changes"));
+                System.out.println("Preserved base file to: " + destOut);
+                results.add(new MergeResult(destOut.getFileName().toString(), "COPIED", "Preserved base file to " + destOut));
             }
         } catch (Exception e) {
-            System.err.println("Error merging file " + destFile.getFileName() + ": " + e.getMessage());
-            results.add(new MergeResult(destFile.getFileName().toString(), "ERROR", e.getMessage()));
+            System.err.println("Error merging file: " + e.getMessage());
+            results.add(new MergeResult(baseFile.getFileName().toString(), "ERROR", e.getMessage()));
         }
         return results;
     }
 
-    private static List<MergeResult> mergeDirectories(Path sourceDir, Path destDir, String startMarker, String endMarker) throws IOException {
+    private static List<MergeResult> mergeDirectories(Path folder1, Path folder2, Path outputDir, String startMarker, String endMarker) throws IOException {
         List<MergeResult> results = new ArrayList<>();
-        List<Path> sourceFiles = new ArrayList<>();
-        Files.walkFileTree(sourceDir, new SimpleFileVisitor<>() {
+        Files.createDirectories(outputDir);
+
+        Set<String> files1 = scanRelativeFiles(folder1);
+        Set<String> files2 = scanRelativeFiles(folder2);
+
+        Set<String> allRelativeFiles = new TreeSet<>(files1);
+        allRelativeFiles.addAll(files2);
+
+        int mergedCount = 0;
+        int copiedCount = 0;
+        int addedCount = 0;
+
+        for (String rel : allRelativeFiles) {
+            Path file1 = folder1.resolve(rel);
+            Path file2 = folder2.resolve(rel);
+            Path destOut = outputDir.resolve(rel);
+
+            if (destOut.getParent() != null) {
+                Files.createDirectories(destOut.getParent());
+            }
+
+            boolean in1 = files1.contains(rel);
+            boolean in2 = files2.contains(rel);
+
+            if (in1 && !in2) {
+                // File from folder1 does not exist in folder2 -> preserve in output folder
+                Files.copy(file1, destOut, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("  [COPIED]  " + rel + " (present in folder1 only)");
+                copiedCount++;
+                results.add(new MergeResult(rel, "COPIED", "Present in folder1 only; copied to output folder"));
+            } else if (!in1 && in2) {
+                // File from folder2 does not exist in folder1 -> copy new file to output folder
+                Files.copy(file2, destOut, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("  [ADDED]   " + rel + " (new file in folder2)");
+                addedCount++;
+                results.add(new MergeResult(rel, "ADDED", "New file in folder2; copied to output folder"));
+            } else {
+                // Present in both folder1 and folder2 -> merge marker blocks and write to output folder
+                try {
+                    boolean modified = mergeFileContentsToOutput(file2, file1, destOut, startMarker, endMarker);
+                    if (modified) {
+                        System.out.println("  [MERGED]  " + rel);
+                        mergedCount++;
+                        results.add(new MergeResult(rel, "MERGED", "Successfully merged marked blocks into output folder"));
+                    } else {
+                        System.out.println("  [COPIED]  " + rel + " (no marker modifications)");
+                        copiedCount++;
+                        results.add(new MergeResult(rel, "COPIED", "No marker modifications; wrote to output folder"));
+                    }
+                } catch (Exception e) {
+                    System.err.println("  [ERROR]   " + rel + " : " + e.getMessage());
+                    // Fall back to copying file1 so output folder still has the file
+                    try {
+                        Files.copy(file1, destOut, StandardCopyOption.REPLACE_EXISTING);
+                    } catch (Exception ignored) {}
+                    results.add(new MergeResult(rel, "ERROR", e.getMessage()));
+                }
+            }
+        }
+
+        System.out.printf("Summary: %d files merged, %d files copied/preserved, %d files added to %s%n",
+                mergedCount, copiedCount, addedCount, outputDir);
+        return results;
+    }
+
+    private static Set<String> scanRelativeFiles(Path dir) throws IOException {
+        Set<String> set = new TreeSet<>();
+        if (!Files.exists(dir)) return set;
+        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 if (file.toString().endsWith(".java")) {
-                    sourceFiles.add(file);
+                    set.add(dir.relativize(file).toString());
                 }
                 return FileVisitResult.CONTINUE;
             }
         });
-
-        int mergedCount = 0;
-        int skippedCount = 0;
-
-        for (Path sourceFile : sourceFiles) {
-            String rel = sourceDir.relativize(sourceFile).toString();
-            Path destFile = destDir.resolve(rel);
-
-            if (Files.exists(destFile)) {
-                try {
-                    boolean merged = mergeFileContents(sourceFile, destFile, startMarker, endMarker);
-                    if (merged) {
-                        System.out.println("  [MERGED]  " + rel);
-                        mergedCount++;
-                        results.add(new MergeResult(rel, "MERGED", "Successfully merged"));
-                    } else {
-                        skippedCount++;
-                        results.add(new MergeResult(rel, "SKIPPED", "No markers or no changes"));
-                    }
-                } catch (Exception e) {
-                    System.err.println("  [ERROR]   " + rel + " : " + e.getMessage());
-                    results.add(new MergeResult(rel, "ERROR", e.getMessage()));
-                }
-            } else {
-                System.out.println("  [WARNING] Destination file does not exist, skipped: " + rel);
-                results.add(new MergeResult(rel, "WARNING", "Destination file does not exist"));
-            }
-        }
-
-        System.out.printf("Summary: %d files merged, %d files skipped.%n", mergedCount, skippedCount);
-        return results;
+        return set;
     }
 
-    private static boolean mergeFileContents(Path sourceFile, Path destFile, String startMarker, String endMarker) throws IOException {
+    private static boolean mergeFileContentsToOutput(Path sourceFile, Path baseFile, Path destOut, String startMarker, String endMarker) throws IOException {
         List<String> sourceLines = Files.readAllLines(sourceFile, StandardCharsets.UTF_8);
-        List<String> destLines = Files.readAllLines(destFile, StandardCharsets.UTF_8);
+        List<String> baseLines = Files.readAllLines(baseFile, StandardCharsets.UTF_8);
 
         // Extract blocks from source
         List<List<String>> sourceBlocks = new ArrayList<>();
@@ -143,29 +194,29 @@ public class MergeEngine {
         }
 
         if (sourceBlocks.isEmpty()) {
-            // Source doesn't have any markers
+            // Source doesn't have any markers -> copy base content to output
+            Files.write(destOut, baseLines, StandardCharsets.UTF_8);
             return false;
         }
 
-        // Merge into destination
+        // Merge into destination lines
         List<String> mergedLines = new ArrayList<>();
         int blockIndex = 0;
         boolean destInside = false;
         boolean modified = false;
 
-        for (int i = 0; i < destLines.size(); i++) {
-            String line = destLines.get(i);
+        for (int i = 0; i < baseLines.size(); i++) {
+            String line = baseLines.get(i);
             if (line.contains(startMarker)) {
                 mergedLines.add(line);
                 destInside = true;
                 if (blockIndex < sourceBlocks.size()) {
                     List<String> srcBlock = sourceBlocks.get(blockIndex);
-                    // Check if block actually changed to avoid unnecessary rewrite
-                    // Collect old block content to compare
+                    // Check if block actually changed
                     List<String> oldBlock = new ArrayList<>();
                     int j = i + 1;
-                    while (j < destLines.size() && !destLines.get(j).contains(endMarker)) {
-                        oldBlock.add(destLines.get(j));
+                    while (j < baseLines.size() && !baseLines.get(j).contains(endMarker)) {
+                        oldBlock.add(baseLines.get(j));
                         j++;
                     }
                     if (!srcBlock.equals(oldBlock)) {
@@ -174,11 +225,10 @@ public class MergeEngine {
                     mergedLines.addAll(srcBlock);
                     blockIndex++;
                 } else {
-                    System.err.println("Warning [" + destFile.getFileName() + "]: Destination contains more markers than source. Extra block left unchanged.");
-                    // Fall back: copy old block lines
+                    System.err.println("Warning [" + destOut.getFileName() + "]: Base contains more markers than source. Extra block left unchanged.");
                     int j = i + 1;
-                    while (j < destLines.size() && !destLines.get(j).contains(endMarker)) {
-                        mergedLines.add(destLines.get(j));
+                    while (j < baseLines.size() && !baseLines.get(j).contains(endMarker)) {
+                        mergedLines.add(baseLines.get(j));
                         j++;
                     }
                 }
@@ -191,20 +241,17 @@ public class MergeEngine {
         }
 
         if (blockIndex == 0) {
-            // No markers found in destination
-            System.err.println("Warning [" + destFile.getFileName() + "]: Markers not found in destination file.");
+            // No markers found in base file -> write base lines to output
+            System.err.println("Warning [" + destOut.getFileName() + "]: Markers not found in base file; copying base version.");
+            Files.write(destOut, baseLines, StandardCharsets.UTF_8);
             return false;
         }
 
         if (blockIndex < sourceBlocks.size()) {
-            System.err.println("Warning [" + destFile.getFileName() + "]: Source contains more markers (" + sourceBlocks.size() + ") than destination (" + blockIndex + "). Remaining blocks ignored.");
+            System.err.println("Warning [" + destOut.getFileName() + "]: Source contains more markers (" + sourceBlocks.size() + ") than base (" + blockIndex + "). Remaining blocks ignored.");
         }
 
-        if (modified) {
-            Files.write(destFile, mergedLines, StandardCharsets.UTF_8);
-            return true;
-        }
-
-        return false;
+        Files.write(destOut, mergedLines, StandardCharsets.UTF_8);
+        return modified;
     }
 }
