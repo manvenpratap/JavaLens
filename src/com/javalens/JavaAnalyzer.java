@@ -39,6 +39,7 @@ public class JavaAnalyzer {
     // ── Entry point ───────────────────────────────────────────────────────────
 
     public static void main(String[] args) throws Exception {
+        ensureBundledResourcesExtracted();
         Config config = Config.parse(args);
 
         if (config.getMode() == Config.Mode.INTERACTIVE) {
@@ -240,5 +241,76 @@ public class JavaAnalyzer {
             return "\"" + v.replace("\"", "\"\"") + "\"";
         }
         return v;
+    }
+
+    public static void ensureBundledResourcesExtracted() {
+        try {
+            java.net.URL loc = JavaAnalyzer.class.getProtectionDomain().getCodeSource().getLocation();
+            if (loc != null) {
+                File jarFile = new File(loc.toURI());
+                if (jarFile.isFile() && jarFile.getName().endsWith(".jar")) {
+                    try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile)) {
+                        Enumeration<java.util.jar.JarEntry> entries = jar.entries();
+                        while (entries.hasMoreElements()) {
+                            java.util.jar.JarEntry entry = entries.nextElement();
+                            String name = entry.getName();
+                            if (name.startsWith("samples/") || name.equals("index.html") || 
+                                name.equals("javalens.conf") || name.equals("analyzer.properties") || 
+                                name.equals("README.md")) {
+                                Path dest = Paths.get(name);
+                                if (entry.isDirectory()) {
+                                    Files.createDirectories(dest);
+                                } else if (!Files.exists(dest)) {
+                                    if (dest.getParent() != null) {
+                                        Files.createDirectories(dest.getParent());
+                                    }
+                                    try (InputStream is = jar.getInputStream(entry)) {
+                                        Files.copy(is, dest, StandardCopyOption.REPLACE_EXISTING);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // Fallback for custom classloaders where location isn't a plain file URI
+        extractClasspathResourceIfMissing("/index.html", Paths.get("index.html"));
+        extractClasspathResourceIfMissing("/javalens.conf", Paths.get("javalens.conf"));
+        extractClasspathResourceIfMissing("/analyzer.properties", Paths.get("analyzer.properties"));
+        extractClasspathResourceIfMissing("/README.md", Paths.get("README.md"));
+
+        String[] sampleFiles = {
+            "samples/v1/CacheManager.java",
+            "samples/v1/MyClass.java",
+            "samples/v1/OrderService.java",
+            "samples/v1/PaymentGateway.java",
+            "samples/v1/UserAccount.java",
+            "samples/v2/CacheManager.java",
+            "samples/v2/MyClass.java",
+            "samples/v2/OrderService.java",
+            "samples/v2/PaymentGateway.java",
+            "samples/v2/UserAccount.java"
+        };
+        for (String sample : sampleFiles) {
+            extractClasspathResourceIfMissing("/" + sample, Paths.get(sample));
+        }
+    }
+
+    private static void extractClasspathResourceIfMissing(String resourcePath, Path destination) {
+        try {
+            if (!Files.exists(destination)) {
+                try (InputStream is = JavaAnalyzer.class.getResourceAsStream(resourcePath)) {
+                    if (is != null) {
+                        if (destination.getParent() != null) {
+                            Files.createDirectories(destination.getParent());
+                        }
+                        Files.copy(is, destination, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
     }
 }

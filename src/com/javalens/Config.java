@@ -300,7 +300,12 @@ public class Config {
             this.outputDir = getProp(props, outputDir, "output.dir", "compare.output_dir", "outputDir");
             this.activeRunFolder = getProp(props, activeRunFolder, "active.run_folder", "activeRunFolder");
             if (!this.activeRunFolder.isEmpty()) {
-                this.outputDir = this.activeRunFolder;
+                try {
+                    Path af = Paths.get(this.activeRunFolder);
+                    if (Files.exists(af)) {
+                        this.outputDir = this.activeRunFolder;
+                    }
+                } catch (Exception ignored) {}
             }
 
             // Merge markers
@@ -410,6 +415,15 @@ public class Config {
         String activeConf = resolveConfigPath(null);
         Config config = new Config();
         config.loadProperties(activeConf);
+        if (path != null && !path.trim().isEmpty()) {
+            try {
+                Path curr = Paths.get("").toAbsolutePath().normalize();
+                Path target = Paths.get(path.trim()).toAbsolutePath().normalize();
+                if (target.startsWith(curr)) {
+                    path = curr.relativize(target).toString();
+                }
+            } catch (Exception ignored) {}
+        }
         config.setActiveRunFolder(path);
         config.saveProperties(activeConf);
     }

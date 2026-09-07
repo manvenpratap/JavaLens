@@ -29,6 +29,7 @@ public class WebServer {
     private static final PrintStream originalErr = System.err;
 
     public static void start(int preferredPort) throws IOException {
+        JavaAnalyzer.ensureBundledResourcesExtracted();
         System.setProperty("java.awt.headless", "false");
         HttpServer server = null;
         int port = preferredPort;
@@ -698,6 +699,20 @@ public class WebServer {
                 } catch (Exception ignored) {}
             }
             if (!file.exists() || !file.isFile()) {
+                String resPath = filePath.startsWith("/") ? filePath : "/" + filePath;
+                try (InputStream is = WebServer.class.getResourceAsStream(resPath)) {
+                    if (is != null) {
+                        byte[] resContent = is.readAllBytes();
+                        exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+                        exchange.getResponseHeaders().set("Cache-Control", "no-cache");
+                        exchange.sendResponseHeaders(200, resContent.length);
+                        OutputStream os = exchange.getResponseBody();
+                        os.write(resContent);
+                        os.close();
+                        return;
+                    }
+                } catch (Exception ignored) {}
+
                 sendTextResponse(exchange, 404, "File not found: " + filePath);
                 return;
             }
