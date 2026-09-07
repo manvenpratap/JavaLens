@@ -499,11 +499,25 @@ public class WebServer {
             }
         }
 
-        // 3. Fallback discovery in standard locations
-        for (String fallback : new String[]{"test_out/report_out", "test_out", "out", "."}) {
+        // 3. Default output folder: java_analysis_output
+        Path defaultOut = Paths.get("java_analysis_output");
+        if (Files.exists(defaultOut) && Files.isDirectory(defaultOut)) {
+            if (Files.exists(defaultOut.resolve("javalens_report.csv"))) {
+                return defaultOut;
+            }
+            try (var stream = Files.list(defaultOut)) {
+                Path latest = stream.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("run_") && Files.exists(p.resolve("javalens_report.csv")))
+                                    .max(Comparator.comparing(p -> p.getFileName().toString()))
+                                    .orElse(null);
+                if (latest != null) return latest;
+            } catch (Exception ignored) {}
+        }
+
+        // 4. Fallback discovery in standard locations
+        for (String fallback : new String[]{"java_analysis_output", "test_out/report_out", "test_out", "out", "."}) {
             Path fb = Paths.get(fallback);
             if (Files.exists(fb) && Files.isDirectory(fb)) {
-                try (var stream = Files.walk(fb, 2)) {
+                try (var stream = Files.walk(fb, 3)) {
                     Path latest = stream.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("run_") && Files.exists(p.resolve("javalens_report.csv")))
                                         .max(Comparator.comparing(p -> p.getFileName().toString()))
                                         .orElse(null);
@@ -511,6 +525,22 @@ public class WebServer {
                 } catch (Exception ignored) {}
             }
         }
+
+        // 5. If no run directory exists, auto-generate a fresh report so downloads never 404
+        try {
+            if (config.getOldPath() == null || !Files.exists(Paths.get(config.getOldPath()))) {
+                config.setOldPath(Files.exists(Paths.get("samples/v2")) ? "samples/v2" : "test_workspace/v1");
+            }
+            if (config.getNewPath() == null || !Files.exists(Paths.get(config.getNewPath()))) {
+                config.setNewPath(Files.exists(Paths.get("samples/v1")) ? "samples/v1" : "test_workspace/v2");
+            }
+            config.setOutputDir("java_analysis_output");
+            Path reportCsv = ReportGenerator.generateFullReport(config);
+            return reportCsv.getParent();
+        } catch (Exception e) {
+            System.err.println("Warning: Auto-generating baseline report failed: " + e.getMessage());
+        }
+
         return null;
     }
 
@@ -523,7 +553,15 @@ public class WebServer {
             }
 
             Path runDir = resolveActiveRunDir();
-            Path reportCsv = runDir != null ? runDir.resolve("javalens_report.csv") : null;
+            Path reportCsv = null;
+            if (runDir != null) {
+                try {
+                    reportCsv = ReportGenerator.ensureReportFormat(runDir, "csv");
+                } catch (Exception ignored) {
+                    reportCsv = runDir.resolve("javalens_report.csv");
+                }
+            }
+
             if (reportCsv == null || !Files.exists(reportCsv)) {
                 sendTextResponse(exchange, 404, "No report CSV found. Run Generate Report first.");
                 return;
@@ -532,6 +570,7 @@ public class WebServer {
             byte[] content = Files.readAllBytes(reportCsv);
             exchange.getResponseHeaders().set("Content-Type", "text/csv; charset=utf-8");
             exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"javalens_report.csv\"");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
             exchange.sendResponseHeaders(200, content.length);
             OutputStream os = exchange.getResponseBody();
             os.write(content);
@@ -598,8 +637,14 @@ public class WebServer {
                     break;
             }
 
-            Path targetFile = runDir.resolve(targetFileName);
-            if (!Files.exists(targetFile)) {
+            Path targetFile;
+            try {
+                targetFile = ReportGenerator.ensureReportFormat(runDir, format);
+            } catch (Exception e) {
+                targetFile = runDir.resolve(targetFileName);
+            }
+
+            if (targetFile == null || !Files.exists(targetFile)) {
                 sendTextResponse(exchange, 404, "Requested report format file not found: " + targetFileName);
                 return;
             }
@@ -608,6 +653,7 @@ public class WebServer {
             exchange.getResponseHeaders().set("Content-Type", contentType);
             exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"" + targetFileName + "\"");
             exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().set("Cache-Control", "no-cache, no-store, must-revalidate");
             if ("HEAD".equals(method)) {
                 exchange.sendResponseHeaders(200, -1);
             } else {

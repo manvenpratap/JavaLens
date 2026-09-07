@@ -5,6 +5,8 @@ echo "=================================================="
 
 # Clean and create directories
 rm -rf test_out && mkdir -p test_out
+[ -f javalens.conf ] && cp javalens.conf javalens.conf.test_bak
+[ -f java_report_data.js ] && cp java_report_data.js java_report_data.js.test_bak
 
 # 1. Compile codebase
 echo -e "\n1. Compiling codebase..."
@@ -68,6 +70,8 @@ echo -e "\nRunning Analyze using saved .conf:"
 # Restore test files
 rm -rf test_workspace/v1 && cp -r test_workspace/v1_backup test_workspace/v1 && rm -rf test_workspace/v1_backup
 rm -rf test_out
+[ -f javalens.conf.test_bak ] && mv javalens.conf.test_bak javalens.conf
+[ -f java_report_data.js.test_bak ] && mv java_report_data.js.test_bak java_report_data.js
 
 echo -e "\n=================================================="
 echo "              TEST SUITE CONCLUDED                "

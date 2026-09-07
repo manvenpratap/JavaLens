@@ -8,6 +8,7 @@ import com.javalens.model.MethodModel;
 import com.javalens.parser.ParserUtil;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -193,6 +194,144 @@ public class ReportGenerator {
         System.out.println("═════════════════════════════════════════════════════════════════");
 
         return reportCsv;
+    }
+
+    /**
+     * Parses an existing javalens_report.csv file back into ReportItem objects.
+     */
+    public static List<ReportItem> parseReportCsv(Path csvPath) {
+        List<ReportItem> items = new ArrayList<>();
+        if (csvPath == null || !Files.exists(csvPath)) return items;
+        try {
+            List<String> lines = Files.readAllLines(csvPath, StandardCharsets.UTF_8);
+            for (int i = 1; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (line.isEmpty()) continue;
+                String[] cols = ParserUtil.parseCsvLine(line);
+                if (cols.length < 13) continue;
+                ReportItem item = new ReportItem();
+                item.file = cols[0];
+                item.packageName = cols[1];
+                item.className = cols[2];
+                item.memberType = cols[3];
+                item.memberName = cols[4];
+                item.type = cols[5];
+                item.modifiers = cols[6];
+                item.annotations = cols[7];
+                item.extraInfo = cols[8];
+                item.inOld = "YES".equalsIgnoreCase(cols[9]);
+                item.inNew = "YES".equalsIgnoreCase(cols[10]);
+                item.inMerged = "YES".equalsIgnoreCase(cols[11]);
+                item.status = cols[12];
+                items.add(item);
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Failed to parse report CSV: " + e.getMessage());
+        }
+        return items;
+    }
+
+    /**
+     * Ensures the requested report format exists on disk in the run folder,
+     * generating it on-the-fly from the CSV data or running the generator if needed.
+     */
+    public static Path ensureReportFormat(Path runDir, String format) throws Exception {
+        if (runDir == null) return null;
+        String fmt = (format != null ? format : "csv").toLowerCase().trim();
+        String targetFileName;
+        switch (fmt) {
+            case "json": targetFileName = "javalens_report.json"; break;
+            case "html": targetFileName = "javalens_report.html"; break;
+            case "md":
+            case "markdown": targetFileName = "javalens_report.md"; break;
+            case "xml": targetFileName = "javalens_report.xml"; break;
+            case "zip":
+            case "bundle":
+            case "all": targetFileName = "javalens_report_bundle.zip"; break;
+            case "csv":
+            default: targetFileName = "javalens_report.csv"; break;
+        }
+
+        Path target = runDir.resolve(targetFileName);
+        if (Files.exists(target)) {
+            return target;
+        }
+
+        Path reportCsv = runDir.resolve("javalens_report.csv");
+        if (!Files.exists(reportCsv)) {
+            Config config = new Config();
+            config.load();
+            config.setOutputDir(runDir.toString());
+            return generateFullReport(config);
+        }
+
+        List<ReportItem> items = parseReportCsv(reportCsv);
+        ReportSummary summary = new ReportSummary();
+        summary.timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                               .format(java.time.LocalDateTime.now());
+        summary.runFolder = runDir.toString();
+        summary.totalMembers = items.size();
+        for (ReportItem it : items) {
+            String s = (it.status != null ? it.status : "").toUpperCase();
+            if ("NEWLY_ADDED".equals(s)) summary.newlyAdded++;
+            else if ("MODIFIED_BY_MERGE".equals(s) || "MODIFIED".equals(s)) summary.modified++;
+            else if ("ORIGINAL".equals(s) || "UNCHANGED".equals(s)) summary.original++;
+            else if ("REMOVED".equals(s)) summary.removed++;
+        }
+
+        List<MergeEngine.MergeResult> mergeResults = new ArrayList<>();
+        Path mergeCsv = runDir.resolve("merge_results.csv");
+        if (Files.exists(mergeCsv)) {
+            try {
+                List<String> mLines = Files.readAllLines(mergeCsv, StandardCharsets.UTF_8);
+                for (int i = 1; i < mLines.size(); i++) {
+                    String[] parts = ParserUtil.parseCsvLine(mLines.get(i));
+                    if (parts.length >= 2) {
+                        mergeResults.add(new MergeEngine.MergeResult(parts[0], parts[1], parts.length > 2 ? parts[2] : ""));
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        Path jsonPath = runDir.resolve("javalens_report.json");
+        if (!Files.exists(jsonPath) || "json".equals(fmt) || "zip".equals(fmt)) {
+            writeUnifiedReportJson(jsonPath, summary, items, mergeResults);
+        }
+        Path htmlPath = runDir.resolve("javalens_report.html");
+        if (!Files.exists(htmlPath) || "html".equals(fmt) || "zip".equals(fmt)) {
+            writeUnifiedReportHtml(htmlPath, summary, items, mergeResults);
+        }
+        Path mdPath = runDir.resolve("javalens_report.md");
+        if (!Files.exists(mdPath) || "md".equals(fmt) || "markdown".equals(fmt) || "zip".equals(fmt)) {
+            writeUnifiedReportMarkdown(mdPath, summary, items, mergeResults);
+        }
+        Path xmlPath = runDir.resolve("javalens_report.xml");
+        if (!Files.exists(xmlPath) || "xml".equals(fmt) || "zip".equals(fmt)) {
+            writeUnifiedReportXml(xmlPath, summary, items, mergeResults);
+        }
+
+        if ("zip".equals(fmt) || "bundle".equals(fmt) || "all".equals(fmt)) {
+            Path zipPath = runDir.resolve("javalens_report_bundle.zip");
+            Map<String, Path> bundleFiles = new LinkedHashMap<>();
+            bundleFiles.put("javalens_report.csv", reportCsv);
+            bundleFiles.put("javalens_report.json", jsonPath);
+            bundleFiles.put("javalens_report.html", htmlPath);
+            bundleFiles.put("javalens_report.md", mdPath);
+            bundleFiles.put("javalens_report.xml", xmlPath);
+            if (Files.exists(mergeCsv)) {
+                bundleFiles.put("merge_results.csv", mergeCsv);
+            }
+            if (Files.exists(runDir.resolve("comparison_attributes.csv"))) {
+                bundleFiles.put("comparison_attributes.csv", runDir.resolve("comparison_attributes.csv"));
+            }
+            if (Files.exists(runDir.resolve("comparison_methods.csv"))) {
+                bundleFiles.put("comparison_methods.csv", runDir.resolve("comparison_methods.csv"));
+            }
+            writeReportZipBundle(zipPath, bundleFiles);
+            return zipPath;
+        }
+
+        return target;
     }
 
     // ── Item Collector ────────────────────────────────────────────────────────

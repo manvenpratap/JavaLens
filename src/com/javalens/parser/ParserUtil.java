@@ -158,7 +158,7 @@ public class ParserUtil {
         }
     }
 
-    private static String[] parseCsvLine(String line) {
+    public static String[] parseCsvLine(String line) {
         List<String> result = new ArrayList<>();
         boolean inQuotes = false;
         StringBuilder curVal = new StringBuilder();

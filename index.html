@@ -1119,16 +1119,29 @@
                                     </div>
                                 </div>
 
-                                <div class="flex flex-wrap items-center gap-3 pt-1">
+                                <div class="flex flex-wrap items-center gap-3 pt-1" id="report-action-buttons">
                                     <button onclick="runReportPipeline()" id="report-generate-btn" class="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer shadow-xs">
                                         <span class="material-symbols-outlined text-[15px]">play_arrow</span>
                                         <span>Generate Full Report</span>
                                     </button>
-                                    <!-- Multi-Format Download Dropdown -->
+
+                                    <!-- Quick Direct Download CSV -->
+                                    <button onclick="downloadReportFormat('csv')" id="report-quick-csv-btn" class="px-3.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-750 hover:border-emerald-500/50 rounded text-xs font-mono text-zinc-200 flex items-center gap-2 transition-all cursor-pointer shadow-sm" title="Download Unified Report CSV">
+                                        <span class="material-symbols-outlined text-[15px] text-emerald-400">download</span>
+                                        <span>Download CSV</span>
+                                    </button>
+
+                                    <!-- Quick Direct Download ZIP Bundle -->
+                                    <button onclick="downloadReportFormat('zip')" id="report-quick-zip-btn" class="px-3.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-750 hover:border-purple-500/50 rounded text-xs font-mono text-zinc-200 flex items-center gap-2 transition-all cursor-pointer shadow-sm" title="Download All Report Formats (.zip bundle)">
+                                        <span class="material-symbols-outlined text-[15px] text-purple-400">archive</span>
+                                        <span>Download ZIP</span>
+                                    </button>
+
+                                    <!-- More Formats Dropdown -->
                                     <div class="relative inline-block text-left z-40" id="report-download-dropdown-wrap">
-                                        <button onclick="toggleReportDownloadMenu(event)" id="report-download-btn" class="px-3.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-750 hover:border-purple-500/50 rounded text-xs font-mono text-zinc-200 flex items-center gap-2 transition-all cursor-pointer hidden shadow-sm">
+                                        <button onclick="toggleReportDownloadMenu(event)" id="report-download-btn" class="px-3.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-750 hover:border-purple-500/50 rounded text-xs font-mono text-zinc-200 flex items-center gap-2 transition-all cursor-pointer shadow-sm" title="Download Unified Report in multiple formats">
                                             <span class="material-symbols-outlined text-[15px] text-purple-400">download</span>
-                                            <span>Download Report</span>
+                                            <span>Download Unified Report</span>
                                             <span class="material-symbols-outlined text-[14px] text-zinc-400 ml-0.5" id="report-download-chevron">expand_more</span>
                                         </button>
                                         <div id="report-download-menu" class="hidden absolute left-0 mt-2 w-64 rounded-xl bg-zinc-900 border border-zinc-700 shadow-2xl py-2 backdrop-blur-xl divide-y divide-zinc-800/80" style="z-index: 100;">
@@ -1648,6 +1661,12 @@
             if (targetNav) {
                 const cls = activeClasses[tabId] || 'bg-zinc-850 text-zinc-100 border-l-2 border-zinc-400';
                 targetNav.className = `w-full text-left flex items-center justify-between px-3 py-2 rounded font-medium transition-all cursor-pointer ${cls}`;
+            }
+
+            if (tabId === 'report' && (!activeReportData || activeReportData.length === 0)) {
+                if (window.javaLensReportData?.report && window.javaLensReportData.report.length > 0) {
+                    renderReportTable(window.javaLensReportData.report);
+                }
             }
         }
 
@@ -3281,47 +3300,56 @@
             if (chevron) chevron.textContent = 'expand_more';
 
             const fmt = (format || 'csv').toLowerCase();
+            const ext = fmt === 'zip' ? 'zip' : (fmt === 'markdown' ? 'md' : fmt);
+            const filename = fmt === 'zip' ? 'javalens_report_bundle.zip' : `javalens_report.${ext}`;
 
+            // When running over HTTP/HTTPS, trigger direct browser download
             if (window.location.protocol.startsWith('http')) {
                 const downloadUrl = `/api/report-download?format=${encodeURIComponent(fmt)}`;
+                showToast(`Downloading ${filename}…`, 'info');
 
-                // 1. Primary: Off-screen anchor element click (avoids display:none click-suppression)
-                const ext = fmt === 'zip' ? 'zip' : (fmt === 'markdown' ? 'md' : fmt);
-                const filename = fmt === 'zip' ? 'javalens_report_bundle.zip' : `javalens_report.${ext}`;
+                // Trigger direct file download via link click without navigating away
                 const a = document.createElement('a');
                 a.href = downloadUrl;
                 a.download = filename;
-                a.style.position = 'fixed';
-                a.style.left = '-9999px';
-                a.style.top = '-9999px';
-                a.style.opacity = '0';
-                a.style.pointerEvents = 'none';
                 document.body.appendChild(a);
                 a.click();
-                setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
-
-                // 2. Secondary fallback: Hidden iframe (triggers attachment download without leaving page)
-                let dlIframe = document.getElementById('report-download-iframe');
-                if (!dlIframe) {
-                    dlIframe = document.createElement('iframe');
-                    dlIframe.id = 'report-download-iframe';
-                    dlIframe.style.position = 'fixed';
-                    dlIframe.style.left = '-9999px';
-                    dlIframe.style.top = '-9999px';
-                    dlIframe.style.width = '1px';
-                    dlIframe.style.height = '1px';
-                    dlIframe.style.opacity = '0';
-                    dlIframe.style.border = 'none';
-                    document.body.appendChild(dlIframe);
-                }
-                dlIframe.src = downloadUrl;
-
-                showToast(`Downloading unified report (${fmt.toUpperCase()})…`, 'success');
+                setTimeout(() => {
+                    if (a.parentNode) a.parentNode.removeChild(a);
+                }, 1500);
                 return;
             }
 
-            // Client-side export fallback (for file:// protocol or offline mode)
-            exportReportDataClientSide(fmt);
+            // Client-side fallback if running via file:// protocol
+            if (activeReportData && activeReportData.length > 0) {
+                exportReportDataClientSide(fmt);
+            } else if (window.javaLensReportData?.report && window.javaLensReportData.report.length > 0) {
+                activeReportData = window.javaLensReportData.report;
+                exportReportDataClientSide(fmt);
+            } else {
+                showToast("No report data available. Click 'Generate Full Report' first.", "warning");
+            }
+        }
+
+        function triggerFileDownload(blobOrUrl, filename) {
+            let url;
+            let revoke = false;
+            if (typeof blobOrUrl === 'string') {
+                url = blobOrUrl;
+            } else {
+                url = window.URL.createObjectURL(blobOrUrl);
+                revoke = true;
+            }
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                if (a.parentNode) a.parentNode.removeChild(a);
+                if (revoke) window.URL.revokeObjectURL(url);
+            }, 1500);
         }
 
         function downloadReportCsv() {
@@ -3396,14 +3424,7 @@
             }
 
             const blob = new Blob([content], { type: mimeType });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            triggerFileDownload(blob, filename);
             showToast(`Exported ${filename}`, 'success');
         }
 
