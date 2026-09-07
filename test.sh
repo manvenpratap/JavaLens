@@ -16,7 +16,7 @@ fi
 
 # Reset test files
 echo "Resetting test files..."
-cp test_workspace/v1/MyClass.java test_workspace/v1_backup.java
+rm -rf test_workspace/v1_backup && cp -r test_workspace/v1 test_workspace/v1_backup
 
 # 2. Test Analyze Mode
 echo -e "\n2. Running Analyze Mode on test_workspace/v1..."
@@ -45,11 +45,17 @@ cat test_workspace/v1/MyClass.java
 
 # 5. Test Report Mode
 echo -e "\n5. Running Unified Report Mode (analyze -> compare -> merge -> report)..."
-cp test_workspace/v1_backup.java test_workspace/v1/MyClass.java
+rm -rf test_workspace/v1 && cp -r test_workspace/v1_backup test_workspace/v1
 ./run.sh --mode report --old test_workspace/v1 --new test_workspace/v2 --output-dir test_out/report_out
 
-echo -e "\nUnified Report CSV:"
-cat test_out/report_out/*/javalens_report.csv
+echo -e "\nUnified Reports Generated in Output Run Folder:"
+ls -lh test_out/report_out/*/javalens_report*
+
+echo -e "\nUnified Report CSV (first 10 lines):"
+head -n 10 test_out/report_out/*/javalens_report.csv
+
+echo -e "\nUnified Report JSON (first 25 lines):"
+head -n 25 test_out/report_out/*/javalens_report.json
 
 # 6. Test Configuration .conf File Mode
 echo -e "\n6. Testing .conf configuration file workflow..."
@@ -60,7 +66,7 @@ echo -e "\nRunning Analyze using saved .conf:"
 ./run.sh --config test_out/custom.conf
 
 # Restore test files
-mv test_workspace/v1_backup.java test_workspace/v1/MyClass.java
+rm -rf test_workspace/v1 && cp -r test_workspace/v1_backup test_workspace/v1 && rm -rf test_workspace/v1_backup
 rm -rf test_out
 
 echo -e "\n=================================================="

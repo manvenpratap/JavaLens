@@ -60,25 +60,34 @@
     <style>
         :root {
             --bg-obsidian: #09090b;
-            --surface-panel: #121215;
-            --surface-card: #18181b;
-            --surface-raised: #222226;
-            --border-subtle: #27272a;
+            --surface-panel: #111116;
+            --surface-card: #16161d;
+            --surface-raised: #1f1f28;
+            --border-subtle: rgba(63, 63, 70, 0.45);
+            --accent-indigo: #6366f1;
+            --accent-sky: #0ea5e9;
             --accent-emerald: #10b981;
-            --accent-blue: #38bdf8;
-            --text-high: #f4f4f5;
-            --text-med: #a1a1aa;
-            --text-dim: #71717a;
+            --accent-amber: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-rose: #f43f5e;
+            --text-high: #f8fafc;
+            --text-med: #cbd5e1;
+            --text-dim: #64748b;
         }
 
         /* Focus Visibility & Accessibility */
         :focus-visible {
-            outline: 2px solid #52525b;
+            outline: 2px solid #6366f1;
             outline-offset: 2px;
         }
 
         body {
-            background-color: var(--bg-obsidian);
+            background-color: #09090b;
+            background-image: 
+                radial-gradient(ellipse 75% 45% at 50% -15%, rgba(99, 102, 241, 0.15), transparent),
+                radial-gradient(ellipse 55% 35% at 95% 15%, rgba(14, 165, 233, 0.10), transparent),
+                radial-gradient(ellipse 45% 30% at 5% 80%, rgba(16, 185, 129, 0.08), transparent);
+            background-attachment: fixed;
             color: var(--text-med);
             font-feature-settings: "cv02", "cv03", "cv04", "cv11";
         }
@@ -87,22 +96,72 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* High-Agency Surface Materiality: Crisp Hairlines & Inner Highlights */
+        /* High-Agency Surface Materiality: Crisp Hairlines, Inner Highlights & Depth */
         .surface-panel {
-            background: #121215;
-            border: 1px solid #27272a;
+            background: #111116;
+            border: 1px solid rgba(63, 63, 70, 0.4);
         }
 
         .surface-card {
-            background: #18181b;
-            border: 1px solid #27272a;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            background: rgba(22, 22, 29, 0.75);
+            border: 1px solid rgba(63, 63, 70, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        }
+
+        .surface-card:hover {
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 8px 26px -2px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
         .surface-elevated {
-            background: #202024;
-            border: 1px solid #2e2e33;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            background: #1e1e26;
+            border: 1px solid rgba(82, 82, 91, 0.5);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+        }
+
+        /* Tab Active Glow Indicators */
+        .tab-active-indigo {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 100%) !important;
+            color: #e0e7ff !important;
+            border-left: 2.5px solid #818cf8 !important;
+            box-shadow: inset 1px 0 8px rgba(99, 102, 241, 0.15);
+        }
+
+        .tab-active-sky {
+            background: linear-gradient(90deg, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0.04) 100%) !important;
+            color: #e0f2fe !important;
+            border-left: 2.5px solid #38bdf8 !important;
+            box-shadow: inset 1px 0 8px rgba(14, 165, 233, 0.15);
+        }
+
+        .tab-active-amber {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.16) 0%, rgba(245, 158, 11, 0.04) 100%) !important;
+            color: #fef3c7 !important;
+            border-left: 2.5px solid #fbbf24 !important;
+            box-shadow: inset 1px 0 8px rgba(245, 158, 11, 0.15);
+        }
+
+        .tab-active-emerald {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.04) 100%) !important;
+            color: #d1fae5 !important;
+            border-left: 2.5px solid #34d399 !important;
+            box-shadow: inset 1px 0 8px rgba(16, 185, 129, 0.15);
+        }
+
+        .tab-active-purple {
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.16) 0%, rgba(168, 85, 247, 0.04) 100%) !important;
+            color: #f3e8ff !important;
+            border-left: 2.5px solid #c084fc !important;
+            box-shadow: inset 1px 0 8px rgba(168, 85, 247, 0.15);
+        }
+
+        .tab-active-slate {
+            background: linear-gradient(90deg, rgba(148, 163, 184, 0.14) 0%, rgba(148, 163, 184, 0.04) 100%) !important;
+            color: #f1f5f9 !important;
+            border-left: 2.5px solid #94a3b8 !important;
         }
 
         /* Physical tactile feedback on click */
@@ -127,6 +186,11 @@
         @keyframes terminal-blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
+        }
+
+        /* CLI Terminal Panel Visibility */
+        #terminal-panel.panel-hidden {
+            display: none !important;
         }
 
         /* Minimal Technical Scrollbars */
@@ -164,6 +228,89 @@
         }
         .animate-fade-in {
             animation: fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Text Selection Branding */
+        ::selection {
+            background: rgba(16, 185, 129, 0.18);
+            color: #f4f4f5;
+        }
+
+        /* Table Row Interactivity */
+        table tbody tr {
+            transition: background-color 0.1s ease;
+        }
+        table tbody tr:hover {
+            background-color: rgba(39, 39, 42, 0.5);
+        }
+
+        /* Grid row items in AST analysis */
+        .grid-row-interactive {
+            transition: background-color 0.1s ease;
+        }
+        .grid-row-interactive:hover {
+            background-color: rgba(39, 39, 42, 0.45);
+        }
+
+        /* Input Field Depth */
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(82, 82, 91, 0.4);
+        }
+
+        /* Sidebar Active Indicator Refinement */
+        .nav-active-indicator {
+            position: relative;
+        }
+        .nav-active-indicator::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: #e4e4e7;
+            border-radius: 1px;
+        }
+
+        /* Kbd Tag Premium Styling */
+        kbd {
+            font-family: 'Geist Mono', ui-monospace, monospace;
+            letter-spacing: 0.02em;
+        }
+
+        /* Subtle alternating rows for dense data tables */
+        table tbody tr:nth-child(even) {
+            background-color: rgba(24, 24, 27, 0.4);
+        }
+        table tbody tr:nth-child(even):hover {
+            background-color: rgba(39, 39, 42, 0.5);
+        }
+
+        /* Smooth modal backdrop */
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        /* Premium checkbox styling override */
+        input[type="checkbox"] {
+            accent-color: #10b981;
+        }
+
+        /* Code block line number gutter refinement */
+        .line-num {
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* Reduced Motion Compliance */
@@ -206,7 +353,7 @@
     </header>
 
     <!-- Mobile Navigation Drawer Overlay -->
-    <div id="mobile-nav-backdrop" onclick="toggleMobileNav(false)" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] md:hidden transition-opacity" aria-hidden="true"></div>
+    <div id="mobile-nav-backdrop" onclick="toggleMobileNav(false)" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:hidden transition-opacity" aria-hidden="true"></div>
     
     <!-- Mobile Navigation Drawer -->
     <aside id="mobile-nav-drawer" class="fixed top-0 left-0 bottom-0 w-72 bg-zinc-925 border-r border-zinc-800 z-[95] md:hidden transform -translate-x-full transition-transform duration-200 flex flex-col" aria-label="Mobile Navigation">
@@ -257,89 +404,97 @@
     </aside>
 
     <!-- Desktop Sidebar Navigation (>= 768px) -->
-    <aside class="hidden md:flex flex-col bg-zinc-925 border-r border-zinc-800 h-full w-60 flex-shrink-0 z-40" aria-label="Main Navigation">
+    <aside class="hidden md:flex flex-col bg-zinc-925/90 backdrop-blur-md border-r border-zinc-800/80 h-full w-60 flex-shrink-0 z-40" aria-label="Main Navigation">
         <!-- Brand Header -->
-        <div class="px-5 py-4 border-b border-zinc-800 flex flex-col gap-1.5">
+        <div class="px-5 py-4 border-b border-zinc-800/80 flex flex-col gap-1.5">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-6 h-6 rounded bg-zinc-800 border border-zinc-700/80 flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined text-zinc-200 text-sm" aria-hidden="true">terminal</span>
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 via-sky-400 to-emerald-400 p-[1px] flex items-center justify-center shadow-sm shadow-indigo-500/20">
+                        <div class="w-full h-full bg-zinc-950 rounded-[7px] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-indigo-400 text-[15px]" aria-hidden="true">terminal</span>
+                        </div>
                     </div>
                     <div class="flex flex-col">
-                        <h1 class="font-mono font-semibold text-sm text-zinc-100 tracking-tight">JavaLens</h1>
+                        <h1 class="font-mono font-bold text-sm text-zinc-100 tracking-tight flex items-center gap-1.5">
+                            JavaLens
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                        </h1>
                     </div>
                 </div>
-                <span class="font-mono text-[10px] bg-zinc-850 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-800">v2.4.0</span>
+                <span class="font-mono text-[10px] bg-indigo-950/70 border border-indigo-700/50 text-indigo-300 px-2 py-0.5 rounded-full font-medium">v2.4.0</span>
             </div>
             <p class="text-[11px] text-zinc-500 font-mono mt-0.5">AST Static Engine</p>
         </div>
         
         <!-- Navigation Tabs -->
-        <nav class="flex flex-col mt-3 px-2.5 gap-0.5 flex-grow">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-100 font-medium bg-zinc-850 border-l-2 border-zinc-200 transition-all cursor-pointer">
+        <nav class="flex flex-col mt-3 px-2.5 gap-1 flex-grow">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full text-left flex items-center justify-between px-3 py-2 rounded font-medium tab-active-indigo transition-all cursor-pointer">
                 <div class="flex items-center gap-2.5">
-                    <span class="material-symbols-outlined text-[17px]" aria-hidden="true">dashboard</span>
+                    <span class="material-symbols-outlined text-[17px] text-indigo-400" aria-hidden="true">dashboard</span>
                     <span class="text-xs">Overview</span>
                 </div>
-                <span class="font-mono text-[10px] text-zinc-500">1</span>
+                <span class="font-mono text-[10px] text-indigo-400/80 bg-indigo-950/60 px-1.5 py-0.2 rounded border border-indigo-800/50">1</span>
             </button>
             
-            <button onclick="switchTab('analysis')" id="nav-analysis" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-colors cursor-pointer">
+            <button onclick="switchTab('analysis')" id="nav-analysis" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-all cursor-pointer">
                 <div class="flex items-center gap-2.5">
-                    <span class="material-symbols-outlined text-[17px]" aria-hidden="true">account_tree</span>
+                    <span class="material-symbols-outlined text-[17px] text-sky-400" aria-hidden="true">account_tree</span>
                     <span class="text-xs">AST Analysis</span>
                 </div>
                 <span class="font-mono text-[10px] text-zinc-500">2</span>
             </button>
             
-            <button onclick="switchTab('compare')" id="nav-compare" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-colors cursor-pointer">
+            <button onclick="switchTab('compare')" id="nav-compare" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-all cursor-pointer">
                 <div class="flex items-center gap-2.5">
-                    <span class="material-symbols-outlined text-[17px]" aria-hidden="true">compare_arrows</span>
+                    <span class="material-symbols-outlined text-[17px] text-amber-400" aria-hidden="true">compare_arrows</span>
                     <span class="text-xs">Compare Diff</span>
                 </div>
                 <span class="font-mono text-[10px] text-zinc-500">3</span>
             </button>
             
-            <button onclick="switchTab('merge')" id="nav-merge" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-colors cursor-pointer">
+            <button onclick="switchTab('merge')" id="nav-merge" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-all cursor-pointer">
                 <div class="flex items-center gap-2.5">
-                    <span class="material-symbols-outlined text-[17px]" aria-hidden="true">call_merge</span>
+                    <span class="material-symbols-outlined text-[17px] text-emerald-400" aria-hidden="true">call_merge</span>
                     <span class="text-xs">Marker Merge</span>
                 </div>
                 <span class="font-mono text-[10px] text-zinc-500">4</span>
             </button>
             
-            <button onclick="switchTab('report')" id="nav-report" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-colors cursor-pointer">
+            <button onclick="switchTab('report')" id="nav-report" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-all cursor-pointer">
                 <div class="flex items-center gap-2.5">
-                    <span class="material-symbols-outlined text-[17px]" aria-hidden="true">summarize</span>
+                    <span class="material-symbols-outlined text-[17px] text-purple-400" aria-hidden="true">summarize</span>
                     <span class="text-xs">Report</span>
                 </div>
                 <span class="font-mono text-[10px] text-zinc-500">5</span>
             </button>
 
-            <button onclick="switchTab('settings')" id="nav-settings" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-colors cursor-pointer">
+            <button onclick="switchTab('settings')" id="nav-settings" class="w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-all cursor-pointer">
                 <div class="flex items-center gap-2.5">
-                    <span class="material-symbols-outlined text-[17px]" aria-hidden="true">settings</span>
+                    <span class="material-symbols-outlined text-[17px] text-slate-400" aria-hidden="true">settings</span>
                     <span class="text-xs">Settings</span>
                 </div>
                 <span class="font-mono text-[10px] text-zinc-500">6</span>
             </button>
         </nav>
 
-        <!-- Understated Engine Status Widget -->
-        <div class="p-3 m-3 rounded bg-zinc-900/60 border border-zinc-800 flex flex-col gap-1.5">
+        <!-- Engine Status Widget -->
+        <div class="p-3 m-3 rounded-lg bg-zinc-900/80 border border-zinc-800/80 flex flex-col gap-1.5 shadow-inner">
             <div class="flex items-center justify-between">
-                <span class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" aria-hidden="true"></span>
+                <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-wider flex items-center">
+                    <span class="relative flex h-2 w-2 mr-1.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
                     Engine Status
                 </span>
-                <span class="font-mono text-[10px] text-zinc-300 font-semibold" id="telemetry-status-badge">READY</span>
+                <span class="font-mono text-[10px] text-emerald-300 bg-emerald-950/80 border border-emerald-700/60 px-2 py-0.5 rounded font-semibold tracking-wider" id="telemetry-status-badge">READY</span>
             </div>
-            <div class="text-[11px] text-zinc-400 font-mono truncate" id="telemetry-workspace-label">
+            <div class="text-[11px] text-zinc-300 font-mono truncate" id="telemetry-workspace-label">
                 /Volumes/Study/Projects/javalens
             </div>
-            <div class="flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-zinc-800 font-mono">
+            <div class="flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-zinc-800/80 font-mono">
                 <span>Compiler Tree</span>
-                <span class="text-zinc-400">JDK 17+</span>
+                <span class="text-cyan-400 font-medium">JDK 17+</span>
             </div>
         </div>
     </aside>
@@ -368,9 +523,9 @@
                 <button onclick="showShortcutsModal()" class="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 rounded transition-colors" title="Keyboard shortcuts (?)" aria-label="Keyboard Shortcuts">
                     <span class="material-symbols-outlined text-[16px]" aria-hidden="true">keyboard</span>
                 </button>
-                <button onclick="toggleTerminalPanel()" class="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-xs font-mono text-zinc-300 hover:text-zinc-100 transition-colors" title="Toggle interactive compiler terminal (T)" aria-label="Toggle terminal panel">
-                    <span class="material-symbols-outlined text-[14px] text-zinc-400" aria-hidden="true">terminal</span>
-                    <span id="terminal-toggle-text">CLI Console</span>
+                <button id="terminal-toggle-btn" onclick="toggleTerminalPanel()" class="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-xs font-mono text-zinc-300 hover:text-zinc-100 transition-colors" title="Hide CLI panel (T)" aria-label="Hide CLI panel">
+                    <span class="material-symbols-outlined text-[14px] text-zinc-400" id="terminal-toggle-icon" aria-hidden="true">terminal</span>
+                    <span id="terminal-toggle-text">Hide CLI</span>
                 </button>
             </div>
         </header>
@@ -381,149 +536,182 @@
             <!-- Main Content Area -->
             <main id="main-content" class="flex-grow h-full overflow-y-auto p-4 md:p-6 flex flex-col gap-5 min-h-0">
                 <div class="w-full flex-grow flex flex-col gap-5 min-h-0 max-w-7xl mx-auto">
-
                     <!-- ═════════════════════════════════════════════════════════════════════════════
                          1. TAB: DASHBOARD OVERVIEW (HIGH-AGENCY REFACTOR)
-                         ═════════════════════════════════════════════════════════════════════════════ -->
+                         ═════════════════════════════════════════════════════ -->
                     <div id="tab-dashboard" class="h-full flex flex-col gap-5 min-h-0 overflow-y-auto animate-fade-in">
                         
                         <!-- Header Section (Left Aligned, Clean Hierarchy) -->
-                        <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-zinc-800">
+                        <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-zinc-800/80">
                             <div>
-                                <h2 class="font-mono text-lg md:text-xl font-semibold text-zinc-100 tracking-tight">
-                                    AST Telemetry &amp; Overview
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2 py-0.5 rounded-full bg-indigo-950/80 border border-indigo-700/60 text-indigo-300 font-mono text-[10px] font-semibold tracking-wider flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                                        AST TELEMETRY ENGINE
+                                    </span>
+                                </div>
+                                <h2 class="font-mono text-lg md:text-xl font-bold text-zinc-100 tracking-tight">
+                                    System Telemetry &amp; Codebase Overview
                                 </h2>
                                 <p class="text-xs text-zinc-400 mt-0.5">
                                     Deterministic Java source tree inspection, syntax validation, and semantic delta analysis.
                                 </p>
                             </div>
                             <div class="flex items-center gap-2.5">
-                                <button onclick="openWorkspaceModal()" class="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs rounded transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                                    <span class="material-symbols-outlined text-[15px]" aria-hidden="true">play_arrow</span>
+                                <button onclick="openWorkspaceModal()" class="px-4 py-2 bg-gradient-to-r from-indigo-500 via-indigo-600 to-sky-500 hover:from-indigo-400 hover:to-sky-400 text-white font-medium text-xs rounded-lg transition-all shadow-md shadow-indigo-950/50 flex items-center gap-2 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]" aria-hidden="true">play_arrow</span>
                                     <span>Run AST Scan</span>
                                 </button>
                             </div>
                         </section>
 
-                        <!-- Telemetry Metrics Strip (Linear Divide Layout - Density 4, No Card Spam) -->
-                        <section class="surface-card rounded-lg divide-y sm:divide-y-0 sm:divide-x divide-zinc-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden" aria-label="Key Performance Metrics">
-                            <!-- Metric 1 -->
-                            <div class="p-4 flex flex-col justify-between">
-                                <div class="flex items-center justify-between text-zinc-500 font-mono text-[11px]">
-                                    <span>Indexed Methods</span>
-                                    <span class="material-symbols-outlined text-[15px] text-zinc-400" aria-hidden="true">data_object</span>
-                                </div>
-                                <div class="flex items-baseline gap-2 mt-2">
-                                    <span id="metric-classes" class="font-mono text-2xl md:text-3xl font-semibold text-zinc-100 tabular-nums">0</span>
-                                    <span id="metric-classes-delta" class="font-mono text-xs text-emerald-400 font-medium hidden">+0</span>
-                                </div>
-                                <div class="mt-3">
-                                    <div class="w-full bg-zinc-900 h-1 rounded-full overflow-hidden border border-zinc-800">
-                                        <div id="metric-classes-bar" class="bg-zinc-300 h-full w-[0%] transition-all duration-500"></div>
+                        <!-- Telemetry Metrics Strip (Linear Divide Layout - Density 4, Rich Accent Colors) -->
+                        <section class="surface-card rounded-xl divide-y sm:divide-y-0 sm:divide-x divide-zinc-800/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden border border-zinc-800/80" aria-label="Key Performance Metrics">
+                            <!-- Metric 1: Indexed Methods -->
+                            <div class="p-5 flex flex-col justify-between hover:bg-white/[0.02] transition-colors">
+                                <div class="flex items-center justify-between text-zinc-400 font-mono text-[11px]">
+                                    <span class="uppercase tracking-wider font-medium">Indexed Methods</span>
+                                    <div class="w-8 h-8 rounded-lg bg-indigo-950/80 border border-indigo-700/60 text-indigo-400 flex items-center justify-center shadow-inner">
+                                        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">data_object</span>
                                     </div>
-                                    <span class="font-mono text-[10px] text-zinc-500 mt-1 block">Unit coverage complete</span>
+                                </div>
+                                <div class="flex items-baseline gap-2 mt-3">
+                                    <span id="metric-classes" class="font-mono text-3xl font-bold text-white tabular-nums">0</span>
+                                    <span id="metric-classes-delta" class="font-mono text-xs text-emerald-300 bg-emerald-950/80 border border-emerald-700/60 px-2 py-0.5 rounded-full font-semibold hidden">+0</span>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="w-full bg-zinc-900/90 h-1.5 rounded-full overflow-hidden border border-zinc-800">
+                                        <div id="metric-classes-bar" class="bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 h-full w-[0%] transition-all duration-500 shadow-sm shadow-indigo-500/40"></div>
+                                    </div>
+                                    <span class="font-mono text-[10px] text-zinc-500 mt-1.5 block">Unit coverage complete</span>
                                 </div>
                             </div>
 
-                            <!-- Metric 2 -->
-                            <div class="p-4 flex flex-col justify-between">
-                                <div class="flex items-center justify-between text-zinc-500 font-mono text-[11px]">
-                                    <span>Parsing Throughput</span>
-                                    <span class="material-symbols-outlined text-[15px] text-zinc-400" aria-hidden="true">speed</span>
+                            <!-- Metric 2: Parsing Throughput -->
+                            <div class="p-5 flex flex-col justify-between hover:bg-white/[0.02] transition-colors">
+                                <div class="flex items-center justify-between text-zinc-400 font-mono text-[11px]">
+                                    <span class="uppercase tracking-wider font-medium">Parsing Throughput</span>
+                                    <div class="w-8 h-8 rounded-lg bg-sky-950/80 border border-sky-700/60 text-sky-400 flex items-center justify-center shadow-inner">
+                                        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">speed</span>
+                                    </div>
                                 </div>
-                                <div class="flex items-baseline gap-2 mt-2">
-                                    <span id="metric-speed" class="font-mono text-2xl md:text-3xl font-semibold text-zinc-100 tabular-nums">—</span>
+                                <div class="flex items-baseline gap-2 mt-3">
+                                    <span id="metric-speed" class="font-mono text-3xl font-bold text-sky-100 tabular-nums">34.2k</span>
+                                    <span class="font-mono text-xs text-sky-300 bg-sky-950/80 border border-sky-700/60 px-1.5 py-0.2 rounded font-medium">AST/s</span>
                                 </div>
-                                <p class="text-[11px] text-zinc-500 mt-3 font-mono">Non-blocking parallel parse</p>
+                                <p class="text-[11px] text-zinc-400 mt-4 font-mono flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+                                    <span>Zero-copy parallel lexer</span>
+                                </p>
                             </div>
 
-                            <!-- Metric 3 -->
-                            <div class="p-4 flex flex-col justify-between">
-                                <div class="flex items-center justify-between text-zinc-500 font-mono text-[11px]">
-                                    <span>Heap Allocation</span>
-                                    <span class="material-symbols-outlined text-[15px] text-zinc-400" aria-hidden="true">memory</span>
+                            <!-- Metric 3: Heap Allocation -->
+                            <div class="p-5 flex flex-col justify-between hover:bg-white/[0.02] transition-colors">
+                                <div class="flex items-center justify-between text-zinc-400 font-mono text-[11px]">
+                                    <span class="uppercase tracking-wider font-medium">Heap Allocation</span>
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-950/80 border border-emerald-700/60 text-emerald-400 flex items-center justify-center shadow-inner">
+                                        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">memory</span>
+                                    </div>
                                 </div>
-                                <div class="flex items-baseline gap-2 mt-2">
-                                    <span id="metric-memory" class="font-mono text-2xl md:text-3xl font-semibold text-zinc-100 tabular-nums">—</span>
+                                <div class="flex items-baseline gap-2 mt-3">
+                                    <span id="metric-memory" class="font-mono text-3xl font-bold text-emerald-100 tabular-nums">48 MB</span>
+                                    <span class="font-mono text-xs text-emerald-300 bg-emerald-950/80 border border-emerald-700/60 px-1.5 py-0.2 rounded font-medium">JVM</span>
                                 </div>
-                                <div class="flex items-center gap-1.5 text-[11px] text-zinc-400 mt-3 font-mono">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                                <div class="flex items-center gap-1.5 text-[11px] text-emerald-300 mt-4 font-mono">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                     <span>Free-on-extract active</span>
                                 </div>
                             </div>
 
-                            <!-- Metric 4 -->
-                            <div class="p-4 flex flex-col justify-between">
-                                <div class="flex items-center justify-between text-zinc-500 font-mono text-[11px]">
-                                    <span>Worker Concurrency</span>
-                                    <span class="material-symbols-outlined text-[15px] text-zinc-400" aria-hidden="true">lan</span>
+                            <!-- Metric 4: Worker Concurrency -->
+                            <div class="p-5 flex flex-col justify-between hover:bg-white/[0.02] transition-colors">
+                                <div class="flex items-center justify-between text-zinc-400 font-mono text-[11px]">
+                                    <span class="uppercase tracking-wider font-medium">Worker Concurrency</span>
+                                    <div class="w-8 h-8 rounded-lg bg-purple-950/80 border border-purple-700/60 text-purple-400 flex items-center justify-center shadow-inner">
+                                        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">lan</span>
+                                    </div>
                                 </div>
-                                <div class="flex items-baseline gap-2 mt-2">
-                                    <span id="metric-threads" class="font-mono text-2xl md:text-3xl font-semibold text-zinc-100 tabular-nums">8</span>
-                                    <span class="font-mono text-xs text-zinc-500">Threads</span>
+                                <div class="flex items-baseline gap-2 mt-3">
+                                    <span id="metric-threads" class="font-mono text-3xl font-bold text-purple-100 tabular-nums">8</span>
+                                    <span class="font-mono text-xs text-purple-300 bg-purple-950/80 border border-purple-700/60 px-1.5 py-0.2 rounded font-medium">Threads</span>
                                 </div>
-                                <p class="text-[11px] text-zinc-500 mt-3 font-mono">Bounded thread pool</p>
+                                <p class="text-[11px] text-zinc-400 mt-4 font-mono flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                                    <span>Bounded work-stealing pool</span>
+                                </p>
                             </div>
                         </section>
 
-                        <!-- Engineering Tools Workbench (Asymmetric Grid) -->
+                        <!-- Engineering Tools Workbench (Asymmetric Grid with Semantic Accents) -->
                         <section class="grid grid-cols-1 md:grid-cols-3 gap-4" aria-label="Engine Tools">
-                            <div class="surface-card p-5 rounded-lg flex flex-col justify-between hover:border-zinc-700 transition-colors">
+                            <!-- Tool 1: AST Codebase Analyzer -->
+                            <div class="surface-card p-5 rounded-xl flex flex-col justify-between hover:border-sky-500/50 border-t-2 border-t-sky-400 transition-all">
                                 <div>
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-zinc-300 text-lg" aria-hidden="true">account_tree</span>
-                                            <h3 class="font-mono font-semibold text-sm text-zinc-100">AST Codebase Analyzer</h3>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-md bg-sky-950/70 border border-sky-800/60 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-sky-400 text-[16px]" aria-hidden="true">account_tree</span>
+                                            </div>
+                                            <h3 class="font-mono font-bold text-sm text-zinc-100">AST Codebase Analyzer</h3>
                                         </div>
-                                        <span class="text-[10px] font-mono bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-800" id="bento-file-count">0 Files</span>
+                                        <span class="text-[10px] font-mono bg-sky-950/80 text-sky-300 border border-sky-700/60 px-2 py-0.5 rounded-full font-medium" id="bento-file-count">0 Files</span>
                                     </div>
                                     <p class="text-xs text-zinc-400 leading-relaxed">
-                                        Recursively parse compilation units. Index method signatures, modifiers, constructors, parameters, and attribute fields.
+                                        Recursively parse compilation units. Index method signatures, modifiers, constructors, parameters, and attribute fields with full Java source viewer.
                                     </p>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between">
-                                    <button onclick="switchTab('analysis')" class="px-3 py-1.5 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-xs text-zinc-200 font-medium transition-colors">
-                                        Open File Tree →
+                                <div class="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
+                                    <button onclick="switchTab('analysis')" class="px-3.5 py-1.5 bg-zinc-850 hover:bg-sky-950/60 hover:text-sky-200 hover:border-sky-700/50 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200 font-medium transition-colors flex items-center gap-1.5 cursor-pointer">
+                                        <span>Open File Tree</span>
+                                        <span class="material-symbols-outlined text-[13px]" aria-hidden="true">arrow_forward</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <div class="surface-card p-5 rounded-lg flex flex-col justify-between hover:border-zinc-700 transition-colors">
+                            <!-- Tool 2: Semantic Delta Comparator -->
+                            <div class="surface-card p-5 rounded-xl flex flex-col justify-between hover:border-amber-500/50 border-t-2 border-t-amber-400 transition-all">
                                 <div>
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-zinc-300 text-lg" aria-hidden="true">compare_arrows</span>
-                                            <h3 class="font-mono font-semibold text-sm text-zinc-100">Semantic Delta Comparator</h3>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-md bg-amber-950/70 border border-amber-800/60 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-amber-400 text-[16px]" aria-hidden="true">compare_arrows</span>
+                                            </div>
+                                            <h3 class="font-mono font-bold text-sm text-zinc-100">Semantic Delta Comparator</h3>
                                         </div>
-                                        <span class="text-[10px] font-mono bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-800">AST Diff</span>
+                                        <span class="text-[10px] font-mono bg-amber-950/80 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded-full font-medium">AST Diff</span>
                                     </div>
                                     <p class="text-xs text-zinc-400 leading-relaxed">
-                                        Calculate syntactic and architectural diffs between branches. Identify added attributes, altered signatures, and broken contracts.
+                                        Calculate syntactic and architectural diffs between branches. Identify added attributes, altered signatures, and broken contracts with syntax highlighting.
                                     </p>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between">
-                                    <button onclick="switchTab('compare')" class="px-3 py-1.5 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-xs text-zinc-200 font-medium transition-colors">
-                                        Launch Diff Viewer →
+                                <div class="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
+                                    <button onclick="switchTab('compare')" class="px-3.5 py-1.5 bg-zinc-850 hover:bg-amber-950/60 hover:text-amber-200 hover:border-amber-700/50 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200 font-medium transition-colors flex items-center gap-1.5 cursor-pointer">
+                                        <span>Launch Diff Viewer</span>
+                                        <span class="material-symbols-outlined text-[13px]" aria-hidden="true">arrow_forward</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <div class="surface-card p-5 rounded-lg flex flex-col justify-between hover:border-zinc-700 transition-colors">
+                            <!-- Tool 3: Marker-Guided Merge -->
+                            <div class="surface-card p-5 rounded-xl flex flex-col justify-between hover:border-emerald-500/50 border-t-2 border-t-emerald-400 transition-all">
                                 <div>
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-zinc-300 text-lg" aria-hidden="true">call_merge</span>
-                                            <h3 class="font-mono font-semibold text-sm text-zinc-100">Marker-Guided Merge</h3>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-md bg-emerald-950/70 border border-emerald-800/60 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-emerald-400 text-[16px]" aria-hidden="true">call_merge</span>
+                                            </div>
+                                            <h3 class="font-mono font-bold text-sm text-zinc-100">Marker-Guided Merge</h3>
                                         </div>
-                                        <span class="text-[10px] font-mono bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-800">Safe Sync</span>
+                                        <span class="text-[10px] font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 px-2 py-0.5 rounded-full font-medium">Safe Sync</span>
                                     </div>
                                     <p class="text-xs text-zinc-400 leading-relaxed">
-                                        Selectively copy designated methods and refactored logic governed by explicit boundary markers into target codebases.
+                                        Selectively copy designated methods and refactored logic governed by explicit boundary markers into target codebases without overwriting customized logic.
                                     </p>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between">
-                                    <button onclick="switchTab('merge')" class="px-3 py-1.5 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-xs text-zinc-200 font-medium transition-colors">
-                                        Open Merge Tool →
+                                <div class="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
+                                    <button onclick="switchTab('merge')" class="px-3.5 py-1.5 bg-zinc-850 hover:bg-emerald-950/60 hover:text-emerald-200 hover:border-emerald-700/50 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200 font-medium transition-colors flex items-center gap-1.5 cursor-pointer">
+                                        <span>Open Merge Tool</span>
+                                        <span class="material-symbols-outlined text-[13px]" aria-hidden="true">arrow_forward</span>
                                     </button>
                                 </div>
                             </div>
@@ -622,12 +810,18 @@
                                 <!-- Table Toolbar -->
                                 <div class="p-3 border-b border-zinc-800 bg-zinc-925 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
                                     <div class="flex items-center gap-2">
-                                        <div class="flex bg-zinc-950 p-0.5 rounded border border-zinc-800" role="tablist">
-                                            <button onclick="toggleTableSubTab('methods')" id="subtab-methods" class="px-3 py-1 rounded text-xs font-mono bg-zinc-850 text-zinc-100 font-medium cursor-pointer transition-all" role="tab" aria-selected="true">
-                                                Methods (<span id="count-badge-methods">0</span>)
+                                        <div class="flex bg-zinc-950 p-0.5 rounded-lg border border-zinc-800" role="tablist">
+                                            <button onclick="toggleTableSubTab('methods')" id="subtab-methods" class="px-3 py-1 rounded text-xs font-mono bg-indigo-950/70 border border-indigo-700/60 text-indigo-200 font-medium cursor-pointer transition-all flex items-center gap-1.5" role="tab" aria-selected="true">
+                                                <span class="material-symbols-outlined text-[13px] text-indigo-400" aria-hidden="true">functions</span>
+                                                <span>Methods (<span id="count-badge-methods">0</span>)</span>
                                             </button>
-                                            <button onclick="toggleTableSubTab('attributes')" id="subtab-attributes" class="px-3 py-1 rounded text-xs font-mono text-zinc-400 hover:text-zinc-200 cursor-pointer transition-all" role="tab" aria-selected="false">
-                                                Attributes (<span id="count-badge-attributes">0</span>)
+                                            <button onclick="toggleTableSubTab('attributes')" id="subtab-attributes" class="px-3 py-1 rounded text-xs font-mono text-zinc-400 hover:text-zinc-200 cursor-pointer transition-all flex items-center gap-1.5" role="tab" aria-selected="false">
+                                                <span class="material-symbols-outlined text-[13px] text-amber-400" aria-hidden="true">data_object</span>
+                                                <span>Attributes (<span id="count-badge-attributes">0</span>)</span>
+                                            </button>
+                                            <button onclick="toggleTableSubTab('source')" id="subtab-source" class="px-3 py-1 rounded text-xs font-mono text-zinc-400 hover:text-zinc-200 cursor-pointer transition-all flex items-center gap-1.5" role="tab" aria-selected="false">
+                                                <span class="material-symbols-outlined text-[13px] text-sky-400" aria-hidden="true">code</span>
+                                                <span>Source Code</span>
                                             </button>
                                         </div>
                                         <span class="text-xs text-zinc-500 font-mono hidden sm:inline select-all">
@@ -636,11 +830,11 @@
                                     </div>
                                     
                                     <!-- Modifier Filter Chips -->
-                                    <div class="flex items-center gap-1 text-[11px] font-mono">
-                                        <button onclick="setModifierFilter('all')" class="mod-filter-chip active px-2 py-0.5 rounded bg-zinc-800 text-zinc-200 border border-zinc-700">All</button>
-                                        <button onclick="setModifierFilter('public')" class="mod-filter-chip px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800">Public</button>
-                                        <button onclick="setModifierFilter('private')" class="mod-filter-chip px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800">Private</button>
-                                        <button onclick="setModifierFilter('static')" class="mod-filter-chip px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800">Static</button>
+                                    <div id="mod-filters-container" class="flex items-center gap-1 text-[11px] font-mono">
+                                        <button onclick="setModifierFilter('all')" class="mod-filter-chip active px-2.5 py-0.5 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 cursor-pointer">All</button>
+                                        <button onclick="setModifierFilter('public')" class="mod-filter-chip px-2.5 py-0.5 rounded bg-zinc-900 text-sky-400 hover:text-sky-300 border border-sky-900/60 cursor-pointer">Public</button>
+                                        <button onclick="setModifierFilter('private')" class="mod-filter-chip px-2.5 py-0.5 rounded bg-zinc-900 text-rose-400 hover:text-rose-300 border border-rose-900/60 cursor-pointer">Private</button>
+                                        <button onclick="setModifierFilter('static')" class="mod-filter-chip px-2.5 py-0.5 rounded bg-zinc-900 text-purple-400 hover:text-purple-300 border border-purple-900/60 cursor-pointer">Static</button>
                                     </div>
                                 </div>
 
@@ -664,6 +858,33 @@
                                 <!-- Table Content Body -->
                                 <div class="flex-grow overflow-y-auto font-mono text-xs divide-y divide-zinc-800/60" id="table-content-area" role="region" aria-label="AST Signatures List">
                                     <!-- Dynamic rows loaded here -->
+                                </div>
+
+                                <!-- Dedicated Java Source Code Editor View -->
+                                <div id="source-code-view" class="hidden flex-grow flex flex-col min-h-0 bg-zinc-950 overflow-hidden font-mono text-xs">
+                                    <!-- Source Code Action Bar -->
+                                    <div class="px-4 py-2 bg-zinc-925 border-b border-zinc-800/80 flex items-center justify-between flex-shrink-0">
+                                        <div class="flex items-center gap-2.5">
+                                            <span class="material-symbols-outlined text-sky-400 text-sm" aria-hidden="true">description</span>
+                                            <span id="source-view-filename" class="text-zinc-100 font-semibold text-xs">MyClass.java</span>
+                                            <span id="source-view-lines-count" class="text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded font-mono">0 lines</span>
+                                            <span id="source-view-origin-badge" class="text-[10px] text-emerald-300 bg-emerald-950/70 border border-emerald-700/60 px-2 py-0.5 rounded font-mono font-medium">Live Source</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="copySourceCode()" class="px-2.5 py-1 bg-zinc-850 hover:bg-zinc-800 border border-zinc-700/80 rounded text-[11px] text-zinc-200 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer" title="Copy entire source code">
+                                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">content_copy</span>
+                                                <span id="source-copy-btn-text">Copy Code</span>
+                                            </button>
+                                            <button onclick="downloadSourceFile()" class="px-2.5 py-1 bg-zinc-850 hover:bg-zinc-800 border border-zinc-700/80 rounded text-[11px] text-zinc-200 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer" title="Download Java file">
+                                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">download</span>
+                                                <span>Download</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Line-by-line Code Container with Syntax Highlighting & Gutter -->
+                                    <div class="flex-grow overflow-y-auto overflow-x-auto p-4 bg-zinc-950/90 text-zinc-200 hide-scrollbar leading-relaxed" id="source-code-container">
+                                        <!-- Dynamic Lines Injected Here -->
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -823,22 +1044,27 @@
                                 </div>
 
                                 <!-- Code Preview -->
-                                <div class="border border-zinc-800 rounded-lg bg-zinc-950 overflow-hidden">
-                                    <div class="bg-zinc-925 px-4 py-2 border-b border-zinc-800 flex justify-between items-center">
-                                        <span class="font-mono text-xs text-zinc-400">AST Block Marker Syntax</span>
-                                        <span class="font-mono text-[10px] text-zinc-400 px-2 py-0.5 bg-zinc-900 rounded border border-zinc-800">Java</span>
+                                <div class="border border-zinc-800/80 rounded-xl bg-zinc-950 overflow-hidden shadow-lg">
+                                    <div class="bg-zinc-925 px-4 py-2.5 border-b border-zinc-800/80 flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            <span class="font-mono text-xs text-zinc-300 font-semibold">AST Block Marker Syntax</span>
+                                        </div>
+                                        <span class="font-mono text-[10px] text-emerald-300 px-2.5 py-0.5 bg-emerald-950/80 rounded-full border border-emerald-700/60 font-medium">Java Source</span>
                                     </div>
-                                    <pre class="p-4 font-mono text-xs text-zinc-300 overflow-x-auto leading-relaxed"><code>public void processASTNode(Node node) {
-    <span class="text-zinc-200 font-semibold bg-zinc-800/80 px-1 py-0.5 rounded">// START_MERGE: Strategy Engine Update</span>
-    StrategyResolver resolver = new StrategyResolver(config);
-    resolver.apply(node);
-    <span class="text-zinc-200 font-semibold bg-zinc-800/80 px-1 py-0.5 rounded">// END_MERGE: Strategy Engine Update</span>
+                                    <div id="marker-code-preview" class="p-4 font-mono text-xs text-zinc-200 overflow-x-auto leading-relaxed bg-zinc-950">
+                                        <pre class="font-mono text-xs leading-6"><code><span class="text-indigo-400 font-semibold">public</span> <span class="text-cyan-300 font-medium">void</span> <span class="text-sky-300">processASTNode</span>(<span class="text-cyan-300 font-medium">Node</span> node) {
+    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-semibold text-[11px] shadow-sm shadow-emerald-950/40"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>// START_MERGE: Strategy Engine Update</span>
+    <span class="text-cyan-300 font-medium">StrategyResolver</span> resolver = <span class="text-indigo-400 font-semibold">new</span> <span class="text-cyan-300 font-medium">StrategyResolver</span>(config);
+    resolver.<span class="text-sky-300">apply</span>(node);
+    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-semibold text-[11px] shadow-sm shadow-emerald-950/40"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>// END_MERGE: Strategy Engine Update</span>
 }</code></pre>
+                                    </div>
                                 </div>
 
                                 <!-- Action Trigger Button -->
                                 <div class="flex justify-end pt-2" id="merge-action-div">
-                                    <button onclick="triggerMerge()" class="px-5 py-2.5 bg-zinc-100 hover:bg-white text-zinc-950 font-mono font-medium text-xs rounded transition-all cursor-pointer shadow-xs flex items-center gap-2" id="merge-trigger-btn">
+                                    <button onclick="triggerMerge()" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 font-mono font-bold text-xs rounded-lg transition-all cursor-pointer shadow-lg shadow-emerald-950/50 flex items-center gap-2" id="merge-trigger-btn">
                                         <span class="material-symbols-outlined text-[16px]" aria-hidden="true">call_merge</span>
                                         <span>Initiate Code Merge</span>
                                     </button>
@@ -871,7 +1097,7 @@
                             </div>
 
                             <!-- Pipeline Config Form -->
-                            <div class="surface-card p-5 rounded-lg space-y-4 mb-5">
+                            <div class="surface-card p-5 rounded-lg space-y-4 mb-5 relative z-30" id="report-config-card">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-mono text-zinc-500 mb-1.5 uppercase tracking-wider" for="report-old-path">Old Version Path</label>
@@ -898,15 +1124,71 @@
                                         <span class="material-symbols-outlined text-[15px]">play_arrow</span>
                                         <span>Generate Full Report</span>
                                     </button>
-                                    <button onclick="downloadReportCsv()" id="report-download-btn" class="px-3.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-xs font-mono text-zinc-200 flex items-center gap-2 transition-colors cursor-pointer hidden">
-                                        <span class="material-symbols-outlined text-[15px]">download</span>
-                                        <span>Download CSV</span>
-                                    </button>
+                                    <!-- Multi-Format Download Dropdown -->
+                                    <div class="relative inline-block text-left z-40" id="report-download-dropdown-wrap">
+                                        <button onclick="toggleReportDownloadMenu(event)" id="report-download-btn" class="px-3.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-750 hover:border-purple-500/50 rounded text-xs font-mono text-zinc-200 flex items-center gap-2 transition-all cursor-pointer hidden shadow-sm">
+                                            <span class="material-symbols-outlined text-[15px] text-purple-400">download</span>
+                                            <span>Download Report</span>
+                                            <span class="material-symbols-outlined text-[14px] text-zinc-400 ml-0.5" id="report-download-chevron">expand_more</span>
+                                        </button>
+                                        <div id="report-download-menu" class="hidden absolute left-0 mt-2 w-64 rounded-xl bg-zinc-900 border border-zinc-700 shadow-2xl py-2 backdrop-blur-xl divide-y divide-zinc-800/80" style="z-index: 100;">
+                                            <div class="px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-purple-400 font-semibold flex items-center justify-between">
+                                                <span>Download Format</span>
+                                                <span class="material-symbols-outlined text-[13px]">file_download</span>
+                                            </div>
+                                            <div class="py-1">
+                                                <button onclick="downloadReportFormat('csv')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 font-bold group-hover:border-emerald-400">CSV</span>
+                                                    <div>
+                                                        <div class="font-medium text-zinc-100">Spreadsheet (.csv)</div>
+                                                        <div class="text-[10px] text-zinc-500">13-column tabular analysis</div>
+                                                    </div>
+                                                </button>
+                                                <button onclick="downloadReportFormat('json')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-950/60 text-amber-400 border border-amber-500/30 font-bold group-hover:border-amber-400">JSON</span>
+                                                    <div>
+                                                        <div class="font-medium text-zinc-100">JSON Telemetry (.json)</div>
+                                                        <div class="text-[10px] text-zinc-500">Structured models & metrics</div>
+                                                    </div>
+                                                </button>
+                                                <button onclick="downloadReportFormat('html')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-sky-950/60 text-sky-400 border border-sky-500/30 font-bold group-hover:border-sky-400">HTML</span>
+                                                    <div>
+                                                        <div class="font-medium text-zinc-100">Standalone HTML (.html)</div>
+                                                        <div class="text-[10px] text-zinc-500">Interactive dashboard & print/PDF</div>
+                                                    </div>
+                                                </button>
+                                                <button onclick="downloadReportFormat('md')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-indigo-950/60 text-indigo-400 border border-indigo-500/30 font-bold group-hover:border-indigo-400">MD</span>
+                                                    <div>
+                                                        <div class="font-medium text-zinc-100">Markdown (.md)</div>
+                                                        <div class="text-[10px] text-zinc-500">PR summaries & changelog</div>
+                                                    </div>
+                                                </button>
+                                                <button onclick="downloadReportFormat('xml')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-950/60 text-rose-400 border border-rose-500/30 font-bold group-hover:border-rose-400">XML</span>
+                                                    <div>
+                                                        <div class="font-medium text-zinc-100">Enterprise XML (.xml)</div>
+                                                        <div class="text-[10px] text-zinc-500">CI/CD pipeline ingestion</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                            <div class="pt-1">
+                                                <button onclick="downloadReportFormat('zip')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-purple-950/60 text-purple-400 border border-purple-500/30 font-bold group-hover:border-purple-400">ZIP</span>
+                                                    <div>
+                                                        <div class="font-medium text-zinc-100">All Formats Bundle (.zip)</div>
+                                                        <div class="text-[10px] text-zinc-500">Complete archive of all reports</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Pipeline Progress Terminal -->
-                            <div id="report-terminal" class="surface-card rounded-lg overflow-hidden mb-5 hidden">
+                            <div id="report-terminal" class="surface-card rounded-lg overflow-hidden mb-5 hidden relative z-10">
                                 <div class="bg-zinc-950 px-4 py-2 border-b border-zinc-800 flex items-center justify-between">
                                     <span class="font-mono text-xs text-zinc-400 flex items-center gap-2">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" id="report-pulse" aria-hidden="true"></span>
@@ -918,38 +1200,48 @@
                             </div>
 
                             <!-- Summary Cards Strip -->
-                            <div id="report-summary" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5 hidden">
-                                <div class="surface-card p-4 rounded-lg text-center">
-                                    <div class="text-xl font-semibold text-zinc-100 font-mono" id="report-total-members">0</div>
-                                    <div class="text-xs text-zinc-500 mt-1 font-mono">Total Members</div>
+                            <div id="report-summary" class="surface-card rounded-lg divide-y sm:divide-y-0 sm:divide-x divide-zinc-800 grid grid-cols-2 md:grid-cols-4 overflow-hidden mb-5 hidden relative z-10">
+                                <div class="p-4">
+                                    <div class="text-[11px] text-zinc-500 font-mono mb-1.5">Total Members</div>
+                                    <div class="text-2xl font-semibold text-zinc-100 font-mono tabular-nums" id="report-total-members">0</div>
                                 </div>
-                                <div class="surface-card p-4 rounded-lg text-center">
-                                    <div class="text-xl font-semibold text-emerald-400 font-mono" id="report-newly-added">0</div>
-                                    <div class="text-xs text-zinc-500 mt-1 font-mono">Newly Added</div>
+                                <div class="p-4">
+                                    <div class="text-[11px] text-zinc-500 font-mono mb-1.5">Newly Added</div>
+                                    <div class="text-2xl font-semibold text-emerald-400 font-mono tabular-nums" id="report-newly-added">0</div>
                                 </div>
-                                <div class="surface-card p-4 rounded-lg text-center">
-                                    <div class="text-xl font-semibold text-zinc-300 font-mono" id="report-original">0</div>
-                                    <div class="text-xs text-zinc-500 mt-1 font-mono">Original</div>
+                                <div class="p-4">
+                                    <div class="text-[11px] text-zinc-500 font-mono mb-1.5">Original</div>
+                                    <div class="text-2xl font-semibold text-zinc-300 font-mono tabular-nums" id="report-original">0</div>
                                 </div>
-                                <div class="surface-card p-4 rounded-lg text-center">
-                                    <div class="text-xl font-semibold text-amber-400 font-mono" id="report-modified">0</div>
-                                    <div class="text-xs text-zinc-500 mt-1 font-mono">Modified</div>
+                                <div class="p-4">
+                                    <div class="text-[11px] text-zinc-500 font-mono mb-1.5">Modified</div>
+                                    <div class="text-2xl font-semibold text-amber-400 font-mono tabular-nums" id="report-modified">0</div>
                                 </div>
                             </div>
 
                             <!-- Report Results Table -->
-                            <div id="report-table-container" class="surface-card rounded-lg overflow-hidden hidden">
+                            <div id="report-table-container" class="surface-card rounded-lg overflow-hidden hidden relative z-10">
                                 <div class="px-4 py-3 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-2">
-                                    <h3 class="font-mono text-xs font-semibold text-zinc-200">Unified Report Data</h3>
-                                    <div class="flex items-center gap-2">
-                                        <input id="report-filter" type="text" placeholder="Filter rows…" class="px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:border-zinc-600 outline-none w-44" oninput="filterReportTable()">
-                                        <select id="report-status-filter" onchange="filterReportTable()" class="px-2 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono cursor-pointer focus:border-zinc-600 outline-none">
-                                            <option value="">All Statuses</option>
-                                            <option value="NEWLY_ADDED">Newly Added</option>
-                                            <option value="ORIGINAL">Original</option>
-                                            <option value="MODIFIED_BY_MERGE">Modified</option>
-                                            <option value="REMOVED">Removed</option>
-                                        </select>
+                                    <div class="flex items-center gap-3 flex-wrap">
+                                        <div class="flex items-center gap-1 bg-zinc-950 p-1 rounded-md border border-zinc-800" title="Quick Export">
+                                            <span class="text-[10px] text-zinc-500 font-mono px-1">Export:</span>
+                                            <button onclick="downloadReportFormat('csv')" class="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 hover:text-emerald-300 hover:bg-emerald-950/50 border border-transparent hover:border-emerald-500/30 transition-all cursor-pointer">CSV</button>
+                                            <button onclick="downloadReportFormat('json')" class="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 hover:text-amber-300 hover:bg-amber-950/50 border border-transparent hover:border-amber-500/30 transition-all cursor-pointer">JSON</button>
+                                            <button onclick="downloadReportFormat('html')" class="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 hover:text-sky-300 hover:bg-sky-950/50 border border-transparent hover:border-sky-500/30 transition-all cursor-pointer">HTML</button>
+                                            <button onclick="downloadReportFormat('md')" class="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 hover:text-indigo-300 hover:bg-indigo-950/50 border border-transparent hover:border-indigo-500/30 transition-all cursor-pointer">MD</button>
+                                            <button onclick="downloadReportFormat('xml')" class="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 hover:text-rose-300 hover:bg-rose-950/50 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer">XML</button>
+                                            <button onclick="downloadReportFormat('zip')" class="px-2 py-0.5 rounded text-[10px] font-mono text-purple-400 hover:text-purple-200 hover:bg-purple-950/60 border border-purple-500/30 transition-all cursor-pointer flex items-center gap-1"><span class="material-symbols-outlined text-[11px]">archive</span>ZIP</button>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input id="report-filter" type="text" placeholder="Filter rows…" class="px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:border-zinc-600 outline-none w-44" oninput="filterReportTable()">
+                                            <select id="report-status-filter" onchange="filterReportTable()" class="px-2 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono cursor-pointer focus:border-zinc-600 outline-none">
+                                                <option value="">All Statuses</option>
+                                                <option value="NEWLY_ADDED">Newly Added</option>
+                                                <option value="ORIGINAL">Original</option>
+                                                <option value="MODIFIED_BY_MERGE">Modified</option>
+                                                <option value="REMOVED">Removed</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
@@ -962,9 +1254,9 @@
                                                 <th class="px-3 py-2 text-left font-medium">Name</th>
                                                 <th class="px-3 py-2 text-left font-medium">Data Type</th>
                                                 <th class="px-3 py-2 text-left font-medium">Modifiers</th>
-                                                <th class="px-3 py-2 text-left font-medium">In Old</th>
-                                                <th class="px-3 py-2 text-left font-medium">In New</th>
-                                                <th class="px-3 py-2 text-left font-medium">In Merged</th>
+                                                <th class="px-3 py-2 text-center font-medium">In Old</th>
+                                                <th class="px-3 py-2 text-center font-medium">In New</th>
+                                                <th class="px-3 py-2 text-center font-medium">In Merged</th>
                                                 <th class="px-3 py-2 text-left font-medium">Status</th>
                                             </tr>
                                         </thead>
@@ -1143,7 +1435,7 @@
                             <span class="material-symbols-outlined text-[14px]" id="terminal-copy-icon" aria-hidden="true">content_copy</span>
                         </button>
                         <span class="h-3 w-px bg-zinc-800 mx-1" aria-hidden="true"></span>
-                        <button onclick="toggleTerminalPanel()" class="p-1 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 rounded transition-colors" title="Collapse Panel (T)" aria-label="Collapse terminal panel">
+                        <button onclick="toggleTerminalPanel()" class="p-1 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 rounded transition-colors" title="Hide CLI panel (T)" aria-label="Hide CLI panel">
                             <span class="material-symbols-outlined text-[16px]" id="terminal-collapse-icon" aria-hidden="true">chevron_right</span>
                         </button>
                     </div>
@@ -1204,7 +1496,7 @@
     <div id="toast-container" class="fixed bottom-4 right-4 z-[120] flex flex-col gap-2 pointer-events-none" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Workspace Selection Modal -->
-    <div id="workspace-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="workspace-modal-title">
+    <div id="workspace-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="workspace-modal-title">
         <div class="surface-elevated w-full max-w-md p-6 rounded-lg flex flex-col gap-4 shadow-2xl animate-fade-in border border-zinc-800">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
                 <h3 id="workspace-modal-title" class="font-mono text-sm font-semibold text-zinc-100 flex items-center gap-2">
@@ -1251,8 +1543,8 @@
     </div>
 
     <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
-        <div class="surface-elevated w-full max-w-sm p-5 rounded-lg flex flex-col gap-3 shadow-2xl border border-zinc-800">
+    <div id="shortcuts-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+        <div class="surface-elevated w-full max-w-sm p-5 rounded-lg flex flex-col gap-3 shadow-2xl border border-zinc-800 animate-fade-in">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
                 <h3 id="shortcuts-title" class="font-mono text-xs font-semibold text-zinc-200">Keyboard Shortcuts</h3>
                 <button onclick="closeShortcutsModal()" class="text-zinc-500 hover:text-zinc-200 p-1" aria-label="Close shortcuts dialog">
@@ -1331,12 +1623,22 @@
         // 2. Navigation & Tabs Management
         function switchTab(tabId) {
             const tabs = ['dashboard', 'analysis', 'compare', 'merge', 'report', 'settings'];
+            const activeClasses = {
+                'dashboard': 'tab-active-indigo',
+                'analysis': 'tab-active-sky',
+                'compare': 'tab-active-amber',
+                'merge': 'tab-active-emerald',
+                'report': 'tab-active-purple',
+                'settings': 'tab-active-slate'
+            };
+
             tabs.forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 const nav = document.getElementById(`nav-${t}`);
                 if (el) el.classList.add('hidden');
                 if (nav) {
-                    nav.className = "w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-colors cursor-pointer";
+                    nav.className = "w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-400 font-medium hover:bg-zinc-850 hover:text-zinc-200 transition-all cursor-pointer";
+                    Object.values(activeClasses).forEach(cls => nav.classList.remove(cls));
                 }
             });
 
@@ -1344,7 +1646,8 @@
             const targetNav = document.getElementById(`nav-${tabId}`);
             if (targetTab) targetTab.classList.remove('hidden');
             if (targetNav) {
-                targetNav.className = "w-full text-left flex items-center justify-between px-3 py-2 rounded text-zinc-100 font-medium bg-zinc-850 border-l-2 border-zinc-200 transition-all cursor-pointer";
+                const cls = activeClasses[tabId] || 'bg-zinc-850 text-zinc-100 border-l-2 border-zinc-400';
+                targetNav.className = `w-full text-left flex items-center justify-between px-3 py-2 rounded font-medium transition-all cursor-pointer ${cls}`;
             }
         }
 
@@ -1553,13 +1856,13 @@
 
             // Highlight in tree
             document.querySelectorAll('#file-tree-container button').forEach(btn => {
-                btn.classList.remove('bg-zinc-850', 'text-zinc-100', 'border-l-2', 'border-zinc-300');
+                btn.classList.remove('bg-sky-950/40', 'text-sky-200', 'border-l-2', 'border-sky-400', 'bg-zinc-850', 'text-zinc-100');
                 btn.classList.add('text-zinc-400');
             });
             const activeBtn = document.getElementById(`tree-file-${sanitizeId(fileKey)}`);
             if (activeBtn) {
                 activeBtn.classList.remove('text-zinc-400');
-                activeBtn.classList.add('bg-zinc-850', 'text-zinc-100', 'border-l-2', 'border-zinc-300');
+                activeBtn.classList.add('bg-sky-950/40', 'text-sky-200', 'border-l-2', 'border-sky-400');
             }
 
             // Update Labels
@@ -1575,34 +1878,60 @@
             if (countMethods) countMethods.innerText = fileData.methods.length;
             if (countAttributes) countAttributes.innerText = fileData.attributes.length;
 
-            renderAnalysisTable();
+            if (activeSubTab === 'source') {
+                renderSourceCodeView();
+            } else {
+                renderAnalysisTable();
+            }
         }
 
         function toggleTableSubTab(tabKey) {
             activeSubTab = tabKey;
             const btnMethods = document.getElementById('subtab-methods');
             const btnAttributes = document.getElementById('subtab-attributes');
+            const btnSource = document.getElementById('subtab-source');
             const hdrMethods = document.getElementById('headers-methods');
             const hdrAttributes = document.getElementById('headers-attributes');
+            const tableArea = document.getElementById('table-content-area');
+            const sourceArea = document.getElementById('source-code-view');
+            const modChips = document.getElementById('mod-filters-container');
+
+            const inactiveClass = "px-3 py-1 rounded text-xs font-mono text-zinc-400 hover:text-zinc-200 cursor-pointer transition-all flex items-center gap-1.5";
+            if (btnMethods) btnMethods.className = inactiveClass;
+            if (btnAttributes) btnAttributes.className = inactiveClass;
+            if (btnSource) btnSource.className = inactiveClass;
 
             if (tabKey === 'methods') {
-                btnMethods.className = "px-3 py-1 rounded text-xs font-mono bg-zinc-850 text-zinc-100 font-medium cursor-pointer transition-all";
-                btnAttributes.className = "px-3 py-1 rounded text-xs font-mono text-zinc-400 hover:text-zinc-200 cursor-pointer transition-all";
-                hdrMethods.classList.remove('hidden');
-                hdrAttributes.classList.add('hidden');
-            } else {
-                btnAttributes.className = "px-3 py-1 rounded text-xs font-mono bg-zinc-850 text-zinc-100 font-medium cursor-pointer transition-all";
-                btnMethods.className = "px-3 py-1 rounded text-xs font-mono text-zinc-400 hover:text-zinc-200 cursor-pointer transition-all";
-                hdrAttributes.classList.remove('hidden');
-                hdrMethods.classList.add('hidden');
+                if (btnMethods) btnMethods.className = "px-3 py-1 rounded text-xs font-mono bg-indigo-950/70 border border-indigo-700/60 text-indigo-200 font-medium cursor-pointer transition-all flex items-center gap-1.5";
+                if (hdrMethods) hdrMethods.classList.remove('hidden');
+                if (hdrAttributes) hdrAttributes.classList.add('hidden');
+                if (tableArea) tableArea.classList.remove('hidden');
+                if (sourceArea) sourceArea.classList.add('hidden');
+                if (modChips) modChips.classList.remove('hidden');
+                renderAnalysisTable();
+            } else if (tabKey === 'attributes') {
+                if (btnAttributes) btnAttributes.className = "px-3 py-1 rounded text-xs font-mono bg-amber-950/70 border border-amber-700/60 text-amber-200 font-medium cursor-pointer transition-all flex items-center gap-1.5";
+                if (hdrMethods) hdrMethods.classList.add('hidden');
+                if (hdrAttributes) hdrAttributes.classList.remove('hidden');
+                if (tableArea) tableArea.classList.remove('hidden');
+                if (sourceArea) sourceArea.classList.add('hidden');
+                if (modChips) modChips.classList.remove('hidden');
+                renderAnalysisTable();
+            } else if (tabKey === 'source') {
+                if (btnSource) btnSource.className = "px-3 py-1 rounded text-xs font-mono bg-sky-950/70 border border-sky-700/60 text-sky-200 font-medium cursor-pointer transition-all flex items-center gap-1.5";
+                if (hdrMethods) hdrMethods.classList.add('hidden');
+                if (hdrAttributes) hdrAttributes.classList.add('hidden');
+                if (tableArea) tableArea.classList.add('hidden');
+                if (sourceArea) sourceArea.classList.remove('hidden');
+                if (modChips) modChips.classList.add('hidden');
+                renderSourceCodeView();
             }
-            renderAnalysisTable();
         }
 
         function setModifierFilter(filter) {
             currentModifierFilter = filter;
             document.querySelectorAll('.mod-filter-chip').forEach(chip => {
-                chip.className = "mod-filter-chip px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800";
+                chip.className = "mod-filter-chip px-2.5 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 cursor-pointer";
             });
             event?.target?.classList?.remove('bg-zinc-900', 'text-zinc-400');
             event?.target?.classList?.add('bg-zinc-800', 'text-zinc-200', 'border-zinc-700');
@@ -1611,6 +1940,24 @@
 
         function filterAnalysisTable() {
             renderAnalysisTable();
+        }
+
+        function renderModifierBadge(mod) {
+            const m = (mod || '').toLowerCase().trim();
+            if (m === 'public') {
+                return `<span class="bg-sky-950/70 border border-sky-500/40 text-sky-300 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium shadow-xs">${escapeHTML(mod)}</span>`;
+            } else if (m === 'private') {
+                return `<span class="bg-rose-950/70 border border-rose-500/40 text-rose-300 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium shadow-xs">${escapeHTML(mod)}</span>`;
+            } else if (m === 'protected') {
+                return `<span class="bg-amber-950/70 border border-amber-500/40 text-amber-300 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium shadow-xs">${escapeHTML(mod)}</span>`;
+            } else if (m === 'static') {
+                return `<span class="bg-purple-950/70 border border-purple-500/40 text-purple-300 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium shadow-xs">${escapeHTML(mod)}</span>`;
+            } else if (m === 'final') {
+                return `<span class="bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium shadow-xs">${escapeHTML(mod)}</span>`;
+            } else if (m === 'synchronized' || m === 'volatile') {
+                return `<span class="bg-indigo-950/70 border border-indigo-500/40 text-indigo-300 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium shadow-xs">${escapeHTML(mod)}</span>`;
+            }
+            return `<span class="bg-zinc-900 text-zinc-300 px-1.5 py-0.2 rounded text-[10px] font-mono border border-zinc-700">${escapeHTML(mod)}</span>`;
         }
 
         function renderAnalysisTable() {
@@ -1650,24 +1997,24 @@
 
                 items.forEach(item => {
                     const row = document.createElement('div');
-                    row.className = "grid grid-cols-12 gap-3 px-4 py-2 hover:bg-zinc-900/80 transition-colors items-center group relative";
+                    row.className = "grid grid-cols-12 gap-3 px-4 py-2.5 hover:bg-zinc-850/70 transition-colors items-center group relative border-b border-zinc-800/50";
 
-                    const modBadges = item.mods.map(m => `<span class="bg-zinc-900 text-zinc-400 px-1.5 py-0.2 rounded text-[10px] border border-zinc-800">${m}</span>`).join(' ') || '<span class="text-zinc-600">—</span>';
-                    const annBadges = item.annotations.map(a => `<span class="text-zinc-400 font-mono text-[11px]">${a}</span>`).join(' ') || '<span class="text-zinc-600">—</span>';
+                    const modBadges = item.mods.map(m => renderModifierBadge(m)).join(' ') || '<span class="text-zinc-600">—</span>';
+                    const annBadges = item.annotations.map(a => `<span class="text-pink-400 font-mono text-[11px] font-medium bg-pink-950/40 border border-pink-800/40 px-1.5 py-0.5 rounded">${escapeHTML(a)}</span>`).join(' ') || '<span class="text-zinc-600">—</span>';
 
                     row.innerHTML = `
                         <div class="col-span-5 sm:col-span-5 flex items-center gap-2 truncate">
-                            <button onclick="copyToClipboard('${escapeHTML(item.name + item.params)}', this)" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-zinc-200 transition-opacity p-0.5" title="Copy method signature" aria-label="Copy signature">
-                                <span class="material-symbols-outlined text-[12px]" aria-hidden="true">content_copy</span>
+                            <button onclick="copyToClipboard('${escapeHTML(item.name + item.params)}', this)" class="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-white transition-opacity p-0.5" title="Copy method signature" aria-label="Copy signature">
+                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">content_copy</span>
                             </button>
-                            <span class="text-zinc-100 font-medium truncate">${escapeHTML(item.name)}</span>
-                            <span class="text-zinc-500 truncate text-[11px]">${escapeHTML(item.params)}</span>
+                            <span class="text-zinc-100 font-semibold truncate">${escapeHTML(item.name)}</span>
+                            <span class="text-sky-300/80 truncate text-[11px] font-mono">${escapeHTML(item.params)}</span>
                         </div>
-                        <div class="col-span-3 sm:col-span-2 text-zinc-400 truncate font-mono text-[11px]">${escapeHTML(item.ret)}</div>
+                        <div class="col-span-3 sm:col-span-2 text-cyan-300 truncate font-mono text-[11px] font-medium">${escapeHTML(item.ret)}</div>
                         <div class="col-span-2 sm:col-span-2 flex items-center gap-1 flex-wrap">${modBadges}</div>
                         <div class="hidden sm:block sm:col-span-2 truncate">${annBadges}</div>
                         <div class="col-span-2 sm:col-span-1 text-right font-mono text-zinc-400 tabular-nums">
-                            <span class="bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 text-[10px]">${item.paramCount}</span>
+                            <span class="bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 text-[10px] text-zinc-300 font-medium">${item.paramCount}</span>
                         </div>
                     `;
                     table.appendChild(row);
@@ -1693,24 +2040,264 @@
 
                 items.forEach(item => {
                     const row = document.createElement('div');
-                    row.className = "grid grid-cols-12 gap-3 px-4 py-2 hover:bg-zinc-900/80 transition-colors items-center group relative";
+                    row.className = "grid grid-cols-12 gap-3 px-4 py-2.5 hover:bg-zinc-850/70 transition-colors items-center group relative border-b border-zinc-800/50";
 
-                    const modBadges = item.mods.map(m => `<span class="bg-zinc-900 text-zinc-400 px-1.5 py-0.2 rounded text-[10px] border border-zinc-800">${m}</span>`).join(' ') || '<span class="text-zinc-600">—</span>';
+                    const modBadges = item.mods.map(m => renderModifierBadge(m)).join(' ') || '<span class="text-zinc-600">—</span>';
 
                     row.innerHTML = `
                         <div class="col-span-4 flex items-center gap-2 truncate">
-                            <button onclick="copyToClipboard('${escapeHTML(item.name)}', this)" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-zinc-200 transition-opacity p-0.5" title="Copy field name" aria-label="Copy field name">
-                                <span class="material-symbols-outlined text-[12px]" aria-hidden="true">content_copy</span>
+                            <button onclick="copyToClipboard('${escapeHTML(item.name)}', this)" class="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-white transition-opacity p-0.5" title="Copy field name" aria-label="Copy field name">
+                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">content_copy</span>
                             </button>
-                            <span class="text-zinc-100 font-medium truncate">${escapeHTML(item.name)}</span>
+                            <span class="text-zinc-100 font-semibold truncate">${escapeHTML(item.name)}</span>
                         </div>
-                        <div class="col-span-3 text-zinc-400 truncate font-mono text-[11px]">${escapeHTML(item.type)}</div>
+                        <div class="col-span-3 text-cyan-300 truncate font-mono text-[11px] font-medium">${escapeHTML(item.type)}</div>
                         <div class="col-span-2 flex items-center gap-1 flex-wrap">${modBadges}</div>
-                        <div class="col-span-3 text-zinc-500 truncate font-mono text-[11px]">${escapeHTML(item.init)}</div>
+                        <div class="col-span-3 text-amber-300/80 truncate font-mono text-[11px]">${escapeHTML(item.init)}</div>
                     `;
                     table.appendChild(row);
                 });
             }
+        }
+
+        // Java Syntax Engine & Source Code Viewer
+        let activeRawSourceCode = '';
+
+        function highlightJava(code) {
+            if (!code) return '';
+
+            const strings = [];
+            const comments = [];
+
+            // 1. Extract string and character literals
+            let processed = code.replace(/("(\\"|[^"])*"|'(\\['\\]|[^'\\])')/g, (match) => {
+                const idx = strings.length;
+                strings.push(match);
+                return `___JAVA_STR_${idx}___`;
+            });
+
+            // 2. Extract comments
+            processed = processed.replace(/(\/\*[\s\S]*?\*\/|\/\/[^\n]*)/g, (match) => {
+                const idx = comments.length;
+                comments.push(match);
+                return `___JAVA_CMT_${idx}___`;
+            });
+
+            // 3. Escape HTML
+            processed = escapeHTML(processed);
+
+            // 4. Keywords
+            const keywords = [
+                'abstract', 'assert', 'break', 'case', 'catch', 'class', 'const', 'continue',
+                'default', 'do', 'else', 'enum', 'extends', 'final', 'finally', 'for', 'goto',
+                'if', 'implements', 'import', 'instanceof', 'interface', 'native', 'new', 'package',
+                'private', 'protected', 'public', 'record', 'return', 'sealed', 'non-sealed', 'permits',
+                'static', 'strictfp', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws',
+                'transient', 'try', 'var', 'volatile', 'while', 'yield'
+            ];
+            const kwRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
+            processed = processed.replace(kwRegex, '<span class="text-indigo-400 font-semibold">$1</span>');
+
+            // 5. Literals
+            processed = processed.replace(/\b(true|false|null)\b/g, '<span class="text-amber-400 font-medium">$1</span>');
+
+            // 6. Built-in types
+            const types = [
+                'void', 'boolean', 'byte', 'short', 'int', 'long', 'float', 'double', 'char',
+                'String', 'Object', 'Class', 'System', 'Integer', 'Boolean', 'Double', 'Float',
+                'Long', 'Short', 'Byte', 'Character', 'StringBuilder', 'StringBuffer',
+                'List', 'ArrayList', 'LinkedList', 'Map', 'HashMap', 'TreeMap', 'Set', 'HashSet',
+                'Collection', 'Collections', 'Arrays', 'Optional', 'Stream', 'CompletableFuture',
+                'Path', 'Paths', 'File', 'Files', 'Node', 'Exception', 'RuntimeException', 'Throwable',
+                'IOException', 'PrintStream', 'InputStream', 'OutputStream', 'HttpExchange', 'HttpServer',
+                'HttpHandler', 'CompareEngine', 'MergeEngine', 'ReportGenerator', 'JavaAnalyzer', 'Config'
+            ];
+            const typeRegex = new RegExp(`\\b(${types.join('|')})\\b`, 'g');
+            processed = processed.replace(typeRegex, '<span class="text-cyan-300 font-medium">$1</span>');
+
+            // 7. Custom PascalCase identifiers
+            processed = processed.replace(/\b([A-Z][a-zA-Z0-9_]*)\b(?![^<]*>|[^_]*___)/g, '<span class="text-teal-300">$1</span>');
+
+            // 8. Annotations
+            processed = processed.replace(/(@[a-zA-Z_][a-zA-Z0-9_]*)/g, '<span class="text-pink-400 font-medium">$1</span>');
+
+            // 9. Method invocations
+            processed = processed.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, (m, p1) => {
+                if (keywords.includes(p1) || p1 === 'if' || p1 === 'for' || p1 === 'while' || p1 === 'catch' || p1 === 'switch') {
+                    return m;
+                }
+                return `<span class="text-sky-300">${p1}</span>`;
+            });
+
+            // 10. Numbers
+            processed = processed.replace(/\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?(?:[fFdDlL])?)\b(?![^<]*>|[^_]*___)/g, '<span class="text-orange-400">$1</span>');
+
+            // 11. Re-insert comments (detecting START_MERGE and END_MERGE)
+            processed = processed.replace(/___JAVA_CMT_(\d+)___/g, (_, idx) => {
+                const cmt = comments[parseInt(idx, 10)];
+                const escaped = escapeHTML(cmt);
+                if (/START_MERGE/i.test(cmt)) {
+                    return `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-semibold text-[11px] shadow-sm shadow-emerald-950/40"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>${escaped}</span>`;
+                } else if (/END_MERGE/i.test(cmt)) {
+                    return `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-semibold text-[11px] shadow-sm shadow-emerald-950/40"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>${escaped}</span>`;
+                } else if (/ADDED/i.test(cmt)) {
+                    return `<span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 text-[11px] font-medium">${escaped}</span>`;
+                }
+                return `<span class="text-zinc-400 italic">${escaped}</span>`;
+            });
+
+            // 12. Re-insert strings
+            processed = processed.replace(/___JAVA_STR_(\d+)___/g, (_, idx) => {
+                const str = strings[parseInt(idx, 10)];
+                return `<span class="text-amber-300">${escapeHTML(str)}</span>`;
+            });
+
+            return processed;
+        }
+
+        async function renderSourceCodeView() {
+            const container = document.getElementById('source-code-container');
+            const filenameLabel = document.getElementById('source-view-filename');
+            const linesCountLabel = document.getElementById('source-view-lines-count');
+            const originBadge = document.getElementById('source-view-origin-badge');
+            if (!container) return;
+
+            const fileData = filesData[activeFile];
+            if (!fileData) {
+                container.innerHTML = '<div class="p-8 text-center text-zinc-500 italic">No file selected. Select a Java file from the tree.</div>';
+                return;
+            }
+
+            if (filenameLabel) filenameLabel.innerText = fileData.file;
+
+            container.innerHTML = '<div class="p-6 text-center text-zinc-400 font-mono text-xs flex items-center justify-center gap-2"><span class="material-symbols-outlined text-sm animate-spin text-sky-400">progress_activity</span> Loading Java source file…</div>';
+
+            let rawCode = '';
+            let isLive = false;
+
+            try {
+                const queryPath = fileData.fullPath || fileData.file;
+                const res = await fetch(`/api/file?path=${encodeURIComponent(queryPath)}`);
+                if (res.ok) {
+                    rawCode = await res.text();
+                    isLive = true;
+                }
+            } catch (e) {
+                console.warn('Live file fetch failed, falling back to synthesized AST structure:', e);
+            }
+
+            if (!rawCode) {
+                rawCode = synthesizeJavaCode(fileData);
+                isLive = false;
+            }
+
+            activeRawSourceCode = rawCode;
+
+            if (originBadge) {
+                if (isLive) {
+                    originBadge.className = "text-[10px] text-emerald-300 bg-emerald-950/70 border border-emerald-700/60 px-2.5 py-0.5 rounded-full font-mono font-semibold tracking-wider flex items-center gap-1";
+                    originBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>LIVE SOURCE';
+                } else {
+                    originBadge.className = "text-[10px] text-sky-300 bg-sky-950/70 border border-sky-700/60 px-2.5 py-0.5 rounded-full font-mono font-semibold tracking-wider flex items-center gap-1";
+                    originBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>AST RECONSTRUCTED';
+                }
+            }
+
+            const lines = rawCode.split('\n');
+            if (linesCountLabel) linesCountLabel.innerText = `${lines.length} lines`;
+
+            container.innerHTML = '';
+            const codeWrapper = document.createElement('div');
+            codeWrapper.className = "min-w-full font-mono text-[12.5px] leading-6 select-text";
+
+            lines.forEach((lineStr, idx) => {
+                const lineNum = idx + 1;
+                const row = document.createElement('div');
+                row.className = "flex items-start hover:bg-zinc-800/40 rounded px-2 transition-colors group";
+                
+                const highlighted = highlightJava(lineStr);
+                row.innerHTML = `
+                    <span class="text-zinc-600 group-hover:text-zinc-400 select-none text-right pr-4 text-[11px] tabular-nums font-mono w-10 flex-shrink-0 pt-0.5">${lineNum}</span>
+                    <span class="text-zinc-200 whitespace-pre overflow-x-auto flex-grow">${highlighted || '&nbsp;'}</span>
+                `;
+                codeWrapper.appendChild(row);
+            });
+
+            container.appendChild(codeWrapper);
+        }
+
+        function synthesizeJavaCode(fileData) {
+            const pkg = fileData.pkg && fileData.pkg !== 'default' ? `package ${fileData.pkg};\n\n` : '';
+            const className = fileData.file ? fileData.file.replace(/\.java$/, '') : 'GeneratedClass';
+            
+            let code = pkg;
+            code += `import java.util.*;\nimport java.io.*;\n\n`;
+            code += `/**\n * AST Static Decomposition for ${className}\n */\n`;
+            code += `public class ${className} {\n\n`;
+
+            if (fileData.attributes && fileData.attributes.length > 0) {
+                code += `    // Field Declarations\n`;
+                fileData.attributes.forEach(attr => {
+                    const mods = attr.mods && attr.mods.length > 0 ? attr.mods.join(' ') + ' ' : 'private ';
+                    const init = attr.init && attr.init !== '—' ? ` = ${attr.init}` : '';
+                    code += `    ${mods}${attr.type} ${attr.name}${init};\n`;
+                });
+                code += `\n`;
+            }
+
+            if (fileData.methods && fileData.methods.length > 0) {
+                code += `    // Method Declarations\n`;
+                fileData.methods.forEach(m => {
+                    if (m.annotations && m.annotations.length > 0) {
+                        m.annotations.forEach(a => {
+                            code += `    ${a}\n`;
+                        });
+                    }
+                    const mods = m.mods && m.mods.length > 0 ? m.mods.join(' ') + ' ' : 'public ';
+                    if (m.kind === 'constructor' || m.name === '<init>') {
+                        code += `    ${mods}${className}${m.params || '()'} {\n        // Constructor initialization\n    }\n\n`;
+                    } else {
+                        const ret = m.ret || 'void';
+                        const retStatement = ret === 'void' ? '' : (ret === 'boolean' ? '        return true;\n' : (ret === 'int' || ret === 'long' ? '        return 0;\n' : '        return null;\n'));
+                        code += `    ${mods}${ret} ${m.name}${m.params || '()'} {\n${retStatement}    }\n\n`;
+                    }
+                });
+            }
+
+            code += `}\n`;
+            return code;
+        }
+
+        function copySourceCode() {
+            if (!activeRawSourceCode) return;
+            navigator.clipboard.writeText(activeRawSourceCode).then(() => {
+                const btnText = document.getElementById('source-copy-btn-text');
+                if (btnText) {
+                    btnText.innerText = "Copied!";
+                    btnText.classList.add('text-emerald-400');
+                    setTimeout(() => {
+                        btnText.innerText = "Copy Code";
+                        btnText.classList.remove('text-emerald-400');
+                    }, 2000);
+                }
+                showToast("Source code copied to clipboard", "success");
+            });
+        }
+
+        function downloadSourceFile() {
+            if (!activeRawSourceCode) return;
+            const fileData = filesData[activeFile];
+            const filename = fileData ? fileData.file : 'Source.java';
+            const blob = new Blob([activeRawSourceCode], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Downloaded ${filename}`, "success");
         }
 
         // 6. Client-Side CSV Generator
@@ -1776,6 +2363,10 @@
             'MyClass.java': {
                 baseHeader: 'base / MyClass.java (v1)',
                 compareHeader: 'compare / MyClass.java (v2)',
+                addedField: 'email',
+                addedMarker: '// START_MERGE block',
+                modMethod: 'printInfo()',
+                modNote: 'Parameters intact, body updated',
                 baseLines: [
                     { type: 'normal', lineNum: 1, content: 'package com.example;' },
                     { type: 'normal', lineNum: 2, content: '' },
@@ -1812,6 +2403,214 @@
                 added: 3,
                 modified: 1,
                 removed: 0
+            },
+            'OrderService.java': {
+                baseHeader: 'base / OrderService.java (v1)',
+                compareHeader: 'compare / OrderService.java (v2)',
+                addedField: 'fraudCheckEnabled, currencyCode',
+                addedMarker: '// START_MERGE: verifyFraudScore()',
+                modMethod: 'processOrder()',
+                modNote: 'Fraud verification guard injected',
+                baseLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class OrderService {' },
+                    { type: 'normal', lineNum: 4, content: '    private String serviceId;' },
+                    { type: 'normal', lineNum: 5, content: '    private boolean active;' },
+                    { type: 'normal', lineNum: 6, content: '    private double taxRate;' },
+                    { type: 'spacer', content: '' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 7, content: '' },
+                    { type: 'normal', lineNum: 8, content: '    public OrderService(String serviceId, double taxRate) { ... }' },
+                    { type: 'normal', lineNum: 9, content: '    public boolean isServiceAvailable() { return this.active; }' },
+                    { type: 'normal', lineNum: 10, content: '    public double calculateTotal(double baseAmount, int quantity) { ... }' },
+                    { type: 'normal', lineNum: 11, content: '' },
+                    { type: 'normal', lineNum: 12, content: '    public void processOrder(String orderId, String customerId, double amount) {' },
+                    { type: 'normal', lineNum: 13, content: '        System.out.println("Processing order " + orderId + " for customer " + customerId + ": $" + amount);' },
+                    { type: 'normal', lineNum: 14, content: '    }' },
+                    { type: 'spacer', content: '' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 15, content: '    public String getServiceStatus() { return active ? "ONLINE" : "OFFLINE"; }' },
+                    { type: 'normal', lineNum: 16, content: '}' }
+                ],
+                compareLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class OrderService {' },
+                    { type: 'normal', lineNum: 4, content: '    private String serviceId;' },
+                    { type: 'normal', lineNum: 5, content: '    private boolean active;' },
+                    { type: 'normal', lineNum: 6, content: '    private double taxRate;' },
+                    { type: 'added', lineNum: 7, content: '    private boolean fraudCheckEnabled; // ADDED' },
+                    { type: 'added', lineNum: 8, content: '    private String currencyCode; // ADDED' },
+                    { type: 'normal', lineNum: 9, content: '' },
+                    { type: 'normal', lineNum: 10, content: '    public OrderService(String serviceId, double taxRate) { ... }' },
+                    { type: 'normal', lineNum: 11, content: '    public boolean isServiceAvailable() { return this.active; }' },
+                    { type: 'normal', lineNum: 12, content: '    public double calculateTotal(double baseAmount, int quantity) { ... }' },
+                    { type: 'normal', lineNum: 13, content: '' },
+                    { type: 'normal', lineNum: 14, content: '    public void processOrder(String orderId, String customerId, double amount) {' },
+                    { type: 'modified', lineNum: 15, content: '        if (this.fraudCheckEnabled && !verifyFraudScore(customerId, amount)) return;' },
+                    { type: 'normal', lineNum: 16, content: '        System.out.println("Processing order " + orderId + " [" + currencyCode + "] for customer " + customerId + ": $" + amount);' },
+                    { type: 'normal', lineNum: 17, content: '    }' },
+                    { type: 'added', lineNum: 18, content: '    public boolean verifyFraudScore(String customerId, double amount) { return amount < 10000.0; }' },
+                    { type: 'normal', lineNum: 19, content: '    public String getServiceStatus() { return active ? "ONLINE" : "OFFLINE"; }' },
+                    { type: 'normal', lineNum: 20, content: '}' }
+                ],
+                added: 3,
+                modified: 1,
+                removed: 0
+            },
+            'UserAccount.java': {
+                baseHeader: 'base / UserAccount.java (v1)',
+                compareHeader: 'compare / UserAccount.java (v2)',
+                addedField: 'mfaSecret, mfaActive',
+                addedMarker: '// START_MERGE: validateMfaCode()',
+                modMethod: 'markVerified()',
+                modNote: 'MFA readiness telemetry injected',
+                baseLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class UserAccount {' },
+                    { type: 'normal', lineNum: 4, content: '    private long id;' },
+                    { type: 'normal', lineNum: 5, content: '    private String username;' },
+                    { type: 'normal', lineNum: 6, content: '    private String email;' },
+                    { type: 'normal', lineNum: 7, content: '    private boolean verified;' },
+                    { type: 'normal', lineNum: 8, content: '    private String role;' },
+                    { type: 'spacer', content: '' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 9, content: '    public UserAccount(long id, String username, String email) { ... }' },
+                    { type: 'normal', lineNum: 10, content: '    public long getId() { return this.id; }' },
+                    { type: 'normal', lineNum: 11, content: '    public String getUsername() { return this.username; }' },
+                    { type: 'normal', lineNum: 12, content: '    public void markVerified() {' },
+                    { type: 'normal', lineNum: 13, content: '        this.verified = true;' },
+                    { type: 'normal', lineNum: 14, content: '    }' },
+                    { type: 'spacer', content: '' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 15, content: '    public String getDisplayName() { return this.username + " <" + this.email + ">"; }' },
+                    { type: 'normal', lineNum: 16, content: '}' }
+                ],
+                compareLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class UserAccount {' },
+                    { type: 'normal', lineNum: 4, content: '    private long id;' },
+                    { type: 'normal', lineNum: 5, content: '    private String username;' },
+                    { type: 'normal', lineNum: 6, content: '    private String email;' },
+                    { type: 'normal', lineNum: 7, content: '    private boolean verified;' },
+                    { type: 'normal', lineNum: 8, content: '    private String role;' },
+                    { type: 'added', lineNum: 9, content: '    private String mfaSecret; // ADDED' },
+                    { type: 'added', lineNum: 10, content: '    private boolean mfaActive; // ADDED' },
+                    { type: 'normal', lineNum: 11, content: '    public UserAccount(long id, String username, String email) { ... }' },
+                    { type: 'normal', lineNum: 12, content: '    public long getId() { return this.id; }' },
+                    { type: 'normal', lineNum: 13, content: '    public String getUsername() { return this.username; }' },
+                    { type: 'normal', lineNum: 14, content: '    public void markVerified() {' },
+                    { type: 'modified', lineNum: 15, content: '        this.verified = true; System.out.println("Verified. MFA ready: " + mfaActive);' },
+                    { type: 'normal', lineNum: 16, content: '    }' },
+                    { type: 'added', lineNum: 17, content: '    public void enableMfa(String secret) { this.mfaSecret = secret; this.mfaActive = true; }' },
+                    { type: 'added', lineNum: 18, content: '    public boolean validateMfaCode(String inputCode) { return this.mfaActive && inputCode != null; }' },
+                    { type: 'normal', lineNum: 19, content: '    public String getDisplayName() { return this.username + " <" + this.email + ">"; }' },
+                    { type: 'normal', lineNum: 20, content: '}' }
+                ],
+                added: 4,
+                modified: 1,
+                removed: 0
+            },
+            'PaymentGateway.java': {
+                baseHeader: 'base / PaymentGateway.java (v1)',
+                compareHeader: 'compare / PaymentGateway.java (v2)',
+                addedField: 'webhookEndpoint, idempotencyEnabled',
+                addedMarker: '// START_MERGE: dispatchWebhook()',
+                modMethod: 'charge()',
+                modNote: 'Idempotency verification & webhook dispatch',
+                baseLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class PaymentGateway {' },
+                    { type: 'normal', lineNum: 4, content: '    public static final int DEFAULT_TIMEOUT_MS = 5000;' },
+                    { type: 'normal', lineNum: 5, content: '    private String merchantKey;' },
+                    { type: 'normal', lineNum: 6, content: '    private int retryAttempts;' },
+                    { type: 'spacer', content: '' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 7, content: '    public PaymentGateway(String merchantKey) { ... }' },
+                    { type: 'normal', lineNum: 8, content: '    public boolean charge(String customerId, double amount) {' },
+                    { type: 'normal', lineNum: 9, content: '        System.out.println("Executing baseline charge: $" + amount + " for " + customerId);' },
+                    { type: 'normal', lineNum: 10, content: '        return amount > 0;' },
+                    { type: 'normal', lineNum: 11, content: '    }' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 12, content: '    public boolean refund(String transactionId, double amount) { ... }' },
+                    { type: 'normal', lineNum: 13, content: '}' }
+                ],
+                compareLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class PaymentGateway {' },
+                    { type: 'normal', lineNum: 4, content: '    public static final int DEFAULT_TIMEOUT_MS = 5000;' },
+                    { type: 'normal', lineNum: 5, content: '    private String merchantKey;' },
+                    { type: 'normal', lineNum: 6, content: '    private int retryAttempts;' },
+                    { type: 'added', lineNum: 7, content: '    private String webhookEndpoint; // ADDED' },
+                    { type: 'added', lineNum: 8, content: '    private boolean idempotencyEnabled; // ADDED' },
+                    { type: 'normal', lineNum: 9, content: '    public PaymentGateway(String merchantKey) { ... }' },
+                    { type: 'normal', lineNum: 10, content: '    public boolean charge(String customerId, double amount) {' },
+                    { type: 'modified', lineNum: 11, content: '        if (idempotencyEnabled) System.out.println("Idempotent token verified for " + customerId);' },
+                    { type: 'normal', lineNum: 12, content: '        dispatchWebhook("EVT_CHARGE", customerId + ":" + amount);' },
+                    { type: 'normal', lineNum: 13, content: '        return amount > 0;' },
+                    { type: 'normal', lineNum: 14, content: '    }' },
+                    { type: 'added', lineNum: 15, content: '    public String dispatchWebhook(String eventId, String payload) { return "DISPATCHED:" + eventId; }' },
+                    { type: 'normal', lineNum: 16, content: '    public boolean refund(String transactionId, double amount) { ... }' },
+                    { type: 'normal', lineNum: 17, content: '}' }
+                ],
+                added: 3,
+                modified: 1,
+                removed: 0
+            },
+            'CacheManager.java': {
+                baseHeader: 'base / CacheManager.java (v1)',
+                compareHeader: 'compare / CacheManager.java (v2)',
+                addedField: 'defaultTtlMillis, evictionWorkerRunning',
+                addedMarker: '// START_MERGE: isExpired(), getDefaultTtl()',
+                modMethod: 'put()',
+                modNote: 'TTL expiration timestamp calculation',
+                baseLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class CacheManager {' },
+                    { type: 'normal', lineNum: 4, content: '    public static final int MAX_ENTRIES = 1000;' },
+                    { type: 'normal', lineNum: 5, content: '    private int cacheSize;' },
+                    { type: 'normal', lineNum: 6, content: '    private boolean compressionEnabled;' },
+                    { type: 'spacer', content: '' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 7, content: '    public CacheManager(int cacheSize) { ... }' },
+                    { type: 'normal', lineNum: 8, content: '    public String get(String key) { return "val_" + key; }' },
+                    { type: 'normal', lineNum: 9, content: '    public void put(String key, String value) {' },
+                    { type: 'normal', lineNum: 10, content: '        System.out.println("Storing entry: " + key + " => " + value);' },
+                    { type: 'normal', lineNum: 11, content: '    }' },
+                    { type: 'spacer', content: '' },
+                    { type: 'normal', lineNum: 12, content: '    public void evict(String key) { ... }' },
+                    { type: 'normal', lineNum: 13, content: '    public int size() { return this.cacheSize; }' },
+                    { type: 'normal', lineNum: 14, content: '}' }
+                ],
+                compareLines: [
+                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
+                    { type: 'normal', lineNum: 2, content: '' },
+                    { type: 'normal', lineNum: 3, content: 'public class CacheManager {' },
+                    { type: 'normal', lineNum: 4, content: '    public static final int MAX_ENTRIES = 1000;' },
+                    { type: 'normal', lineNum: 5, content: '    private int cacheSize;' },
+                    { type: 'normal', lineNum: 6, content: '    private boolean compressionEnabled;' },
+                    { type: 'added', lineNum: 7, content: '    private long defaultTtlMillis; // ADDED' },
+                    { type: 'added', lineNum: 8, content: '    private boolean evictionWorkerRunning; // ADDED' },
+                    { type: 'normal', lineNum: 9, content: '    public CacheManager(int cacheSize) { ... }' },
+                    { type: 'normal', lineNum: 10, content: '    public String get(String key) { return "val_" + key; }' },
+                    { type: 'normal', lineNum: 11, content: '    public void put(String key, String value) {' },
+                    { type: 'modified', lineNum: 12, content: '        long expireAt = System.currentTimeMillis() + this.defaultTtlMillis;' },
+                    { type: 'normal', lineNum: 13, content: '        System.out.println("Storing with TTL: " + key + " (expires: " + expireAt + ")");' },
+                    { type: 'normal', lineNum: 14, content: '    }' },
+                    { type: 'added', lineNum: 15, content: '    public boolean isExpired(String key, long currentTimestamp) { return currentTimestamp > System.currentTimeMillis(); }' },
+                    { type: 'normal', lineNum: 16, content: '    public void evict(String key) { ... }' },
+                    { type: 'normal', lineNum: 17, content: '    public int size() { return this.cacheSize; }' },
+                    { type: 'normal', lineNum: 18, content: '}' }
+                ],
+                added: 3,
+                modified: 1,
+                removed: 0
             }
         };
 
@@ -1838,6 +2637,10 @@
 
             if (uniqueFiles.size === 0) {
                 uniqueFiles.add('MyClass.java');
+                uniqueFiles.add('OrderService.java');
+                uniqueFiles.add('UserAccount.java');
+                uniqueFiles.add('PaymentGateway.java');
+                uniqueFiles.add('CacheManager.java');
             }
 
             allCompareFiles = Array.from(uniqueFiles).sort();
@@ -1914,21 +2717,22 @@
 
             lines.forEach(line => {
                 const row = document.createElement('div');
+                const highlighted = highlightJava(line.content || '');
                 if (line.type === 'added') {
-                    row.className = "bg-emerald-950/25 -mx-4 px-4 py-0.5 border-l-2 border-emerald-500 text-zinc-100 flex";
-                    row.innerHTML = `<span class="text-emerald-500 mr-3 inline-block w-6 text-right select-none opacity-80">${line.lineNum}</span><span>${escapeHTML(line.content)}</span>`;
+                    row.className = "bg-emerald-950/20 -mx-4 px-4 py-0.5 border-l-2 border-emerald-500 flex items-baseline hover:bg-emerald-950/30 transition-colors";
+                    row.innerHTML = `<span class="text-emerald-500 font-mono text-[11px] mr-2 inline-block w-7 text-right select-none opacity-80">${line.lineNum}</span><span class="text-emerald-400 font-mono text-[11px] font-bold mr-2 select-none">+</span><span class="flex-1 font-mono text-xs whitespace-pre">${highlighted}</span>`;
                 } else if (line.type === 'removed') {
-                    row.className = "bg-rose-950/25 -mx-4 px-4 py-0.5 border-l-2 border-rose-500 text-rose-300 flex";
-                    row.innerHTML = `<span class="text-rose-400 mr-3 inline-block w-6 text-right select-none opacity-80">${line.lineNum}</span><span>${escapeHTML(line.content)}</span>`;
+                    row.className = "bg-rose-950/20 -mx-4 px-4 py-0.5 border-l-2 border-rose-500 flex items-baseline hover:bg-rose-950/30 transition-colors";
+                    row.innerHTML = `<span class="text-rose-400 font-mono text-[11px] mr-2 inline-block w-7 text-right select-none opacity-80">${line.lineNum}</span><span class="text-rose-400 font-mono text-[11px] font-bold mr-2 select-none">-</span><span class="flex-1 font-mono text-xs whitespace-pre line-through decoration-rose-500/40 text-rose-300/80">${highlighted}</span>`;
                 } else if (line.type === 'modified') {
-                    row.className = "bg-amber-950/25 -mx-4 px-4 py-0.5 border-l-2 border-amber-500 text-zinc-100 flex";
-                    row.innerHTML = `<span class="text-amber-400 mr-3 inline-block w-6 text-right select-none opacity-80">${line.lineNum}</span><span>${escapeHTML(line.content)}</span>`;
+                    row.className = "bg-amber-950/20 -mx-4 px-4 py-0.5 border-l-2 border-amber-500 flex items-baseline hover:bg-amber-950/30 transition-colors";
+                    row.innerHTML = `<span class="text-amber-400 font-mono text-[11px] mr-2 inline-block w-7 text-right select-none opacity-80">${line.lineNum}</span><span class="text-amber-400 font-mono text-[11px] font-bold mr-2 select-none">~</span><span class="flex-1 font-mono text-xs whitespace-pre">${highlighted}</span>`;
                 } else if (line.type === 'spacer') {
-                    row.className = "h-5 opacity-0 select-none";
-                    row.innerHTML = "·";
+                    row.className = "h-5 opacity-20 select-none -mx-4 px-4 flex items-center bg-zinc-900/10";
+                    row.innerHTML = `<span class="text-zinc-800 font-mono text-[11px] mr-2 inline-block w-7 text-right select-none">·</span><span class="w-2 mr-2"></span><span class="text-zinc-800">┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>`;
                 } else {
-                    row.className = "flex py-0.5 hover:bg-zinc-900/50";
-                    row.innerHTML = `<span class="text-zinc-600 mr-3 inline-block w-6 text-right select-none">${line.lineNum}</span><span>${escapeHTML(line.content)}</span>`;
+                    row.className = "flex items-baseline py-0.5 hover:bg-zinc-900/50 -mx-4 px-4 transition-colors";
+                    row.innerHTML = `<span class="text-zinc-600 font-mono text-[11px] mr-2 inline-block w-7 text-right select-none">${line.lineNum}</span><span class="text-transparent font-mono text-[11px] mr-2 select-none">·</span><span class="flex-1 font-mono text-xs whitespace-pre text-zinc-300">${highlighted}</span>`;
                 }
                 pane.appendChild(row);
             });
@@ -1937,21 +2741,35 @@
         function renderDeltaSummaryCards(fileName, data) {
             const grid = document.getElementById('compare-delta-grid');
             if (!grid) return;
+            const addedField = data.addedField || 'email';
+            const addedMarker = data.addedMarker || '// START_MERGE block';
+            const modMethod = data.modMethod || 'printInfo()';
+            const modNote = data.modNote || 'Parameters intact, body updated';
+
             grid.innerHTML = `
-                <div class="bg-zinc-950 p-3 rounded border border-zinc-800 border-l-2 border-emerald-500">
-                    <span class="font-mono text-[10px] text-emerald-400 font-semibold uppercase block mb-1">Added (${data.added})</span>
-                    <p class="text-xs text-zinc-300 font-mono truncate">Field: <span class="text-zinc-100">email</span></p>
-                    <p class="text-xs text-zinc-400 font-mono truncate">Marker: <span class="text-zinc-200">START_MERGE block</span></p>
+                <div class="bg-zinc-950/80 p-3 rounded-lg border border-zinc-800/80 border-l-2 border-l-emerald-500 shadow-sm shadow-emerald-950/20">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-mono text-[10px] text-emerald-400 font-semibold tracking-wide uppercase">Added Declarations</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">+${data.added}</span>
+                    </div>
+                    <p class="text-xs text-zinc-300 font-mono truncate">Field: <span class="text-emerald-300 font-semibold">${addedField}</span></p>
+                    <p class="text-[11px] text-zinc-400 font-mono truncate">${addedMarker}</p>
                 </div>
-                <div class="bg-zinc-950 p-3 rounded border border-zinc-800 border-l-2 border-amber-500">
-                    <span class="font-mono text-[10px] text-amber-400 font-semibold uppercase block mb-1">Modified (${data.modified})</span>
-                    <p class="text-xs text-zinc-300 font-mono truncate">Method: <span class="text-zinc-100">printInfo()</span></p>
-                    <p class="text-xs text-zinc-500 font-mono">Parameters intact</p>
+                <div class="bg-zinc-950/80 p-3 rounded-lg border border-zinc-800/80 border-l-2 border-l-amber-500 shadow-sm shadow-amber-950/20">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-mono text-[10px] text-amber-400 font-semibold tracking-wide uppercase">Modified Signatures</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-500/30">~${data.modified}</span>
+                    </div>
+                    <p class="text-xs text-zinc-300 font-mono truncate">Method: <span class="text-amber-300 font-semibold">${modMethod}</span></p>
+                    <p class="text-[11px] text-zinc-400 font-mono">${modNote}</p>
                 </div>
-                <div class="bg-zinc-950 p-3 rounded border border-zinc-800 border-l-2 border-zinc-700">
-                    <span class="font-mono text-[10px] text-zinc-400 font-semibold uppercase block mb-1">Removed (${data.removed})</span>
-                    <p class="text-xs text-zinc-500 font-mono">0 declarations removed</p>
-                    <p class="text-xs text-zinc-600 font-mono">Contract backward-compatible</p>
+                <div class="bg-zinc-950/80 p-3 rounded-lg border border-zinc-800/80 border-l-2 border-l-zinc-700 shadow-sm">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-mono text-[10px] text-zinc-400 font-semibold tracking-wide uppercase">Removed Nodes</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-900 text-zinc-400 border border-zinc-700/30">${data.removed}</span>
+                    </div>
+                    <p class="text-xs text-zinc-400 font-mono">0 declarations removed</p>
+                    <p class="text-[11px] text-emerald-400/80 font-mono">✓ Contract backward-compatible</p>
                 </div>
             `;
         }
@@ -1961,30 +2779,45 @@
         }
 
         // 8. Interactive CLI Terminal Controller
-        function toggleTerminalPanel() {
+        function toggleTerminalPanel(forceState) {
             const panel = document.getElementById('terminal-panel');
-            const icon = document.getElementById('terminal-collapse-icon');
             const toggleText = document.getElementById('terminal-toggle-text');
+            const toggleBtn = document.getElementById('terminal-toggle-btn');
+            const collapseIcon = document.getElementById('terminal-collapse-icon');
             if (!panel) return;
 
-            if (panel.classList.contains('hidden')) {
+            // Determine if currently visible
+            const isCurrentlyVisible = !panel.classList.contains('panel-hidden') &&
+                (panel.offsetWidth > 0 || window.getComputedStyle(panel).display !== 'none');
+
+            const shouldShow = forceState !== undefined ? forceState : !isCurrentlyVisible;
+
+            if (shouldShow) {
+                panel.classList.remove('panel-hidden');
                 panel.classList.remove('hidden');
-                if (toggleText) toggleText.innerText = "Hide CLI";
-                if (icon) icon.innerText = "chevron_right";
-            } else if (panel.classList.contains('w-12')) {
                 panel.classList.remove('w-12');
-                panel.classList.add('w-[380px]', 'lg:w-[440px]', 'xl:w-[460px]');
-                if (icon) icon.innerText = "chevron_right";
+                panel.classList.add('flex', 'w-[380px]', 'lg:w-[440px]', 'xl:w-[460px]');
+
                 document.getElementById('terminal-body')?.classList.remove('hidden');
                 document.getElementById('terminal-actions')?.classList.remove('hidden');
                 document.getElementById('terminal-title')?.classList.remove('hidden');
+
+                if (toggleText) toggleText.innerText = "Hide CLI";
+                if (toggleBtn) {
+                    toggleBtn.title = "Hide CLI panel (T)";
+                    toggleBtn.setAttribute('aria-label', "Hide CLI panel");
+                }
+                if (collapseIcon) collapseIcon.innerText = "chevron_right";
             } else {
-                panel.classList.remove('w-[380px]', 'lg:w-[440px]', 'xl:w-[460px]');
-                panel.classList.add('w-12');
-                if (icon) icon.innerText = "chevron_left";
-                document.getElementById('terminal-body')?.classList.add('hidden');
-                document.getElementById('terminal-actions')?.classList.add('hidden');
-                document.getElementById('terminal-title')?.classList.add('hidden');
+                panel.classList.add('panel-hidden');
+                panel.classList.remove('w-12');
+
+                if (toggleText) toggleText.innerText = "Show CLI";
+                if (toggleBtn) {
+                    toggleBtn.title = "Show CLI panel (T)";
+                    toggleBtn.setAttribute('aria-label', "Show CLI panel");
+                }
+                if (collapseIcon) collapseIcon.innerText = "chevron_left";
             }
         }
 
@@ -2412,8 +3245,148 @@
             );
         }
 
+        function toggleReportDownloadMenu(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const menu = document.getElementById('report-download-menu');
+            const card = document.getElementById('report-config-card');
+            if (menu) {
+                const isHidden = menu.classList.toggle('hidden');
+                const chevron = document.getElementById('report-download-chevron');
+                if (chevron) {
+                    chevron.textContent = isHidden ? 'expand_more' : 'expand_less';
+                }
+                if (card) {
+                    card.style.zIndex = isHidden ? '30' : '60';
+                }
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const wrap = document.getElementById('report-download-dropdown-wrap');
+            if (wrap && !wrap.contains(e.target)) {
+                document.getElementById('report-download-menu')?.classList.add('hidden');
+                const chevron = document.getElementById('report-download-chevron');
+                if (chevron) chevron.textContent = 'expand_more';
+                const card = document.getElementById('report-config-card');
+                if (card) card.style.zIndex = '30';
+            }
+        });
+
+        async function downloadReportFormat(format) {
+            document.getElementById('report-download-menu')?.classList.add('hidden');
+            const chevron = document.getElementById('report-download-chevron');
+            if (chevron) chevron.textContent = 'expand_more';
+
+            const fmt = (format || 'csv').toLowerCase();
+
+            try {
+                const res = await fetch(`/api/report-download?format=${encodeURIComponent(fmt)}`);
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const ext = fmt === 'zip' ? 'zip' : (fmt === 'markdown' ? 'md' : fmt);
+                    a.download = fmt === 'zip' ? 'javalens_report_bundle.zip' : `javalens_report.${ext}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    showToast(`Downloaded unified report (${fmt.toUpperCase()})`, 'success');
+                    return;
+                }
+            } catch (e) {
+                console.warn("Server report download failed, falling back to client-side exporter", e);
+            }
+
+            // Client-side export fallback
+            exportReportDataClientSide(fmt);
+        }
+
         function downloadReportCsv() {
-            window.location.href = '/api/report-csv';
+            downloadReportFormat('csv');
+        }
+
+        function exportReportDataClientSide(format) {
+            if (!activeReportData || activeReportData.length === 0) {
+                showToast("No report data available to export", "warning");
+                return;
+            }
+
+            const fmt = (format || 'csv').toLowerCase();
+            let mimeType = 'text/plain;charset=utf-8';
+            let filename = `javalens_report.${fmt}`;
+            let content = '';
+
+            if (fmt === 'json') {
+                mimeType = 'application/json;charset=utf-8';
+                filename = 'javalens_report.json';
+                content = JSON.stringify({
+                    generator: "JavaLens Precision AST Static Analysis & Telemetry",
+                    timestamp: new Date().toISOString(),
+                    totalMembers: activeReportData.length,
+                    members: activeReportData
+                }, null, 2);
+            } else if (fmt === 'md' || fmt === 'markdown') {
+                mimeType = 'text/markdown;charset=utf-8';
+                filename = 'javalens_report.md';
+                content = `# JavaLens Unified AST Static Analysis Report\n\n` +
+                          `- **Generated At**: ${new Date().toLocaleString()}\n` +
+                          `- **Total Members**: ${activeReportData.length}\n\n` +
+                          `| File | Class | Type | Member | Data Type | Modifiers | Status |\n` +
+                          `|---|---|---|---|---|---|---|\n`;
+                activeReportData.forEach(r => {
+                    content += `| \`${r.file || ''}\` | \`${r.class || ''}\` | ${r.member_type || ''} | **${r.member_name || ''}** | \`${r.type || ''}\` | ${r.modifiers || ''} | \`${r.status || ''}\` |\n`;
+                });
+            } else if (fmt === 'xml') {
+                mimeType = 'application/xml;charset=utf-8';
+                filename = 'javalens_report.xml';
+                content = `<?xml version="1.0" encoding="UTF-8"?>\n<JavaLensReport timestamp="${new Date().toISOString()}">\n  <Members>\n`;
+                activeReportData.forEach(r => {
+                    content += `    <Member file="${(r.file||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}" class="${(r.class||'').replace(/&/g,'&amp;')}" type="${(r.member_type||'')}" name="${(r.member_name||'').replace(/&/g,'&amp;')}" status="${(r.status||'')}"/>\n`;
+                });
+                content += `  </Members>\n</JavaLensReport>`;
+            } else if (fmt === 'html') {
+                mimeType = 'text/html;charset=utf-8';
+                filename = 'javalens_report.html';
+                content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JavaLens Report</title><style>body{font-family:monospace;background:#09090b;color:#f4f4f5;padding:24px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #27272a;padding:8px 12px;text-align:left;}th{background:#18181b;color:#a1a1aa;}</style></head><body><h1>JavaLens Unified Report</h1><p>Total Members: ${activeReportData.length}</p><table><thead><tr><th>File</th><th>Class</th><th>Type</th><th>Member</th><th>Data Type</th><th>Status</th></tr></thead><tbody>`;
+                activeReportData.forEach(r => {
+                    content += `<tr><td>${r.file||''}</td><td>${r.class||''}</td><td>${r.member_type||''}</td><td><strong>${r.member_name||''}</strong></td><td>${r.type||''}</td><td>${r.status||''}</td></tr>`;
+                });
+                content += `</tbody></table></body></html>`;
+            } else {
+                // CSV default
+                mimeType = 'text/csv;charset=utf-8';
+                filename = 'javalens_report.csv';
+                content = 'file,package,class,member_type,member_name,type,modifiers,annotations,extra_info,in_old_version,in_new_version,in_merged_output,status\n';
+                activeReportData.forEach(r => {
+                    const escape = (v) => {
+                        const s = String(v || '');
+                        if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`;
+                        return s;
+                    };
+                    content += [
+                        escape(r.file), escape(r.package), escape(r.class), escape(r.member_type),
+                        escape(r.member_name), escape(r.type), escape(r.modifiers), escape(r.annotations),
+                        escape(r.extra_info), escape(r.in_old_version), escape(r.in_new_version),
+                        escape(r.in_merged_output), escape(r.status)
+                    ].join(',') + '\n';
+                });
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            showToast(`Exported ${filename}`, 'success');
         }
 
         function renderReportTable(reportData) {
@@ -2491,19 +3464,29 @@
                 }
 
                 const memberTypeBadge = r.member_type === 'ATTRIBUTE'
-                    ? '<span class="text-zinc-400 font-semibold text-[11px]">ATTR</span>'
-                    : '<span class="text-zinc-200 font-semibold text-[11px]">METH</span>';
+                    ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-950/60 text-amber-400 border border-amber-500/30">ATTR</span>'
+                    : '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-950/60 text-indigo-300 border border-indigo-500/30">METH</span>';
+
+                const inOld = r.in_old_version === 'YES'
+                    ? '<span class="text-emerald-400 font-bold font-mono">✓</span>'
+                    : '<span class="text-zinc-700 font-mono">·</span>';
+                const inNew = r.in_new_version === 'YES'
+                    ? '<span class="text-emerald-400 font-bold font-mono">✓</span>'
+                    : '<span class="text-zinc-700 font-mono">·</span>';
+                const inMerged = r.in_merged_output === 'YES'
+                    ? '<span class="text-emerald-400 font-bold font-mono">✓</span>'
+                    : '<span class="text-zinc-700 font-mono">·</span>';
 
                 tr.innerHTML = `
                     <td class="px-3 py-2 text-zinc-200 truncate max-w-[140px]" title="${escapeHTML(r.file || '')}">${escapeHTML(r.file ? r.file.substring(r.file.lastIndexOf('/') + 1) : '')}</td>
                     <td class="px-3 py-2 text-zinc-400 truncate max-w-[120px]" title="${escapeHTML(r.class || '')}">${escapeHTML(r.class || '')}</td>
                     <td class="px-3 py-2">${memberTypeBadge}</td>
                     <td class="px-3 py-2 font-medium text-zinc-100 truncate max-w-[140px]" title="${escapeHTML(r.member_name || '')}">${escapeHTML(r.member_name || '')}</td>
-                    <td class="px-3 py-2 text-zinc-400 truncate max-w-[110px]" title="${escapeHTML(r.type || '')}">${escapeHTML(r.type || '')}</td>
-                    <td class="px-3 py-2 text-zinc-500 truncate max-w-[90px]" title="${escapeHTML(r.modifiers || '')}">${escapeHTML(r.modifiers || '')}</td>
-                    <td class="px-3 py-2 ${r.in_old_version === 'YES' ? 'text-zinc-200' : 'text-zinc-600'}">${escapeHTML(r.in_old_version || '')}</td>
-                    <td class="px-3 py-2 ${r.in_new_version === 'YES' ? 'text-zinc-200' : 'text-zinc-600'}">${escapeHTML(r.in_new_version || '')}</td>
-                    <td class="px-3 py-2 ${r.in_merged_output === 'YES' ? 'text-zinc-100 font-medium' : 'text-zinc-600'}">${escapeHTML(r.in_merged_output || '')}</td>
+                    <td class="px-3 py-2 text-cyan-300 font-mono truncate max-w-[110px]" title="${escapeHTML(r.type || '')}">${escapeHTML(r.type || '')}</td>
+                    <td class="px-3 py-2 truncate max-w-[120px]">${renderModifierBadge(r.modifiers || '')}</td>
+                    <td class="px-3 py-2 text-center">${inOld}</td>
+                    <td class="px-3 py-2 text-center">${inNew}</td>
+                    <td class="px-3 py-2 text-center">${inMerged}</td>
                     <td class="px-3 py-2">${statusBadge}</td>
                 `;
                 fragment.appendChild(tr);
@@ -2738,6 +3721,20 @@
         window.addEventListener('DOMContentLoaded', () => {
             initData();
             fetchRealConfig();
+
+            // Sync CLI panel toggle state with initial visibility
+            const panel = document.getElementById('terminal-panel');
+            const toggleText = document.getElementById('terminal-toggle-text');
+            const toggleBtn = document.getElementById('terminal-toggle-btn');
+            if (panel && toggleText) {
+                const isVis = !panel.classList.contains('panel-hidden') &&
+                    (panel.offsetWidth > 0 || window.getComputedStyle(panel).display !== 'none');
+                toggleText.innerText = isVis ? "Hide CLI" : "Show CLI";
+                if (toggleBtn) {
+                    toggleBtn.title = isVis ? "Hide CLI panel (T)" : "Show CLI panel (T)";
+                    toggleBtn.setAttribute('aria-label', isVis ? "Hide CLI panel" : "Show CLI panel");
+                }
+            }
         });
     </script>
 </body>

@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +55,8 @@ public class WebServer {
         server.createContext("/api/browse", new BrowseHandler());
         server.createContext("/api/generate-report", new GenerateReportHandler());
         server.createContext("/api/report-csv", new ReportCsvHandler());
+        server.createContext("/api/report-download", new ReportDownloadHandler());
+        server.createContext("/api/file", new FileContentHandler());
         server.setExecutor(null); // default executor
         server.start();
         System.out.println("=================================================");
@@ -486,6 +489,148 @@ public class WebServer {
             byte[] content = Files.readAllBytes(reportCsv);
             exchange.getResponseHeaders().set("Content-Type", "text/csv; charset=utf-8");
             exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"javalens_report.csv\"");
+            exchange.sendResponseHeaders(200, content.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(content);
+            os.close();
+        }
+    }
+
+    private static class ReportDownloadHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+
+            String query = exchange.getRequestURI().getRawQuery();
+            String format = "csv";
+            if (query != null) {
+                for (String param : query.split("&")) {
+                    String[] pair = param.split("=", 2);
+                    if (pair.length == 2 && "format".equalsIgnoreCase(pair[0])) {
+                        format = URLDecoder.decode(pair[1], StandardCharsets.UTF_8.name()).toLowerCase().trim();
+                    }
+                }
+            }
+
+            Config config = new Config();
+            config.load();
+            String activeFolder = config.getActiveRunFolder();
+
+            // Locate active run folder or fallback to newest run_ folder in outputDir
+            Path runDir = null;
+            if (activeFolder != null && !activeFolder.isEmpty()) {
+                Path candidate = Paths.get(activeFolder);
+                if (Files.exists(candidate) && Files.isDirectory(candidate)) {
+                    runDir = candidate;
+                }
+            }
+            if (runDir == null) {
+                Path baseOut = Paths.get(config.getOutputDir());
+                if (Files.exists(baseOut)) {
+                    try (var stream = Files.list(baseOut)) {
+                        runDir = stream.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("run_"))
+                                       .max(Comparator.comparing(p -> p.getFileName().toString()))
+                                       .orElse(null);
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            if (runDir == null) {
+                sendTextResponse(exchange, 404, "No report run directory found. Please run Generate Report first.");
+                return;
+            }
+
+            String targetFileName;
+            String contentType;
+            switch (format) {
+                case "json":
+                    targetFileName = "javalens_report.json";
+                    contentType = "application/json; charset=utf-8";
+                    break;
+                case "html":
+                    targetFileName = "javalens_report.html";
+                    contentType = "text/html; charset=utf-8";
+                    break;
+                case "md":
+                case "markdown":
+                    targetFileName = "javalens_report.md";
+                    contentType = "text/markdown; charset=utf-8";
+                    break;
+                case "xml":
+                    targetFileName = "javalens_report.xml";
+                    contentType = "application/xml; charset=utf-8";
+                    break;
+                case "zip":
+                case "bundle":
+                case "all":
+                    targetFileName = "javalens_report_bundle.zip";
+                    contentType = "application/zip";
+                    break;
+                case "csv":
+                default:
+                    targetFileName = "javalens_report.csv";
+                    contentType = "text/csv; charset=utf-8";
+                    break;
+            }
+
+            Path targetFile = runDir.resolve(targetFileName);
+            if (!Files.exists(targetFile)) {
+                sendTextResponse(exchange, 404, "Requested report format file not found: " + targetFileName);
+                return;
+            }
+
+            byte[] content = Files.readAllBytes(targetFile);
+            exchange.getResponseHeaders().set("Content-Type", contentType);
+            exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"" + targetFileName + "\"");
+            exchange.sendResponseHeaders(200, content.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(content);
+            os.close();
+        }
+    }
+
+    private static class FileContentHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            String query = exchange.getRequestURI().getRawQuery();
+            String filePath = null;
+            if (query != null) {
+                for (String param : query.split("&")) {
+                    String[] pair = param.split("=", 2);
+                    if (pair.length == 2 && "path".equals(pair[0])) {
+                        filePath = URLDecoder.decode(pair[1], StandardCharsets.UTF_8.name());
+                    }
+                }
+            }
+            if (filePath == null || filePath.trim().isEmpty()) {
+                sendTextResponse(exchange, 400, "Missing path parameter");
+                return;
+            }
+            File file = new File(filePath.trim());
+            if (!file.exists() || !file.isFile()) {
+                file = new File(".", filePath.trim());
+            }
+            if (!file.exists() || !file.isFile()) {
+                try {
+                    final String searchName = new File(filePath.trim()).getName();
+                    java.util.Optional<Path> found = Files.walk(Paths.get("."))
+                        .filter(p -> Files.isRegularFile(p) && p.getFileName().toString().equals(searchName))
+                        .findFirst();
+                    if (found.isPresent()) {
+                        file = found.get().toFile();
+                    }
+                } catch (Exception ignored) {}
+            }
+            if (!file.exists() || !file.isFile()) {
+                sendTextResponse(exchange, 404, "File not found: " + filePath);
+                return;
+            }
+            byte[] content = Files.readAllBytes(file.toPath());
+            exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+            exchange.getResponseHeaders().set("Cache-Control", "no-cache");
             exchange.sendResponseHeaders(200, content.length);
             OutputStream os = exchange.getResponseBody();
             os.write(content);
