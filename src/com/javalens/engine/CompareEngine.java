@@ -34,14 +34,12 @@ public class CompareEngine {
     };
 
     public static void execute(Config config) throws Exception {
-        Path oldPath = Paths.get(config.getOldPath()).toAbsolutePath().normalize();
-        Path newPath = Paths.get(config.getNewPath()).toAbsolutePath().normalize();
-        Path outputDir = Paths.get(config.getOutputDir()).toAbsolutePath().normalize();
+        Path existingPath = Paths.get(config.getExistingPath()).toAbsolutePath().normalize();
+        Path generatedPath = Paths.get(config.getGeneratedPath()).toAbsolutePath().normalize();
+        Path outputDir = config.createRunFolder();
 
-        Files.createDirectories(outputDir);
-
-        boolean oldIsDir = Files.isDirectory(oldPath);
-        boolean newIsDir = Files.isDirectory(newPath);
+        boolean oldIsDir = Files.isDirectory(existingPath);
+        boolean newIsDir = Files.isDirectory(generatedPath);
 
         if (oldIsDir != newIsDir) {
             System.err.println("Error: Cannot compare a file with a directory. Both paths must be either files or directories.");
@@ -49,9 +47,9 @@ public class CompareEngine {
         }
 
         System.out.println("Starting Java Comparison...");
-        System.out.println("  Old version : " + oldPath);
-        System.out.println("  New version : " + newPath);
-        System.out.println("  Output dir  : " + outputDir);
+        System.out.println("  Existing Java files  : " + existingPath);
+        System.out.println("  Generated Java files : " + generatedPath);
+        System.out.println("  Output run folder    : " + outputDir);
         System.out.println();
 
         Path attrCsv = outputDir.resolve("comparison_attributes.csv");
@@ -70,13 +68,13 @@ public class CompareEngine {
         if (!oldIsDir) {
             // Compare single files
             try {
-                compareSingleFiles(oldPath, newPath, attrQ, methQ);
+                compareSingleFiles(existingPath, generatedPath, attrQ, methQ);
             } catch (Exception e) {
-                errLog.add("Error comparing " + oldPath.getFileName() + " and " + newPath.getFileName() + ": " + e.getMessage());
+                errLog.add("Error comparing " + existingPath.getFileName() + " and " + generatedPath.getFileName() + ": " + e.getMessage());
             }
         } else {
             // Compare directories
-            compareDirectories(oldPath, newPath, config.getThreads(), attrQ, methQ, errLog);
+            compareDirectories(existingPath, generatedPath, config.getThreads(), attrQ, methQ, errLog);
         }
 
         // Signal EOF to writers

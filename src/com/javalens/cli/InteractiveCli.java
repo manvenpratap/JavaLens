@@ -117,15 +117,15 @@ public class InteractiveCli {
         System.out.println("\u001B[35;1m║            ACTION: COMPARE JAVA VERSIONS             ║\u001B[0m");
         System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
 
-        String oldPath = promptInput("Enter Old Version Path (folder or file)", currentConfig.getOldPath());
-        if (oldPath.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: Old version path is required.\u001B[0m");
+        String existingPath = promptInput("Enter Existing Java Files Folder Path (folder or file)", currentConfig.getExistingPath());
+        if (existingPath.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Existing Java files path is required.\u001B[0m");
             return;
         }
 
-        String newPath = promptInput("Enter New Version Path (folder or file)", currentConfig.getNewPath());
-        if (newPath.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: New version path is required.\u001B[0m");
+        String generatedPath = promptInput("Enter Newly Generated Java Files Folder Path (with extra attributes & functions)", currentConfig.getGeneratedPath());
+        if (generatedPath.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Newly generated Java files path is required.\u001B[0m");
             return;
         }
 
@@ -142,12 +142,12 @@ public class InteractiveCli {
 
         System.out.println("\n\u001B[33m[SYS] Starting delta computations...\u001B[0m");
         try {
-            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "compare", "-o", oldPath, "-n", newPath, "--output-dir", outDir, "-t", String.valueOf(threads)));
+            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "compare", "-e", existingPath, "-g", generatedPath, "--output-dir", outDir, "-t", String.valueOf(threads)));
             Config config = Config.parse(argsList.toArray(new String[0]));
             
             CompareEngine.execute(config);
             System.out.println("\u001B[32;1m✔ SUCCESS: Deltas computed successfully.\u001B[0m");
-            showCompareSummary(outDir);
+            showCompareSummary(config.getActiveRunFolder().isEmpty() ? outDir : config.getActiveRunFolder());
         } catch (Exception e) {
             System.out.println("\u001B[31;1m❌ FAILED: Comparison failed: " + e.getMessage() + "\u001B[0m");
             e.printStackTrace();
@@ -164,21 +164,21 @@ public class InteractiveCli {
         System.out.println("\u001B[35;1m║            ACTION: MARKER-GUIDED MERGE               ║\u001B[0m");
         System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
 
-        String folder1 = promptInput("Enter Input Folder 1 (Base version)", currentConfig.getOldPath());
-        if (folder1.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: Input Folder 1 is required.\u001B[0m");
+        String existingFolder = promptInput("Enter Existing Java Files Folder (Base version)", currentConfig.getExistingPath());
+        if (existingFolder.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Existing Java Files folder is required.\u001B[0m");
             return;
         }
 
-        String folder2 = promptInput("Enter Input Folder 2 (With markers)", currentConfig.getNewPath());
-        if (folder2.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: Input Folder 2 is required.\u001B[0m");
+        String generatedFolder = promptInput("Enter Newly Generated Java Files Folder (With extra attributes & functions)", currentConfig.getGeneratedPath());
+        if (generatedFolder.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Newly Generated Java Files folder is required.\u001B[0m");
             return;
         }
 
-        String outDir = promptInput("Enter Output Folder (Merged Result)", currentConfig.getOutputDir());
+        String outDir = promptInput("Enter Output Folder (Base directory)", currentConfig.getOutputDir());
         if (outDir.isEmpty()) {
-            outDir = "java_analysis_output/merged";
+            outDir = "java_analysis_output";
         }
 
         String startMarker = promptInput("Enter Start Marker", currentConfig.getStartMarker());
@@ -186,7 +186,7 @@ public class InteractiveCli {
         String threadStr = promptInput("Enter Parallel Threads", String.valueOf(currentConfig.getThreads()));
         int threads = parseThreadCount(threadStr);
 
-        System.out.print("\u001B[33;1m▶ Merged files will be created in: " + outDir + ". Continue? (y/n) [y]: \u001B[0m");
+        System.out.print("\u001B[33;1m▶ Merged files will be created in timestamped run folder under: " + outDir + ". Continue? (y/n) [y]: \u001B[0m");
         String confirm = scanner.nextLine().trim().toLowerCase();
         if (confirm.equals("n")) {
             System.out.println("\u001B[90mOperation aborted.\u001B[0m");
@@ -195,11 +195,11 @@ public class InteractiveCli {
 
         System.out.println("\n\u001B[33m[SYS] Initiating marker scanner and merge to output folder...\u001B[0m");
         try {
-            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "merge", "-o", folder1, "-n", folder2, "--output-dir", outDir, "--start-marker", startMarker, "--end-marker", endMarker, "-t", String.valueOf(threads)));
+            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "merge", "-e", existingFolder, "-g", generatedFolder, "--output-dir", outDir, "--start-marker", startMarker, "--end-marker", endMarker, "-t", String.valueOf(threads)));
             Config config = Config.parse(argsList.toArray(new String[0]));
             
             MergeEngine.execute(config);
-            System.out.println("\u001B[32;1m✔ SUCCESS: Merged files written to " + outDir + ".\u001B[0m");
+            System.out.println("\u001B[32;1m✔ SUCCESS: Merge completed. Active run: " + config.getActiveRunFolder() + "\u001B[0m");
         } catch (Exception e) {
             System.out.println("\u001B[31;1m❌ FAILED: Merge operation failed: " + e.getMessage() + "\u001B[0m");
             e.printStackTrace();
@@ -211,15 +211,15 @@ public class InteractiveCli {
         System.out.println("\u001B[35;1m║     ACTION: FULL PIPELINE & UNIFIED REPORT           ║\u001B[0m");
         System.out.println("\u001B[35;1m╚══════════════════════════════════════════════════════╝\u001B[0m");
 
-        String oldPath = promptInput("Enter Old Version Path (folder or file)", currentConfig.getOldPath());
-        if (oldPath.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: Old version path is required.\u001B[0m");
+        String existingPath = promptInput("Enter Existing Java Files Folder Path", currentConfig.getExistingPath());
+        if (existingPath.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Existing Java files path is required.\u001B[0m");
             return;
         }
 
-        String newPath = promptInput("Enter New Version Path (folder or file)", currentConfig.getNewPath());
-        if (newPath.isEmpty()) {
-            System.out.println("\u001B[31;1m⚠ Error: New version path is required.\u001B[0m");
+        String generatedPath = promptInput("Enter Newly Generated Java Files Folder Path (With extra attributes & functions)", currentConfig.getGeneratedPath());
+        if (generatedPath.isEmpty()) {
+            System.out.println("\u001B[31;1m⚠ Error: Newly generated Java files path is required.\u001B[0m");
             return;
         }
 
@@ -227,7 +227,7 @@ public class InteractiveCli {
         String threadStr = promptInput("Enter Parallel Threads", String.valueOf(currentConfig.getThreads()));
         int threads = parseThreadCount(threadStr);
 
-        System.out.print("\u001B[33;1m▶ Run analyze, compare, merge & generate unified report? (y/n) [y]: \u001B[0m");
+        System.out.print("\u001B[33;1m▶ Run analyze, compare, merge & generate CSV reports? (y/n) [y]: \u001B[0m");
         String confirm = scanner.nextLine().trim().toLowerCase();
         if (confirm.equals("n")) {
             System.out.println("\u001B[90mOperation aborted.\u001B[0m");
@@ -236,10 +236,10 @@ public class InteractiveCli {
 
         System.out.println("\n\u001B[33m[SYS] Starting unified pipeline...\u001B[0m");
         try {
-            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "report", "-o", oldPath, "-n", newPath, "--output-dir", outDir, "-t", String.valueOf(threads)));
+            List<String> argsList = new ArrayList<>(Arrays.asList("-m", "report", "-e", existingPath, "-g", generatedPath, "--output-dir", outDir, "-t", String.valueOf(threads)));
             Config config = Config.parse(argsList.toArray(new String[0]));
             Path reportCsv = ReportGenerator.generateFullReport(config);
-            System.out.println("\u001B[32;1m✔ SUCCESS: Unified report generated at: " + reportCsv.toAbsolutePath() + "\u001B[0m");
+            System.out.println("\u001B[32;1m✔ SUCCESS: Unified CSV report generated at: " + reportCsv.toAbsolutePath() + "\u001B[0m");
         } catch (Exception e) {
             System.out.println("\u001B[31;1m❌ FAILED: Pipeline failed: " + e.getMessage() + "\u001B[0m");
             e.printStackTrace();
@@ -254,8 +254,8 @@ public class InteractiveCli {
             System.out.println("  \u001B[90mActive File           :\u001B[0m \u001B[32;1m" + currentConfig.getConfigFilePath() + "\u001B[0m");
             System.out.println("  \u001B[36m[1]\u001B[0m Execution Mode       : \u001B[33m" + currentConfig.getMode().name().toLowerCase() + "\u001B[0m");
             System.out.println("  \u001B[36m[2]\u001B[0m Default Source Folder: \u001B[33m" + currentConfig.getSourceFolder() + "\u001B[0m");
-            System.out.println("  \u001B[36m[3]\u001B[0m Baseline Old Path    : \u001B[33m" + currentConfig.getOldPath() + "\u001B[0m");
-            System.out.println("  \u001B[36m[4]\u001B[0m Feature New Path     : \u001B[33m" + currentConfig.getNewPath() + "\u001B[0m");
+            System.out.println("  \u001B[36m[3]\u001B[0m Existing Java Files  : \u001B[33m" + currentConfig.getExistingPath() + "\u001B[0m");
+            System.out.println("  \u001B[36m[4]\u001B[0m Newly Generated Files: \u001B[33m" + currentConfig.getGeneratedPath() + "\u001B[0m");
             System.out.println("  \u001B[36m[5]\u001B[0m Output Directory     : \u001B[33m" + currentConfig.getOutputDir() + "\u001B[0m");
             System.out.println("  \u001B[36m[6]\u001B[0m Parallel Threads     : \u001B[33m" + currentConfig.getThreads() + "\u001B[0m");
             System.out.println("  \u001B[36m[7]\u001B[0m Web Server Port      : \u001B[33m" + currentConfig.getServerPort() + "\u001B[0m");
@@ -286,12 +286,12 @@ public class InteractiveCli {
                     currentConfig.setSourceFolder(scanner.nextLine().trim());
                     break;
                 case "3":
-                    System.out.print("Enter baseline old path: ");
-                    currentConfig.setOldPath(scanner.nextLine().trim());
+                    System.out.print("Enter existing Java files path: ");
+                    currentConfig.setExistingPath(scanner.nextLine().trim());
                     break;
                 case "4":
-                    System.out.print("Enter feature new path: ");
-                    currentConfig.setNewPath(scanner.nextLine().trim());
+                    System.out.print("Enter newly generated Java files path: ");
+                    currentConfig.setGeneratedPath(scanner.nextLine().trim());
                     break;
                 case "5":
                     System.out.print("Enter output directory: ");

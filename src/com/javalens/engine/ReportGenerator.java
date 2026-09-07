@@ -23,6 +23,17 @@ import java.util.zip.ZipOutputStream;
  */
 public class ReportGenerator {
 
+    public static void main(String[] args) throws Exception {
+        if (args.length < 2) {
+            System.out.println("Usage: java -cp javalens.jar com.javalens.engine.ReportGenerator <run-dir> <format>");
+            return;
+        }
+        Path runDir = Paths.get(args[0]);
+        String format = args[1];
+        Path target = ensureReportFormat(runDir, format);
+        System.out.println("Report generated successfully: " + (target != null ? target.toAbsolutePath() : "null"));
+    }
+
     private static final String[] REPORT_HDR = {
         "file", "package", "class", "member_type", "member_name",
         "type", "modifiers", "annotations", "extra_info",
@@ -64,50 +75,38 @@ public class ReportGenerator {
      * @return Path to the generated report CSV
      */
     public static Path generateFullReport(Config config) throws Exception {
-        Path oldPath = Paths.get(config.getOldPath()).toAbsolutePath().normalize();
-        Path newPath = Paths.get(config.getNewPath()).toAbsolutePath().normalize();
-        Path outputBaseDir = Paths.get(config.getOutputDir()).toAbsolutePath().normalize();
-
-        // Resolve to parent if outputDir itself is a run_ folder
-        while (outputBaseDir.getFileName() != null && outputBaseDir.getFileName().toString().startsWith("run_")) {
-            outputBaseDir = outputBaseDir.getParent();
-        }
-
-        // Create timestamped run folder
-        String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
-                               .format(java.time.LocalDateTime.now());
-        String runFolderName = "run_" + timestamp;
-        Path runFolder = outputBaseDir.resolve(runFolderName);
-        Files.createDirectories(runFolder);
-        Config.updateActiveRunFolder(runFolder.toString());
+        Path existingPath = Paths.get(config.getExistingPath()).toAbsolutePath().normalize();
+        Path generatedPath = Paths.get(config.getGeneratedPath()).toAbsolutePath().normalize();
+        Path runFolder = config.createRunFolder();
+        String runFolderName = runFolder.getFileName().toString();
 
         System.out.println("╔══════════════════════════════════════════════════╗");
         System.out.println("║   JavaLens Unified Report Generation Pipeline   ║");
         System.out.println("╚══════════════════════════════════════════════════╝");
         System.out.println();
 
-        // ── Step 1: Parse old version (baseline) ────────────────────────────
-        System.out.println("▸ Step 1/5: Analyzing original (old) version...");
-        Map<String, JavaModel> oldModels = parseAllFiles(oldPath);
-        System.out.println("  Found " + oldModels.size() + " Java file(s) in old version.");
+        // ── Step 1: Parse existing version (baseline) ────────────────────────────
+        System.out.println("▸ Step 1/5: Analyzing existing Java files (baseline)...");
+        Map<String, JavaModel> oldModels = parseAllFiles(existingPath);
+        System.out.println("  Found " + oldModels.size() + " Java file(s) in existing version.");
 
-        // ── Step 2: Parse new version ───────────────────────────────────────
-        System.out.println("▸ Step 2/5: Analyzing new version...");
-        Map<String, JavaModel> newModels = parseAllFiles(newPath);
-        System.out.println("  Found " + newModels.size() + " Java file(s) in new version.");
+        // ── Step 2: Parse newly generated version ────────────────────────────────
+        System.out.println("▸ Step 2/5: Analyzing newly generated Java files (with extra attributes & functions)...");
+        Map<String, JavaModel> newModels = parseAllFiles(generatedPath);
+        System.out.println("  Found " + newModels.size() + " Java file(s) in newly generated version.");
 
-        // ── Step 3: Write comparison CSVs (old vs new) ─────────────────────
-        System.out.println("▸ Step 3/5: Comparing old vs new versions...");
+        // ── Step 3: Write comparison CSVs ────────────────────────────────────────
+        System.out.println("▸ Step 3/5: Comparing existing vs newly generated versions...");
         writeComparisonCsvs(runFolder, oldModels, newModels);
         System.out.println("  Comparison CSVs written.");
 
         // ── Step 4: Execute merge ───────────────────────────────────────────
-        System.out.println("▸ Step 4/5: Merging new into old (marker-guided)...");
+        System.out.println("▸ Step 4/5: Merging newly generated code into existing Java files...");
         Path mergedFolder = runFolder.resolve("merged");
         Files.createDirectories(mergedFolder);
         Config mergeConfig = new Config();
-        mergeConfig.setOldPath(oldPath.toString());
-        mergeConfig.setNewPath(newPath.toString());
+        mergeConfig.setExistingPath(existingPath.toString());
+        mergeConfig.setGeneratedPath(generatedPath.toString());
         mergeConfig.setOutputDir(mergedFolder.toString());
         mergeConfig.setStartMarker(config.getStartMarker());
         mergeConfig.setEndMarker(config.getEndMarker());
@@ -117,7 +116,7 @@ public class ReportGenerator {
                           (mergeResults.size() - mergedCount) + " copied/preserved/added.");
 
         // ── Step 5: Re-parse merged output & generate report ───────────────
-        System.out.println("▸ Step 5/5: Re-analyzing merged output & generating reports...");
+        System.out.println("▸ Step 5/5: Re-analyzing merged output & generating CSV reports...");
         Map<String, JavaModel> mergedModels = parseAllFiles(mergedFolder);
         System.out.println("  Found " + mergedModels.size() + " Java file(s) in merged output.");
 
@@ -131,8 +130,8 @@ public class ReportGenerator {
         ReportSummary summary = new ReportSummary();
         summary.timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                                .format(java.time.LocalDateTime.now());
-        summary.oldPath = oldPath.toString();
-        summary.newPath = newPath.toString();
+        summary.oldPath = existingPath.toString();
+        summary.newPath = generatedPath.toString();
         summary.runFolder = runFolder.toString();
         summary.totalMembers = items.size();
         summary.totalFiles = Math.max(oldModels.size(), Math.max(newModels.size(), mergedModels.size()));
@@ -146,55 +145,30 @@ public class ReportGenerator {
             else if ("REMOVED".equals(s)) summary.removed++;
         }
 
-        // Generate unified reports across all formats
+        // Script run writes ONLY CSV reports and executive text summary:
         Path reportCsv = runFolder.resolve("javalens_report.csv");
         writeUnifiedReportCsv(reportCsv, items);
-
-        Path reportJson = runFolder.resolve("javalens_report.json");
-        writeUnifiedReportJson(reportJson, summary, items, mergeResults);
-
-        Path reportHtml = runFolder.resolve("javalens_report.html");
-        writeUnifiedReportHtml(reportHtml, summary, items, mergeResults);
-
-        Path reportMd = runFolder.resolve("javalens_report.md");
-        writeUnifiedReportMarkdown(reportMd, summary, items, mergeResults);
-
-        Path reportXml = runFolder.resolve("javalens_report.xml");
-        writeUnifiedReportXml(reportXml, summary, items, mergeResults);
 
         // Write merge results CSV
         Path mergeCsv = runFolder.resolve("merge_results.csv");
         writeMergeResultsCsv(mergeCsv, mergeResults);
 
-        // Create unified ZIP bundle
-        Path reportZip = runFolder.resolve("javalens_report_bundle.zip");
-        Map<String, Path> bundleFiles = new LinkedHashMap<>();
-        bundleFiles.put("javalens_report.csv", reportCsv);
-        bundleFiles.put("javalens_report.json", reportJson);
-        bundleFiles.put("javalens_report.html", reportHtml);
-        bundleFiles.put("javalens_report.md", reportMd);
-        bundleFiles.put("javalens_report.xml", reportXml);
-        bundleFiles.put("merge_results.csv", mergeCsv);
-        if (Files.exists(runFolder.resolve("comparison_attributes.csv"))) {
-            bundleFiles.put("comparison_attributes.csv", runFolder.resolve("comparison_attributes.csv"));
-        }
-        if (Files.exists(runFolder.resolve("comparison_methods.csv"))) {
-            bundleFiles.put("comparison_methods.csv", runFolder.resolve("comparison_methods.csv"));
-        }
-        writeReportZipBundle(reportZip, bundleFiles);
+        // Write human-readable summary text
+        Path summaryTxt = runFolder.resolve("javalens_summary.txt");
+        writeSummaryTxt(summaryTxt, summary, mergeResults);
 
-        // Write report data JS for web UI
+        // (Other formats: Excel, JSON, HTML, Markdown, XML, ZIP are generated on-demand when download options on GUI are triggered)
+
+        // Write report data JS for Web GUI
         ParserUtil.writeReportDataJs("REPORT", runFolderName, runFolder);
 
         System.out.println();
         System.out.println("═════════════════════════════════════════════════════════════════");
-        System.out.println("  JavaLens Unified Reports Generated in Multiple Formats:");
-        System.out.println("    ▸ CSV       : " + reportCsv.toAbsolutePath());
-        System.out.println("    ▸ JSON      : " + reportJson.toAbsolutePath());
-        System.out.println("    ▸ HTML      : " + reportHtml.toAbsolutePath());
-        System.out.println("    ▸ Markdown  : " + reportMd.toAbsolutePath());
-        System.out.println("    ▸ XML       : " + reportXml.toAbsolutePath());
-        System.out.println("    ▸ ZIP Bundle: " + reportZip.toAbsolutePath());
+        System.out.println("  JavaLens CSV Reports Generated for Run: " + runFolderName);
+        System.out.println("    ▸ Unified CSV : " + reportCsv.toAbsolutePath());
+        System.out.println("    ▸ Merge CSV   : " + mergeCsv.toAbsolutePath());
+        System.out.println("    ▸ Summary     : " + summaryTxt.toAbsolutePath());
+        System.out.println("  (Other formats: Excel, JSON, HTML, MD, XML, ZIP generated on-demand via GUI)");
         System.out.println("  Total members : " + items.size() + " (" + summary.newlyAdded + " Added, " +
                            summary.modified + " Modified, " + summary.original + " Original)");
         System.out.println("  Merge results : " + mergeResults.size() + " file(s) processed");
@@ -253,6 +227,8 @@ public class ReportGenerator {
             case "md":
             case "markdown": targetFileName = "javalens_report.md"; break;
             case "xml": targetFileName = "javalens_report.xml"; break;
+            case "xlsx":
+            case "excel": targetFileName = "javalens_report.xlsx"; break;
             case "zip":
             case "bundle":
             case "all": targetFileName = "javalens_report_bundle.zip"; break;
@@ -302,30 +278,49 @@ public class ReportGenerator {
         }
 
         Path jsonPath = runDir.resolve("javalens_report.json");
-        if (!Files.exists(jsonPath) || "json".equals(fmt) || "zip".equals(fmt)) {
-            writeUnifiedReportJson(jsonPath, summary, items, mergeResults);
+        if ("json".equals(fmt) || "zip".equals(fmt) || "bundle".equals(fmt) || "all".equals(fmt)) {
+            if (!Files.exists(jsonPath) || "json".equals(fmt)) {
+                writeUnifiedReportJson(jsonPath, summary, items, mergeResults);
+            }
         }
         Path htmlPath = runDir.resolve("javalens_report.html");
-        if (!Files.exists(htmlPath) || "html".equals(fmt) || "zip".equals(fmt)) {
-            writeUnifiedReportHtml(htmlPath, summary, items, mergeResults);
+        if ("html".equals(fmt) || "zip".equals(fmt) || "bundle".equals(fmt) || "all".equals(fmt)) {
+            if (!Files.exists(htmlPath) || "html".equals(fmt)) {
+                writeUnifiedReportHtml(htmlPath, summary, items, mergeResults);
+            }
         }
         Path mdPath = runDir.resolve("javalens_report.md");
-        if (!Files.exists(mdPath) || "md".equals(fmt) || "markdown".equals(fmt) || "zip".equals(fmt)) {
-            writeUnifiedReportMarkdown(mdPath, summary, items, mergeResults);
+        if ("md".equals(fmt) || "markdown".equals(fmt) || "zip".equals(fmt) || "bundle".equals(fmt) || "all".equals(fmt)) {
+            if (!Files.exists(mdPath) || "md".equals(fmt) || "markdown".equals(fmt)) {
+                writeUnifiedReportMarkdown(mdPath, summary, items, mergeResults);
+            }
         }
         Path xmlPath = runDir.resolve("javalens_report.xml");
-        if (!Files.exists(xmlPath) || "xml".equals(fmt) || "zip".equals(fmt)) {
-            writeUnifiedReportXml(xmlPath, summary, items, mergeResults);
+        if ("xml".equals(fmt) || "zip".equals(fmt) || "bundle".equals(fmt) || "all".equals(fmt)) {
+            if (!Files.exists(xmlPath) || "xml".equals(fmt)) {
+                writeUnifiedReportXml(xmlPath, summary, items, mergeResults);
+            }
+        }
+        Path xlsxPath = runDir.resolve("javalens_report.xlsx");
+        if ("xlsx".equals(fmt) || "excel".equals(fmt) || "zip".equals(fmt) || "bundle".equals(fmt) || "all".equals(fmt)) {
+            if (!Files.exists(xlsxPath) || "xlsx".equals(fmt) || "excel".equals(fmt)) {
+                writeUnifiedReportExcel(xlsxPath, summary, items, mergeResults);
+            }
         }
 
         if ("zip".equals(fmt) || "bundle".equals(fmt) || "all".equals(fmt)) {
             Path zipPath = runDir.resolve("javalens_report_bundle.zip");
             Map<String, Path> bundleFiles = new LinkedHashMap<>();
             bundleFiles.put("javalens_report.csv", reportCsv);
+            bundleFiles.put("javalens_report.xlsx", xlsxPath);
             bundleFiles.put("javalens_report.json", jsonPath);
             bundleFiles.put("javalens_report.html", htmlPath);
             bundleFiles.put("javalens_report.md", mdPath);
             bundleFiles.put("javalens_report.xml", xmlPath);
+            Path summaryTxt = runDir.resolve("javalens_summary.txt");
+            if (Files.exists(summaryTxt)) {
+                bundleFiles.put("javalens_summary.txt", summaryTxt);
+            }
             if (Files.exists(mergeCsv)) {
                 bundleFiles.put("merge_results.csv", mergeCsv);
             }
@@ -808,6 +803,233 @@ public class ReportGenerator {
                     zos.closeEntry();
                 }
             }
+        }
+    }
+
+    private static void writeUnifiedReportExcel(Path reportXlsx,
+                                                ReportSummary summary,
+                                                List<ReportItem> items,
+                                                List<MergeEngine.MergeResult> mergeResults) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(reportXlsx.toFile())))) {
+            // 1. [Content_Types].xml
+            String contentTypes = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+                    + "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
+                    + "  <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n"
+                    + "  <Default Extension=\"xml\" ContentType=\"application/xml\"/>\n"
+                    + "  <Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>\n"
+                    + "  <Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>\n"
+                    + "  <Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>\n"
+                    + "  <Override PartName=\"/xl/worksheets/sheet2.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>\n"
+                    + "  <Override PartName=\"/xl/worksheets/sheet3.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>\n"
+                    + "</Types>";
+            addZipEntry(zos, "[Content_Types].xml", contentTypes.getBytes(StandardCharsets.UTF_8));
+
+            // 2. _rels/.rels
+            String rootRels = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+                    + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
+                    + "  <Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/>\n"
+                    + "</Relationships>";
+            addZipEntry(zos, "_rels/.rels", rootRels.getBytes(StandardCharsets.UTF_8));
+
+            // 3. xl/_rels/workbook.xml.rels
+            String wbRels = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+                    + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
+                    + "  <Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/>\n"
+                    + "  <Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet2.xml\"/>\n"
+                    + "  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet3.xml\"/>\n"
+                    + "  <Relationship Id=\"rId4\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>\n"
+                    + "</Relationships>";
+            addZipEntry(zos, "xl/_rels/workbook.xml.rels", wbRels.getBytes(StandardCharsets.UTF_8));
+
+            // 4. xl/workbook.xml
+            String workbookXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+                    + "<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">\n"
+                    + "  <sheets>\n"
+                    + "    <sheet name=\"Unified AST Report\" sheetId=\"1\" r:id=\"rId1\"/>\n"
+                    + "    <sheet name=\"Merge Results\" sheetId=\"2\" r:id=\"rId2\"/>\n"
+                    + "    <sheet name=\"Executive Summary\" sheetId=\"3\" r:id=\"rId3\"/>\n"
+                    + "  </sheets>\n"
+                    + "</workbook>";
+            addZipEntry(zos, "xl/workbook.xml", workbookXml.getBytes(StandardCharsets.UTF_8));
+
+            // 5. xl/styles.xml
+            String stylesXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+                    + "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\n"
+                    + "  <fonts count=\"2\">\n"
+                    + "    <font><sz val=\"11\"/><name val=\"Calibri\"/></font>\n"
+                    + "    <font><b/><sz val=\"11\"/><name val=\"Calibri\"/></font>\n"
+                    + "  </fonts>\n"
+                    + "  <fills count=\"2\">\n"
+                    + "    <fill><patternFill patternType=\"none\"/></fill>\n"
+                    + "    <fill><patternFill patternType=\"gray125\"/></fill>\n"
+                    + "  </fills>\n"
+                    + "  <borders count=\"1\">\n"
+                    + "    <border><left/><right/><top/><bottom/><diagonal/></border>\n"
+                    + "  </borders>\n"
+                    + "  <cellStyleXfs count=\"1\">\n"
+                    + "    <xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>\n"
+                    + "  </cellStyleXfs>\n"
+                    + "  <cellXfs count=\"2\">\n"
+                    + "    <xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>\n"
+                    + "    <xf numFmtId=\"0\" fontId=\"1\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>\n"
+                    + "  </cellXfs>\n"
+                    + "</styleSheet>";
+            addZipEntry(zos, "xl/styles.xml", stylesXml.getBytes(StandardCharsets.UTF_8));
+
+            // 6. xl/worksheets/sheet1.xml - Unified AST Report
+            StringBuilder s1 = new StringBuilder(65536);
+            s1.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+            s1.append("<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\n");
+            s1.append("  <sheetData>\n");
+
+            int rowIdx = 1;
+            s1.append("    <row r=\"").append(rowIdx).append("\">\n");
+            for (int c = 0; c < REPORT_HDR.length; c++) {
+                String colRef = toExcelCol(c) + rowIdx;
+                s1.append("      <c r=\"").append(colRef).append("\" t=\"inlineStr\" s=\"1\"><is><t>")
+                  .append(escapeXml(REPORT_HDR[c])).append("</t></is></c>\n");
+            }
+            s1.append("    </row>\n");
+
+            for (ReportItem item : items) {
+                rowIdx++;
+                s1.append("    <row r=\"").append(rowIdx).append("\">\n");
+                String[] vals = new String[]{
+                    item.file, item.packageName, item.className, item.memberType, item.memberName,
+                    item.type, item.modifiers, item.annotations, item.extraInfo,
+                    item.inOld ? "YES" : "NO", item.inNew ? "YES" : "NO", item.inMerged ? "YES" : "NO",
+                    item.status
+                };
+                for (int c = 0; c < vals.length; c++) {
+                    String colRef = toExcelCol(c) + rowIdx;
+                    s1.append("      <c r=\"").append(colRef).append("\" t=\"inlineStr\"><is><t>")
+                      .append(escapeXml(vals[c])).append("</t></is></c>\n");
+                }
+                s1.append("    </row>\n");
+            }
+            s1.append("  </sheetData>\n</worksheet>");
+            addZipEntry(zos, "xl/worksheets/sheet1.xml", s1.toString().getBytes(StandardCharsets.UTF_8));
+
+            // 7. xl/worksheets/sheet2.xml - Merge Results
+            StringBuilder s2 = new StringBuilder(16384);
+            s2.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+            s2.append("<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\n");
+            s2.append("  <sheetData>\n");
+            rowIdx = 1;
+            s2.append("    <row r=\"").append(rowIdx).append("\">\n");
+            String[] mHdr = new String[]{"File", "Status", "Message"};
+            for (int c = 0; c < mHdr.length; c++) {
+                String colRef = toExcelCol(c) + rowIdx;
+                s2.append("      <c r=\"").append(colRef).append("\" t=\"inlineStr\" s=\"1\"><is><t>")
+                  .append(escapeXml(mHdr[c])).append("</t></is></c>\n");
+            }
+            s2.append("    </row>\n");
+
+            if (mergeResults != null) {
+                for (MergeEngine.MergeResult r : mergeResults) {
+                    rowIdx++;
+                    s2.append("    <row r=\"").append(rowIdx).append("\">\n");
+                    String[] mVals = new String[]{r.relPath, r.status, r.message != null ? r.message : ""};
+                    for (int c = 0; c < mVals.length; c++) {
+                        String colRef = toExcelCol(c) + rowIdx;
+                        s2.append("      <c r=\"").append(colRef).append("\" t=\"inlineStr\"><is><t>")
+                          .append(escapeXml(mVals[c])).append("</t></is></c>\n");
+                    }
+                    s2.append("    </row>\n");
+                }
+            }
+            s2.append("  </sheetData>\n</worksheet>");
+            addZipEntry(zos, "xl/worksheets/sheet2.xml", s2.toString().getBytes(StandardCharsets.UTF_8));
+
+            // 8. xl/worksheets/sheet3.xml - Executive Summary
+            StringBuilder s3 = new StringBuilder(4096);
+            s3.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+            s3.append("<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\n");
+            s3.append("  <sheetData>\n");
+            rowIdx = 1;
+            s3.append("    <row r=\"").append(rowIdx).append("\">\n");
+            s3.append("      <c r=\"A1\" t=\"inlineStr\" s=\"1\"><is><t>Metric / Attribute</t></is></c>\n");
+            s3.append("      <c r=\"B1\" t=\"inlineStr\" s=\"1\"><is><t>Value</t></is></c>\n");
+            s3.append("    </row>\n");
+
+            String[][] sumRows = new String[][]{
+                {"Generated At", summary.timestamp},
+                {"Existing Java Files Path", summary.oldPath},
+                {"Newly Generated Java Files Path", summary.newPath},
+                {"Run Output Directory", summary.runFolder},
+                {"Total AST Members Evaluated", String.valueOf(summary.totalMembers)},
+                {"Newly Added Members", String.valueOf(summary.newlyAdded)},
+                {"Modified by Merge", String.valueOf(summary.modified)},
+                {"Original Unchanged Members", String.valueOf(summary.original)},
+                {"Removed Members", String.valueOf(summary.removed)},
+                {"Total Files Analyzed", String.valueOf(summary.totalFiles)},
+                {"Total Files Merged", String.valueOf(summary.mergedFiles)}
+            };
+            for (String[] sr : sumRows) {
+                rowIdx++;
+                s3.append("    <row r=\"").append(rowIdx).append("\">\n");
+                s3.append("      <c r=\"A").append(rowIdx).append("\" t=\"inlineStr\"><is><t>").append(escapeXml(sr[0])).append("</t></is></c>\n");
+                s3.append("      <c r=\"B").append(rowIdx).append("\" t=\"inlineStr\"><is><t>").append(escapeXml(sr[1])).append("</t></is></c>\n");
+                s3.append("    </row>\n");
+            }
+            s3.append("  </sheetData>\n</worksheet>");
+            addZipEntry(zos, "xl/worksheets/sheet3.xml", s3.toString().getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    private static void addZipEntry(ZipOutputStream zos, String name, byte[] data) throws IOException {
+        ZipEntry ze = new ZipEntry(name);
+        zos.putNextEntry(ze);
+        zos.write(data);
+        zos.closeEntry();
+    }
+
+    private static String toExcelCol(int col) {
+        StringBuilder sb = new StringBuilder();
+        col++;
+        while (col > 0) {
+            int rem = (col - 1) % 26;
+            sb.insert(0, (char) ('A' + rem));
+            col = (col - 1) / 26;
+        }
+        return sb.toString();
+    }
+
+    private static void writeSummaryTxt(Path summaryTxt, ReportSummary summary,
+                                        List<MergeEngine.MergeResult> mergeResults) throws IOException {
+        try (PrintWriter pw = new PrintWriter(new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(summaryTxt.toFile()), StandardCharsets.UTF_8)))) {
+            pw.println("================================================================================");
+            pw.println("                        JAVALENS AST ANALYSIS & MERGE SUMMARY                   ");
+            pw.println("================================================================================");
+            pw.println("Generated At        : " + summary.timestamp);
+            pw.println("Run Directory       : " + summary.runFolder);
+            pw.println("Existing Files Path : " + summary.oldPath);
+            pw.println("Generated Files Path: " + summary.newPath);
+            pw.println();
+            pw.println("--------------------------------------------------------------------------------");
+            pw.println(" AST CODEBASE METRICS");
+            pw.println("--------------------------------------------------------------------------------");
+            pw.println("Total Members Evaluated : " + summary.totalMembers);
+            pw.println("  ▸ Newly Added         : " + summary.newlyAdded);
+            pw.println("  ▸ Modified by Merge   : " + summary.modified);
+            pw.println("  ▸ Original (Baseline) : " + summary.original);
+            pw.println("  ▸ Removed             : " + summary.removed);
+            pw.println();
+            pw.println("--------------------------------------------------------------------------------");
+            pw.println(" MERGE ACTIVITY DETAILS");
+            pw.println("--------------------------------------------------------------------------------");
+            pw.println("Total Files Processed   : " + (mergeResults != null ? mergeResults.size() : summary.totalFiles));
+            pw.println("Files Merged            : " + summary.mergedFiles);
+            if (mergeResults != null && !mergeResults.isEmpty()) {
+                pw.println();
+                pw.printf("%-40s %-15s %s%n", "File", "Status", "Details");
+                pw.println("--------------------------------------------------------------------------------");
+                for (MergeEngine.MergeResult r : mergeResults) {
+                    pw.printf("%-40s %-15s %s%n", r.relPath, r.status, r.message != null ? r.message : "");
+                }
+            }
+            pw.println("================================================================================");
         }
     }
 

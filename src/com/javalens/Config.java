@@ -114,10 +114,18 @@ public class Config {
                     case "--interactive":
                         config.mode = Mode.INTERACTIVE;
                         break;
+                    case "-e":
+                    case "--existing":
+                    case "--existing-path":
+                    case "--existing-folder":
                     case "-o":
                     case "--old":
                         if (i + 1 < args.length) config.oldPath = args[++i];
                         break;
+                    case "-g":
+                    case "--generated":
+                    case "--generated-path":
+                    case "--generated-folder":
                     case "-n":
                     case "--new":
                         if (i + 1 < args.length) config.newPath = args[++i];
@@ -132,6 +140,7 @@ public class Config {
                     case "--end-marker":
                         if (i + 1 < args.length) config.endMarker = args[++i];
                         break;
+                    case "-d":
                     case "--output-dir":
                         if (i + 1 < args.length) config.outputDir = args[++i];
                         break;
@@ -295,18 +304,18 @@ public class Config {
 
             // Source & Paths
             this.sourceFolder = getProp(props, sourceFolder, "source.folder", "sourceFolder");
-            this.oldPath = getProp(props, oldPath, "old.path", "oldPath");
-            this.newPath = getProp(props, newPath, "new.path", "newPath");
+            this.oldPath = getProp(props, oldPath, "existing.path", "existing.folder", "existingPath", "old.path", "oldPath");
+            this.newPath = getProp(props, newPath, "generated.path", "generated.folder", "generatedPath", "new.path", "newPath");
             this.outputDir = getProp(props, outputDir, "output.dir", "compare.output_dir", "outputDir");
-            this.activeRunFolder = getProp(props, activeRunFolder, "active.run_folder", "activeRunFolder");
-            if (!this.activeRunFolder.isEmpty()) {
-                try {
-                    Path af = Paths.get(this.activeRunFolder);
-                    if (Files.exists(af)) {
-                        this.outputDir = this.activeRunFolder;
-                    }
-                } catch (Exception ignored) {}
+            if (this.outputDir != null && !this.outputDir.trim().isEmpty()) {
+                Path p = Paths.get(this.outputDir.trim());
+                while (p.getFileName() != null && p.getFileName().toString().startsWith("run_")) {
+                    Path parent = p.getParent();
+                    p = (parent != null) ? parent : Paths.get("java_analysis_output");
+                }
+                this.outputDir = p.toString().replace('\\', '/');
             }
+            this.activeRunFolder = getProp(props, activeRunFolder, "active.run_folder", "activeRunFolder");
 
             // Merge markers
             this.startMarker = getProp(props, startMarker, "merge.start_marker", "startMarker");
@@ -371,16 +380,18 @@ public class Config {
         sb.append("# Default Analysis Source Path (file or directory)\n");
         sb.append("source.folder=").append(sourceFolder).append("\n\n");
 
-        sb.append("# Baseline Old Version Path (used in compare, merge, and report modes)\n");
+        sb.append("# Baseline Existing Java Files Path (used in compare, merge, and report modes)\n");
+        sb.append("existing.path=").append(oldPath).append("\n");
         sb.append("old.path=").append(oldPath).append("\n\n");
 
-        sb.append("# Feature New Version Path (used in compare, merge, and report modes)\n");
+        sb.append("# Newly Generated Java Files Path (containing extra attributes and functions)\n");
+        sb.append("generated.path=").append(newPath).append("\n");
         sb.append("new.path=").append(newPath).append("\n\n");
 
-        sb.append("# Output Directory for Generated Reports, CSVs, and Telemetry Data\n");
+        sb.append("# Base Output Directory for Generated Reports, CSVs, and Telemetry Data\n");
         sb.append("output.dir=").append(outputDir).append("\n\n");
 
-        sb.append("# Active Run Output Folder Context\n");
+        sb.append("# Active Run Output Folder Context (generated dynamically for each run)\n");
         sb.append("active.run_folder=").append(activeRunFolder).append("\n\n");
 
         sb.append("# Parallel Worker Thread Pool Size\n");
@@ -428,6 +439,71 @@ public class Config {
         config.saveProperties(activeConf);
     }
 
+    /**
+     * Resolves the base output directory from configuration (read from the active .conf file)
+     * and dynamically creates a new date-timed run folder (run_yyyyMMdd_HHmmss) for this execution run.
+     * Automatically registers the created folder as the active run folder.
+     *
+     * @return Absolute Path to the newly created date-timed run folder.
+     * @throws IOException If creating the folder fails.
+     */
+    public Path createRunFolder() throws IOException {
+        return createRunFolder(null);
+    }
+
+    /**
+     * Resolves the base output directory from configuration and dynamically creates a new
+     * date-timed run folder (run_yyyyMMdd_HHmmss), optionally appending a subfolder.
+     *
+     * @param subfolder Optional subfolder name (e.g., "merged"), or null if none.
+     * @return Absolute Path to the created run folder (or subfolder).
+     * @throws IOException If creating the folder fails.
+     */
+    public Path createRunFolder(String subfolder) throws IOException {
+        String baseStr = (this.outputDir != null && !this.outputDir.trim().isEmpty())
+                ? this.outputDir.trim()
+                : "java_analysis_output";
+        Path baseDir = Paths.get(baseStr).toAbsolutePath().normalize();
+
+        // Defensive: strip any accidental trailing run_ segments from base directory
+        while (baseDir.getFileName() != null && baseDir.getFileName().toString().startsWith("run_")) {
+            Path parent = baseDir.getParent();
+            if (parent != null) {
+                baseDir = parent;
+            } else {
+                break;
+            }
+        }
+
+        String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
+                .format(java.time.LocalDateTime.now());
+        String runFolderName = "run_" + timestamp;
+        Path runFolderPath = baseDir.resolve(runFolderName);
+
+        // Prevent collision on rapid back-to-back runs
+        if (Files.exists(runFolderPath)) {
+            int counter = 1;
+            while (Files.exists(baseDir.resolve(runFolderName + "_" + counter))) {
+                counter++;
+            }
+            runFolderPath = baseDir.resolve(runFolderName + "_" + counter);
+        }
+
+        Files.createDirectories(runFolderPath);
+
+        // Update active run folder tracking
+        this.activeRunFolder = runFolderPath.toString();
+        updateActiveRunFolder(runFolderPath.toString());
+
+        if (subfolder != null && !subfolder.trim().isEmpty()) {
+            Path target = runFolderPath.resolve(subfolder.trim());
+            Files.createDirectories(target);
+            return target;
+        }
+
+        return runFolderPath;
+    }
+
     private static void printHelp() {
         System.out.println("JavaLens AST Tools");
         System.out.println("Usage (Legacy):");
@@ -440,22 +516,24 @@ public class Config {
         System.out.println("  -m, --mode <analyze|compare|merge|interactive|server|report>   Execution mode (default: analyze)");
         System.out.println("  -i, --interactive                                Start interactive console wizard");
         System.out.println("  -s, --source <path>                             Source folder for analysis (analyze mode)");
-        System.out.println("  -o, --old <path>                    Path to old version of file/directory (compare/merge modes)");
-        System.out.println("  -n, --new <path>                    Path to new version of file/directory (compare/merge modes)");
-        System.out.println("  --start-marker <string>             Start marker for merging (default: // START_MERGE)");
-        System.out.println("  --end-marker <string>               End marker for merging (default: // END_MERGE)");
-        System.out.println("  --output-dir <path>                 Directory for output report files (default: java_analysis_output)");
-        System.out.println("  -t, --threads <num>                 Number of parallel threads (default: available cores)");
-        System.out.println("  -p, --port <num>                    Web server port (default: 8080)");
-        System.out.println("  -c, --config <path>                 Path to .conf or properties config file (default: javalens.conf)");
-        System.out.println("  --save-config [path]                Write current runtime configuration to .conf file and exit");
-        System.out.println("  -h, --help                          Show this help message");
+        System.out.println("  -e, --existing, -o, --old <path>                Path to existing Java files (baseline folder or file)");
+        System.out.println("  -g, --generated, -n, --new <path>               Path to newly generated Java files (with extra attributes/functions)");
+        System.out.println("  --start-marker <string>                         Start marker for merging (default: // START_MERGE)");
+        System.out.println("  --end-marker <string>                           End marker for merging (default: // END_MERGE)");
+        System.out.println("  -d, --output-dir <path>                         Base directory for output report files (default: java_analysis_output)");
+        System.out.println("  -t, --threads <num>                             Number of parallel threads (default: available cores)");
+        System.out.println("  -p, --port <num>                                Web server port (default: 8080)");
+        System.out.println("  -c, --config <path>                             Path to .conf or properties config file (default: javalens.conf)");
+        System.out.println("  --save-config [path]                            Write current runtime configuration to .conf file and exit");
+        System.out.println("  -h, --help                                      Show this help message");
     }
 
     // Getters
     public Mode getMode() { return mode; }
     public String getOldPath() { return oldPath; }
     public String getNewPath() { return newPath; }
+    public String getExistingPath() { return oldPath; }
+    public String getGeneratedPath() { return newPath; }
     public String getStartMarker() { return startMarker; }
     public String getEndMarker() { return endMarker; }
     public String getOutputDir() { return outputDir; }
@@ -471,6 +549,8 @@ public class Config {
     public void setMode(Mode mode) { this.mode = mode; }
     public void setOldPath(String oldPath) { this.oldPath = oldPath; }
     public void setNewPath(String newPath) { this.newPath = newPath; }
+    public void setExistingPath(String existingPath) { this.oldPath = existingPath; }
+    public void setGeneratedPath(String generatedPath) { this.newPath = generatedPath; }
     public void setStartMarker(String startMarker) { this.startMarker = startMarker; }
     public void setEndMarker(String endMarker) { this.endMarker = endMarker; }
     public void setOutputDir(String outputDir) { this.outputDir = outputDir; }

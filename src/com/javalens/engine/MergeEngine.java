@@ -23,13 +23,13 @@ public class MergeEngine {
     }
 
     public static List<MergeResult> execute(Config config) throws Exception {
-        Path folder1 = Paths.get(config.getOldPath()).toAbsolutePath().normalize();
-        Path folder2 = Paths.get(config.getNewPath()).toAbsolutePath().normalize();
+        Path existingJavaFiles = Paths.get(config.getExistingPath()).toAbsolutePath().normalize();
+        Path generatedJavaFiles = Paths.get(config.getGeneratedPath()).toAbsolutePath().normalize();
         String startMarker = config.getStartMarker();
         String endMarker = config.getEndMarker();
 
-        boolean oldIsDir = Files.isDirectory(folder1);
-        boolean newIsDir = Files.isDirectory(folder2);
+        boolean oldIsDir = Files.isDirectory(existingJavaFiles);
+        boolean newIsDir = Files.isDirectory(generatedJavaFiles);
 
         if (oldIsDir != newIsDir) {
             System.err.println("Error: Cannot merge. Both paths must be either files or directories.");
@@ -37,27 +37,31 @@ public class MergeEngine {
         }
 
         // Determine destination output directory
-        Path outputDir = Paths.get(config.getOutputDir()).toAbsolutePath().normalize();
-        if (oldIsDir && outputDir.getFileName() != null && outputDir.getFileName().toString().equals("java_analysis_output")) {
-            outputDir = outputDir.resolve("merged");
+        Path outputDir;
+        Path configuredPath = Paths.get(config.getOutputDir()).toAbsolutePath().normalize();
+        if (configuredPath.toString().contains("/run_") || configuredPath.toString().contains("\\run_") ||
+            (configuredPath.getFileName() != null && configuredPath.getFileName().toString().startsWith("run_"))) {
+            outputDir = configuredPath;
+            Files.createDirectories(outputDir);
+        } else {
+            outputDir = config.createRunFolder();
         }
-        Files.createDirectories(outputDir);
 
         System.out.println("Starting Java Marker-Guided Merge...");
-        System.out.println("  Input Folder 1 (Base)      : " + folder1);
-        System.out.println("  Input Folder 2 (Markers)   : " + folder2);
-        System.out.println("  Output Folder (Merged)     : " + outputDir);
-        System.out.println("  Start marker               : \"" + startMarker + "\"");
-        System.out.println("  End marker                 : \"" + endMarker + "\"");
+        System.out.println("  Existing Java Files (Base)             : " + existingJavaFiles);
+        System.out.println("  Newly Generated Java Files (Features)  : " + generatedJavaFiles);
+        System.out.println("  Output Folder (Merged Codebase)        : " + outputDir);
+        System.out.println("  Start marker                           : \"" + startMarker + "\"");
+        System.out.println("  End marker                             : \"" + endMarker + "\"");
         System.out.println();
 
         List<MergeResult> results;
         if (!oldIsDir) {
             // Merge single files
-            results = mergeSingleFiles(folder2, folder1, outputDir, startMarker, endMarker);
+            results = mergeSingleFiles(generatedJavaFiles, existingJavaFiles, outputDir, startMarker, endMarker);
         } else {
             // Merge directories
-            results = mergeDirectories(folder1, folder2, outputDir, startMarker, endMarker);
+            results = mergeDirectories(existingJavaFiles, generatedJavaFiles, outputDir, startMarker, endMarker);
         }
 
         System.out.println("\nMerge process completed.");
@@ -88,46 +92,46 @@ public class MergeEngine {
         return results;
     }
 
-    private static List<MergeResult> mergeDirectories(Path folder1, Path folder2, Path outputDir, String startMarker, String endMarker) throws IOException {
+    private static List<MergeResult> mergeDirectories(Path existingFolder, Path generatedFolder, Path outputDir, String startMarker, String endMarker) throws IOException {
         List<MergeResult> results = new ArrayList<>();
         Files.createDirectories(outputDir);
 
-        Set<String> files1 = scanRelativeFiles(folder1);
-        Set<String> files2 = scanRelativeFiles(folder2);
+        Set<String> existingFiles = scanRelativeFiles(existingFolder);
+        Set<String> generatedFiles = scanRelativeFiles(generatedFolder);
 
-        Set<String> allRelativeFiles = new TreeSet<>(files1);
-        allRelativeFiles.addAll(files2);
+        Set<String> allRelativeFiles = new TreeSet<>(existingFiles);
+        allRelativeFiles.addAll(generatedFiles);
 
         int mergedCount = 0;
         int copiedCount = 0;
         int addedCount = 0;
 
         for (String rel : allRelativeFiles) {
-            Path file1 = folder1.resolve(rel);
-            Path file2 = folder2.resolve(rel);
+            Path file1 = existingFolder.resolve(rel);
+            Path file2 = generatedFolder.resolve(rel);
             Path destOut = outputDir.resolve(rel);
 
             if (destOut.getParent() != null) {
                 Files.createDirectories(destOut.getParent());
             }
 
-            boolean in1 = files1.contains(rel);
-            boolean in2 = files2.contains(rel);
+            boolean inExisting = existingFiles.contains(rel);
+            boolean inGenerated = generatedFiles.contains(rel);
 
-            if (in1 && !in2) {
-                // File from folder1 does not exist in folder2 -> preserve in output folder
+            if (inExisting && !inGenerated) {
+                // File from existing Java files does not exist in newly generated -> preserve in output folder
                 Files.copy(file1, destOut, StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("  [COPIED]  " + rel + " (present in folder1 only)");
+                System.out.println("  [COPIED]  " + rel + " (present in existing Java files only)");
                 copiedCount++;
-                results.add(new MergeResult(rel, "COPIED", "Present in folder1 only; copied to output folder"));
-            } else if (!in1 && in2) {
-                // File from folder2 does not exist in folder1 -> copy new file to output folder
+                results.add(new MergeResult(rel, "COPIED", "Present in existing Java files only; preserved in output folder"));
+            } else if (!inExisting && inGenerated) {
+                // Newly generated file does not exist in existing Java files -> copy new file to output folder
                 Files.copy(file2, destOut, StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("  [ADDED]   " + rel + " (new file in folder2)");
+                System.out.println("  [ADDED]   " + rel + " (newly generated Java file)");
                 addedCount++;
-                results.add(new MergeResult(rel, "ADDED", "New file in folder2; copied to output folder"));
+                results.add(new MergeResult(rel, "ADDED", "Newly generated file; copied to output folder"));
             } else {
-                // Present in both folder1 and folder2 -> merge marker blocks and write to output folder
+                // Present in both existing and generated -> merge marker blocks and write to output folder
                 try {
                     boolean modified = mergeFileContentsToOutput(file2, file1, destOut, startMarker, endMarker);
                     if (modified) {
@@ -152,6 +156,9 @@ public class MergeEngine {
 
         System.out.printf("Summary: %d files merged, %d files copied/preserved, %d files added to %s%n",
                 mergedCount, copiedCount, addedCount, outputDir);
+        try {
+            com.javalens.parser.ParserUtil.writeReportDataJs("MERGE", outputDir.getFileName().toString(), outputDir);
+        } catch (Exception ignored) {}
         return results;
     }
 

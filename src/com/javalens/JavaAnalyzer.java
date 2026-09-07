@@ -63,22 +63,9 @@ public class JavaAnalyzer {
 
     private static void runAnalyze(Config config) throws Exception {
         Path sourceRoot = Paths.get(config.getSourceFolder()).toAbsolutePath();
-        Path parentOutputDir = Paths.get(config.getOutputDir()).toAbsolutePath();
-        while (parentOutputDir.getFileName() != null && parentOutputDir.getFileName().toString().startsWith("run_")) {
-            parentOutputDir = parentOutputDir.getParent();
-        }
+        Path outputDir = config.createRunFolder();
+        String runFolderName = outputDir.getFileName().toString();
         int  threads    = config.getThreads();
-
-        String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
-                               .format(java.time.LocalDateTime.now());
-        String runFolderName = "run_" + timestamp;
-        Path runFolderPath = parentOutputDir.resolve(runFolderName);
-        Files.createDirectories(runFolderPath);
-
-        // Save active run folder context
-        Config.updateActiveRunFolder(runFolderPath.toString());
-
-        Path outputDir = runFolderPath;
 
         // Walk directory for .java files
         List<Path> javaFiles = new ArrayList<>();

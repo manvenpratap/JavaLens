@@ -170,7 +170,7 @@ public class WebServer {
 
             if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
                 String json = String.format(
-                    "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b}",
+                    "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"existingPath\":\"%s\",\"generatedPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b}",
                     escapeJson(config.getConfigFilePath()),
                     escapeJson(config.getMode().name().toLowerCase()),
                     escapeJson(config.getSourceFolder()),
@@ -180,6 +180,8 @@ public class WebServer {
                     escapeJson(config.getActiveRunFolder()),
                     escapeJson(config.getOldPath()),
                     escapeJson(config.getNewPath()),
+                    escapeJson(config.getExistingPath()),
+                    escapeJson(config.getGeneratedPath()),
                     escapeJson(config.getStartMarker()),
                     escapeJson(config.getEndMarker()),
                     config.isCompareEnabled(),
@@ -208,8 +210,12 @@ public class WebServer {
                 if (params.containsKey("serverPort")) {
                     try { config.setServerPort(Integer.parseInt(params.get("serverPort"))); } catch (Exception ignored) {}
                 }
-                if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
-                if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
+                if (params.containsKey("existingPath")) config.setExistingPath(params.get("existingPath"));
+                else if (params.containsKey("oldPath")) config.setExistingPath(params.get("oldPath"));
+
+                if (params.containsKey("generatedPath")) config.setGeneratedPath(params.get("generatedPath"));
+                else if (params.containsKey("newPath")) config.setGeneratedPath(params.get("newPath"));
+
                 if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
                 if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
                 if (params.containsKey("compareEnabled")) config.setCompareEnabled(Boolean.parseBoolean(params.get("compareEnabled")));
@@ -245,7 +251,7 @@ public class WebServer {
             Config config = new Config();
             config.loadProperties(path.trim());
             String json = String.format(
-                "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b}",
+                "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"existingPath\":\"%s\",\"generatedPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b}",
                 escapeJson(config.getConfigFilePath()),
                 escapeJson(config.getMode().name().toLowerCase()),
                 escapeJson(config.getSourceFolder()),
@@ -255,6 +261,8 @@ public class WebServer {
                 escapeJson(config.getActiveRunFolder()),
                 escapeJson(config.getOldPath()),
                 escapeJson(config.getNewPath()),
+                escapeJson(config.getExistingPath()),
+                escapeJson(config.getGeneratedPath()),
                 escapeJson(config.getStartMarker()),
                 escapeJson(config.getEndMarker()),
                 config.isCompareEnabled(),
@@ -350,8 +358,11 @@ public class WebServer {
             Map<String, String> params = parseBodyParams(exchange);
             Config config = new Config();
             config.load();
-            if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
-            if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
+            if (params.containsKey("existingPath")) config.setExistingPath(params.get("existingPath"));
+            else if (params.containsKey("oldPath")) config.setExistingPath(params.get("oldPath"));
+
+            if (params.containsKey("generatedPath")) config.setGeneratedPath(params.get("generatedPath"));
+            else if (params.containsKey("newPath")) config.setGeneratedPath(params.get("newPath"));
             config.save();
 
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
@@ -389,8 +400,12 @@ public class WebServer {
             Map<String, String> params = parseBodyParams(exchange);
             Config config = new Config();
             config.load();
-            if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
-            if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
+            if (params.containsKey("existingPath")) config.setExistingPath(params.get("existingPath"));
+            else if (params.containsKey("oldPath")) config.setExistingPath(params.get("oldPath"));
+
+            if (params.containsKey("generatedPath")) config.setGeneratedPath(params.get("generatedPath"));
+            else if (params.containsKey("newPath")) config.setGeneratedPath(params.get("newPath"));
+
             if (params.containsKey("outputDir")) config.setOutputDir(params.get("outputDir"));
             if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
             if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
@@ -431,8 +446,12 @@ public class WebServer {
             Map<String, String> params = parseBodyParams(exchange);
             Config config = new Config();
             config.load();
-            if (params.containsKey("oldPath")) config.setOldPath(params.get("oldPath"));
-            if (params.containsKey("newPath")) config.setNewPath(params.get("newPath"));
+            if (params.containsKey("existingPath")) config.setExistingPath(params.get("existingPath"));
+            else if (params.containsKey("oldPath")) config.setExistingPath(params.get("oldPath"));
+
+            if (params.containsKey("generatedPath")) config.setGeneratedPath(params.get("generatedPath"));
+            else if (params.containsKey("newPath")) config.setGeneratedPath(params.get("newPath"));
+
             if (params.containsKey("startMarker")) config.setStartMarker(params.get("startMarker"));
             if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
             if (params.containsKey("outputDir")) config.setOutputDir(params.get("outputDir"));
@@ -625,6 +644,11 @@ public class WebServer {
                 case "xml":
                     targetFileName = "javalens_report.xml";
                     contentType = "application/xml; charset=utf-8";
+                    break;
+                case "xlsx":
+                case "excel":
+                    targetFileName = "javalens_report.xlsx";
+                    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
                     break;
                 case "zip":
                 case "bundle":

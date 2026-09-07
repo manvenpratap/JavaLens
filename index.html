@@ -918,11 +918,11 @@
                         <section class="surface-card p-3 rounded-lg flex flex-col md:flex-row items-center gap-3 justify-between flex-shrink-0">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full md:flex-grow">
                                 <div>
-                                    <label for="compare-base-input" class="font-mono text-[10px] text-zinc-500 uppercase block mb-1">Old / Base Codebase</label>
+                                    <label for="compare-base-input" class="font-mono text-[10px] text-zinc-500 uppercase block mb-1">Existing Java Files (Baseline)</label>
                                     <input id="compare-base-input" class="bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="test_workspace/v1" autocomplete="off">
                                 </div>
                                 <div>
-                                    <label for="compare-feature-input" class="font-mono text-[10px] text-zinc-500 uppercase block mb-1">New / Feature Codebase</label>
+                                    <label for="compare-feature-input" class="font-mono text-[10px] text-zinc-500 uppercase block mb-1">Newly Generated Java Files (With Extra Attributes &amp; Functions)</label>
                                     <input id="compare-feature-input" class="bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="test_workspace/v2" autocomplete="off">
                                 </div>
                             </div>
@@ -1008,7 +1008,7 @@
                             <div class="pb-3 border-b border-zinc-800 mb-5">
                                 <h2 class="font-mono text-lg md:text-xl font-semibold text-zinc-100 tracking-tight">Marker-Guided Code Merge</h2>
                                 <p class="text-xs text-zinc-400 mt-1">
-                                    Read files from two input folders and create the merged versions in the output folder. Files from Folder 1 not in Folder 2 are preserved in the output folder.
+                                    Read files from two input folders (existing and newly generated) and create the merged versions in a date-timed run folder under the output directory. Files from Existing folder not in Newly Generated folder are preserved in the output folder.
                                 </p>
                             </div>
 
@@ -1019,24 +1019,24 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <div class="flex justify-between items-center mb-1">
-                                                <label for="merge-dest" class="font-mono text-xs text-zinc-400 block">Input Folder 1 (Base)</label>
+                                                <label for="merge-dest" class="font-mono text-xs text-zinc-400 block">Existing Java Files Folder (Base)</label>
                                                 <button type="button" onclick="browseForPath('merge-dest')" class="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors">Browse</button>
                                             </div>
                                             <input id="merge-dest" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="samples/v1" autocomplete="off">
                                         </div>
                                         <div>
                                             <div class="flex justify-between items-center mb-1">
-                                                <label for="merge-src" class="font-mono text-xs text-zinc-400 block">Input Folder 2 (With Markers)</label>
+                                                <label for="merge-src" class="font-mono text-xs text-zinc-400 block">Newly Generated Java Files Folder (With Extra Attributes &amp; Functions)</label>
                                                 <button type="button" onclick="browseForPath('merge-src')" class="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors">Browse</button>
                                             </div>
                                             <input id="merge-src" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="samples/v2" autocomplete="off">
                                         </div>
                                         <div>
                                             <div class="flex justify-between items-center mb-1">
-                                                <label for="merge-output" class="font-mono text-xs text-zinc-400 block">Output Folder (Merged)</label>
+                                                <label for="merge-output" class="font-mono text-xs text-zinc-400 block">Base Output Directory</label>
                                                 <button type="button" onclick="browseForPath('merge-output')" class="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors">Browse</button>
                                             </div>
-                                            <input id="merge-output" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="java_analysis_output/merged" autocomplete="off">
+                                            <input id="merge-output" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="java_analysis_output" autocomplete="off">
                                         </div>
                                     </div>
                                 </div>
@@ -1105,7 +1105,7 @@
                             <div class="pb-3 border-b border-zinc-800 mb-5">
                                 <h2 class="font-mono text-lg md:text-xl font-semibold text-zinc-100 tracking-tight">Unified Pipeline Report</h2>
                                 <p class="text-xs text-zinc-400 mt-1">
-                                    Runs the automated sequence — <span class="text-zinc-200">Analyze</span> → <span class="text-zinc-200">Compare</span> → <span class="text-zinc-200">Merge</span> → <span class="text-zinc-200">Report CSV</span>.
+                                    Runs the automated sequence — <span class="text-zinc-200">Analyze Baseline</span> → <span class="text-zinc-200">Analyze Newly Generated</span> → <span class="text-zinc-200">Compare</span> → <span class="text-zinc-200">Merge</span> → <span class="text-zinc-200">CSV Reports</span>. Formats like Excel (.xlsx) are generated on-demand when downloading.
                                 </p>
                             </div>
 
@@ -1113,19 +1113,19 @@
                             <div class="surface-card p-5 rounded-lg space-y-4 mb-5 relative z-30" id="report-config-card">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-mono text-zinc-500 mb-1.5 uppercase tracking-wider" for="report-old-path">Old Version Path</label>
+                                        <label class="block text-xs font-mono text-zinc-500 mb-1.5 uppercase tracking-wider" for="report-old-path">Existing Java Files Path (Baseline)</label>
                                         <div class="flex gap-2">
-                                            <input id="report-old-path" type="text" value="test_workspace/v1" placeholder="/path/to/old/version" class="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:border-zinc-600 outline-none transition-colors" aria-label="Old version path">
-                                            <button onclick="browseForPath('report-old-path')" class="px-2.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-zinc-300 transition-colors cursor-pointer" aria-label="Browse for old path" title="Browse folder">
+                                            <input id="report-old-path" type="text" value="test_workspace/v1" placeholder="/path/to/existing/version" class="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:border-zinc-600 outline-none transition-colors" aria-label="Existing Java files path">
+                                            <button onclick="browseForPath('report-old-path')" class="px-2.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-zinc-300 transition-colors cursor-pointer" aria-label="Browse for existing path" title="Browse folder">
                                                 <span class="material-symbols-outlined text-sm">folder_open</span>
                                             </button>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-mono text-zinc-500 mb-1.5 uppercase tracking-wider" for="report-new-path">New Version Path</label>
+                                        <label class="block text-xs font-mono text-zinc-500 mb-1.5 uppercase tracking-wider" for="report-new-path">Newly Generated Java Files Path (With Extra Attributes &amp; Functions)</label>
                                         <div class="flex gap-2">
-                                            <input id="report-new-path" type="text" value="test_workspace/v2" placeholder="/path/to/new/version" class="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:border-zinc-600 outline-none transition-colors" aria-label="New version path">
-                                            <button onclick="browseForPath('report-new-path')" class="px-2.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-zinc-300 transition-colors cursor-pointer" aria-label="Browse for new path" title="Browse folder">
+                                            <input id="report-new-path" type="text" value="test_workspace/v2" placeholder="/path/to/generated/version" class="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:border-zinc-600 outline-none transition-colors" aria-label="Newly generated Java files path">
+                                            <button onclick="browseForPath('report-new-path')" class="px-2.5 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-800 rounded text-zinc-300 transition-colors cursor-pointer" aria-label="Browse for generated path" title="Browse folder">
                                                 <span class="material-symbols-outlined text-sm">folder_open</span>
                                             </button>
                                         </div>
@@ -1168,6 +1168,13 @@
                                                     <div>
                                                         <div class="font-medium text-zinc-100">Spreadsheet (.csv)</div>
                                                         <div class="text-[10px] text-zinc-500">13-column tabular analysis</div>
+                                                    </div>
+                                                </button>
+                                                <button onclick="downloadReportFormat('xlsx')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-teal-950/60 text-teal-400 border border-teal-500/30 font-bold group-hover:border-teal-400">XLSX</span>
+                                                    <div>
+                                                        <div class="font-medium text-zinc-100">Excel Workbook (.xlsx)</div>
+                                                        <div class="text-[10px] text-zinc-500">Multi-sheet styled spreadsheet</div>
                                                     </div>
                                                 </button>
                                                 <button onclick="downloadReportFormat('json')" class="w-full text-left px-3.5 py-2 text-xs font-mono text-zinc-200 hover:bg-purple-950/40 hover:text-purple-300 flex items-center gap-2.5 transition-colors cursor-pointer group">
@@ -1366,19 +1373,19 @@
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label for="settings-old-path" class="font-mono text-xs text-zinc-500 block mb-1">Baseline Old Path</label>
-                                            <input id="settings-old-path" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" placeholder="e.g. /path/to/v1" autocomplete="off">
+                                            <label for="settings-old-path" class="font-mono text-xs text-zinc-500 block mb-1">Existing Java Files Path (Baseline)</label>
+                                            <input id="settings-old-path" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" placeholder="e.g. /path/to/existing/v1" autocomplete="off">
                                         </div>
 
                                         <div>
-                                            <label for="settings-new-path" class="font-mono text-xs text-zinc-500 block mb-1">Feature New Path</label>
-                                            <input id="settings-new-path" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" placeholder="e.g. /path/to/v2" autocomplete="off">
+                                            <label for="settings-new-path" class="font-mono text-xs text-zinc-500 block mb-1">Newly Generated Java Files Path (With Extra Attributes &amp; Functions)</label>
+                                            <input id="settings-new-path" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" placeholder="e.g. /path/to/generated/v2" autocomplete="off">
                                         </div>
                                     </div>
 
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <div>
-                                            <label for="settings-output-dir" class="font-mono text-xs text-zinc-500 block mb-1">Output Directory</label>
+                                            <label for="settings-output-dir" class="font-mono text-xs text-zinc-500 block mb-1">Base Output Directory</label>
                                             <input id="settings-output-dir" class="bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-200 font-mono text-xs focus:outline-none focus:border-zinc-600 w-full" type="text" value="java_analysis_output" autocomplete="off">
                                         </div>
 
@@ -2949,25 +2956,27 @@
                 if (em) em.value = config.endMarker;
                 if (me) me.value = config.endMarker;
             }
-            if (config.oldPath) {
+            const existingPathVal = config.existingPath || config.oldPath;
+            if (existingPathVal) {
                 const so = document.getElementById('settings-old-path');
                 const ro = document.getElementById('report-old-path');
                 const cb = document.getElementById('compare-base-input');
                 const md = document.getElementById('merge-dest');
-                if (so) so.value = config.oldPath;
-                if (ro) ro.value = config.oldPath;
-                if (cb) cb.value = config.oldPath;
-                if (md) md.value = config.oldPath;
+                if (so) so.value = existingPathVal;
+                if (ro) ro.value = existingPathVal;
+                if (cb) cb.value = existingPathVal;
+                if (md) md.value = existingPathVal;
             }
-            if (config.newPath) {
+            const generatedPathVal = config.generatedPath || config.newPath;
+            if (generatedPathVal) {
                 const sn = document.getElementById('settings-new-path');
                 const rn = document.getElementById('report-new-path');
                 const cf = document.getElementById('compare-feature-input');
                 const ms = document.getElementById('merge-src');
-                if (sn) sn.value = config.newPath;
-                if (rn) rn.value = config.newPath;
-                if (cf) cf.value = config.newPath;
-                if (ms) ms.value = config.newPath;
+                if (sn) sn.value = generatedPathVal;
+                if (rn) rn.value = generatedPathVal;
+                if (cf) cf.value = generatedPathVal;
+                if (ms) ms.value = generatedPathVal;
             }
             if (typeof config.compareEnabled === 'boolean') {
                 const ce = document.getElementById('settings-compare-enabled');
@@ -2999,6 +3008,8 @@
                     configFilePath: confPath,
                     mode: mode,
                     sourceFolder: srcDir,
+                    existingPath: oldPath,
+                    generatedPath: newPath,
                     oldPath: oldPath,
                     newPath: newPath,
                     outputDir: outDir,
@@ -3125,7 +3136,7 @@
             logToTerminal(`[SYS] Comparing AST versions: ${baseDir} <-> ${featDir}`, "text-zinc-300");
             runRealApiStream(
                 '/api/compare',
-                `oldPath=${encodeURIComponent(baseDir)}&newPath=${encodeURIComponent(featDir)}`,
+                `existingPath=${encodeURIComponent(baseDir)}&generatedPath=${encodeURIComponent(featDir)}&oldPath=${encodeURIComponent(baseDir)}&newPath=${encodeURIComponent(featDir)}`,
                 (line) => logToTerminal(line, "text-zinc-300"),
                 (success) => {
                     if (success) {
@@ -3139,7 +3150,7 @@
         function triggerMerge() {
             const folder1 = document.getElementById('merge-dest')?.value.trim() || 'samples/v1';
             const folder2 = document.getElementById('merge-src')?.value.trim() || 'samples/v2';
-            const outputDir = document.getElementById('merge-output')?.value.trim() || 'java_analysis_output/merged';
+            const outputDir = document.getElementById('merge-output')?.value.trim() || 'java_analysis_output';
             const sm = document.getElementById('merge-start-marker')?.value || '// START_MERGE';
             const em = document.getElementById('merge-end-marker')?.value || '// END_MERGE';
 
@@ -3164,7 +3175,7 @@
 
             runRealApiStream(
                 '/api/merge',
-                `oldPath=${encodeURIComponent(folder1)}&newPath=${encodeURIComponent(folder2)}&outputDir=${encodeURIComponent(outputDir)}&startMarker=${encodeURIComponent(sm)}&endMarker=${encodeURIComponent(em)}`,
+                `existingPath=${encodeURIComponent(folder1)}&generatedPath=${encodeURIComponent(folder2)}&oldPath=${encodeURIComponent(folder1)}&newPath=${encodeURIComponent(folder2)}&outputDir=${encodeURIComponent(outputDir)}&startMarker=${encodeURIComponent(sm)}&endMarker=${encodeURIComponent(em)}`,
                 (line) => logToTerminal(line, "text-zinc-300"),
                 (success) => {
                     if (btn) {
@@ -3257,7 +3268,7 @@
 
             runRealApiStream(
                 '/api/generate-report',
-                `oldPath=${encodeURIComponent(oldPath)}&newPath=${encodeURIComponent(newPath)}`,
+                `existingPath=${encodeURIComponent(oldPath)}&generatedPath=${encodeURIComponent(newPath)}&oldPath=${encodeURIComponent(oldPath)}&newPath=${encodeURIComponent(newPath)}`,
                 (line) => logReport(line),
                 (success) => {
                     clearInterval(reportTimerInterval);
