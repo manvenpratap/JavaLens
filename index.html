@@ -3275,34 +3275,52 @@
             }
         });
 
-        async function downloadReportFormat(format) {
+        function downloadReportFormat(format) {
             document.getElementById('report-download-menu')?.classList.add('hidden');
             const chevron = document.getElementById('report-download-chevron');
             if (chevron) chevron.textContent = 'expand_more';
 
             const fmt = (format || 'csv').toLowerCase();
 
-            try {
-                const res = await fetch(`/api/report-download?format=${encodeURIComponent(fmt)}`);
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    const ext = fmt === 'zip' ? 'zip' : (fmt === 'markdown' ? 'md' : fmt);
-                    a.download = fmt === 'zip' ? 'javalens_report_bundle.zip' : `javalens_report.${ext}`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                    showToast(`Downloaded unified report (${fmt.toUpperCase()})`, 'success');
-                    return;
+            if (window.location.protocol.startsWith('http')) {
+                const downloadUrl = `/api/report-download?format=${encodeURIComponent(fmt)}`;
+
+                // 1. Primary: Off-screen anchor element click (avoids display:none click-suppression)
+                const ext = fmt === 'zip' ? 'zip' : (fmt === 'markdown' ? 'md' : fmt);
+                const filename = fmt === 'zip' ? 'javalens_report_bundle.zip' : `javalens_report.${ext}`;
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename;
+                a.style.position = 'fixed';
+                a.style.left = '-9999px';
+                a.style.top = '-9999px';
+                a.style.opacity = '0';
+                a.style.pointerEvents = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+
+                // 2. Secondary fallback: Hidden iframe (triggers attachment download without leaving page)
+                let dlIframe = document.getElementById('report-download-iframe');
+                if (!dlIframe) {
+                    dlIframe = document.createElement('iframe');
+                    dlIframe.id = 'report-download-iframe';
+                    dlIframe.style.position = 'fixed';
+                    dlIframe.style.left = '-9999px';
+                    dlIframe.style.top = '-9999px';
+                    dlIframe.style.width = '1px';
+                    dlIframe.style.height = '1px';
+                    dlIframe.style.opacity = '0';
+                    dlIframe.style.border = 'none';
+                    document.body.appendChild(dlIframe);
                 }
-            } catch (e) {
-                console.warn("Server report download failed, falling back to client-side exporter", e);
+                dlIframe.src = downloadUrl;
+
+                showToast(`Downloading unified report (${fmt.toUpperCase()})…`, 'success');
+                return;
             }
 
-            // Client-side export fallback
+            // Client-side export fallback (for file:// protocol or offline mode)
             exportReportDataClientSide(fmt);
         }
 

@@ -461,6 +461,59 @@ public class WebServer {
         }
     }
 
+    private static Path resolveActiveRunDir() {
+        Config config = new Config();
+        config.load();
+        String activeFolder = config.getActiveRunFolder();
+
+        // 1. Direct active folder
+        if (activeFolder != null && !activeFolder.trim().isEmpty()) {
+            Path candidate = Paths.get(activeFolder.trim());
+            if (Files.exists(candidate) && Files.isDirectory(candidate)) {
+                return candidate;
+            }
+        }
+
+        // 2. outputDir directory itself (if it contains report files) or its run_* subfolders
+        String outDirStr = config.getOutputDir();
+        if (outDirStr != null && !outDirStr.trim().isEmpty()) {
+            Path baseOut = Paths.get(outDirStr.trim());
+            if (Files.exists(baseOut) && Files.isDirectory(baseOut)) {
+                if (Files.exists(baseOut.resolve("javalens_report.csv"))) {
+                    return baseOut;
+                }
+                try (var stream = Files.list(baseOut)) {
+                    Path latest = stream.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("run_"))
+                                        .max(Comparator.comparing(p -> p.getFileName().toString()))
+                                        .orElse(null);
+                    if (latest != null) return latest;
+                } catch (Exception ignored) {}
+            }
+            if (baseOut.getParent() != null && Files.exists(baseOut.getParent()) && Files.isDirectory(baseOut.getParent())) {
+                try (var stream = Files.list(baseOut.getParent())) {
+                    Path latest = stream.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("run_"))
+                                        .max(Comparator.comparing(p -> p.getFileName().toString()))
+                                        .orElse(null);
+                    if (latest != null) return latest;
+                } catch (Exception ignored) {}
+            }
+        }
+
+        // 3. Fallback discovery in standard locations
+        for (String fallback : new String[]{"test_out/report_out", "test_out", "out", "."}) {
+            Path fb = Paths.get(fallback);
+            if (Files.exists(fb) && Files.isDirectory(fb)) {
+                try (var stream = Files.walk(fb, 2)) {
+                    Path latest = stream.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("run_") && Files.exists(p.resolve("javalens_report.csv")))
+                                        .max(Comparator.comparing(p -> p.getFileName().toString()))
+                                        .orElse(null);
+                    if (latest != null) return latest;
+                } catch (Exception ignored) {}
+            }
+        }
+        return null;
+    }
+
     private static class ReportCsvHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -469,19 +522,9 @@ public class WebServer {
                 return;
             }
 
-            Config config = new Config();
-            config.load();
-            String activeFolder = config.getActiveRunFolder();
-
-            Path reportCsv = null;
-            if (!activeFolder.isEmpty()) {
-                Path candidate = Paths.get(activeFolder).resolve("javalens_report.csv");
-                if (Files.exists(candidate)) {
-                    reportCsv = candidate;
-                }
-            }
-
-            if (reportCsv == null) {
+            Path runDir = resolveActiveRunDir();
+            Path reportCsv = runDir != null ? runDir.resolve("javalens_report.csv") : null;
+            if (reportCsv == null || !Files.exists(reportCsv)) {
                 sendTextResponse(exchange, 404, "No report CSV found. Run Generate Report first.");
                 return;
             }
@@ -499,7 +542,8 @@ public class WebServer {
     private static class ReportDownloadHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            String method = exchange.getRequestMethod().toUpperCase();
+            if (!"GET".equals(method) && !"HEAD".equals(method)) {
                 exchange.sendResponseHeaders(405, -1);
                 return;
             }
@@ -515,29 +559,7 @@ public class WebServer {
                 }
             }
 
-            Config config = new Config();
-            config.load();
-            String activeFolder = config.getActiveRunFolder();
-
-            // Locate active run folder or fallback to newest run_ folder in outputDir
-            Path runDir = null;
-            if (activeFolder != null && !activeFolder.isEmpty()) {
-                Path candidate = Paths.get(activeFolder);
-                if (Files.exists(candidate) && Files.isDirectory(candidate)) {
-                    runDir = candidate;
-                }
-            }
-            if (runDir == null) {
-                Path baseOut = Paths.get(config.getOutputDir());
-                if (Files.exists(baseOut)) {
-                    try (var stream = Files.list(baseOut)) {
-                        runDir = stream.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("run_"))
-                                       .max(Comparator.comparing(p -> p.getFileName().toString()))
-                                       .orElse(null);
-                    } catch (Exception ignored) {}
-                }
-            }
-
+            Path runDir = resolveActiveRunDir();
             if (runDir == null) {
                 sendTextResponse(exchange, 404, "No report run directory found. Please run Generate Report first.");
                 return;
@@ -585,10 +607,15 @@ public class WebServer {
             byte[] content = Files.readAllBytes(targetFile);
             exchange.getResponseHeaders().set("Content-Type", contentType);
             exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"" + targetFileName + "\"");
-            exchange.sendResponseHeaders(200, content.length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(content);
-            os.close();
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            if ("HEAD".equals(method)) {
+                exchange.sendResponseHeaders(200, -1);
+            } else {
+                exchange.sendResponseHeaders(200, content.length);
+                OutputStream os = exchange.getResponseBody();
+                os.write(content);
+                os.close();
+            }
         }
     }
 
