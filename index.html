@@ -750,7 +750,7 @@
                         <section class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-2 border-b border-zinc-800 flex-shrink-0">
                             <div>
                                 <div class="flex items-center gap-2 text-xs font-mono text-zinc-500 mb-0.5">
-                                    <span id="analysis-pkg-label">com.javalens</span>
+                                    <span id="analysis-pkg-label">—</span>
                                     <span class="text-zinc-700">/</span>
                                     <span class="text-zinc-200 font-semibold" id="analysis-file-header">—</span>
                                 </div>
@@ -866,7 +866,7 @@
                                     <div class="px-4 py-2 bg-zinc-925 border-b border-zinc-800/80 flex items-center justify-between flex-shrink-0">
                                         <div class="flex items-center gap-2.5">
                                             <span class="material-symbols-outlined text-sky-400 text-sm" aria-hidden="true">description</span>
-                                            <span id="source-view-filename" class="text-zinc-100 font-semibold text-xs">MyClass.java</span>
+                                            <span id="source-view-filename" class="text-zinc-100 font-semibold text-xs">—</span>
                                             <span id="source-view-lines-count" class="text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded font-mono">0 lines</span>
                                             <span id="source-view-origin-badge" class="text-[10px] text-emerald-300 bg-emerald-950/70 border border-emerald-700/60 px-2 py-0.5 rounded font-mono font-medium">Live Source</span>
                                         </div>
@@ -901,7 +901,7 @@
                                 <div class="flex items-center gap-2 text-xs font-mono text-zinc-500 mb-0.5">
                                     <span class="bg-zinc-900 px-2 py-0.5 rounded text-zinc-300 font-medium border border-zinc-800">AST COMPARATOR</span>
                                     <span class="text-zinc-700">/</span>
-                                    <span id="compare-file-header-label" class="text-zinc-200 font-mono font-semibold">MyClass.java</span>
+                                    <span id="compare-file-header-label" class="text-zinc-200 font-mono font-semibold">—</span>
                                 </div>
                                 <h2 class="font-mono text-lg font-semibold text-zinc-100 tracking-tight">AST Semantic Delta Comparator</h2>
                             </div>
@@ -2397,261 +2397,194 @@
             }
         }
 
-        // 7. AST Delta Comparison & Side-by-Side Diff Inspector
-        const diffData = {
-            'MyClass.java': {
-                baseHeader: 'base / MyClass.java (v1)',
-                compareHeader: 'compare / MyClass.java (v2)',
-                addedField: 'email',
-                addedMarker: '// START_MERGE block',
-                modMethod: 'printInfo()',
-                modNote: 'Parameters intact, body updated',
-                baseLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class MyClass {' },
-                    { type: 'normal', lineNum: 4, content: '    private String name;' },
-                    { type: 'normal', lineNum: 5, content: '    private int age;' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 6, content: '' },
-                    { type: 'normal', lineNum: 7, content: '    public MyClass() {}' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 8, content: '' },
-                    { type: 'normal', lineNum: 9, content: '    public void printInfo() {' },
-                    { type: 'normal', lineNum: 10, content: '        System.out.println(name + ": " + age);' },
-                    { type: 'normal', lineNum: 11, content: '    }' },
-                    { type: 'normal', lineNum: 12, content: '}' }
-                ],
-                compareLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class MyClass {' },
-                    { type: 'normal', lineNum: 4, content: '    private String name;' },
-                    { type: 'normal', lineNum: 5, content: '    private int age;' },
-                    { type: 'added', lineNum: 6, content: '    private String email; // ADDED' },
-                    { type: 'normal', lineNum: 7, content: '' },
-                    { type: 'normal', lineNum: 8, content: '    public MyClass() {}' },
-                    { type: 'added', lineNum: 9, content: '    // START_MERGE: Enhanced Telemetry' },
-                    { type: 'normal', lineNum: 10, content: '' },
-                    { type: 'normal', lineNum: 11, content: '    public void printInfo() {' },
-                    { type: 'modified', lineNum: 12, content: '        System.out.println(name + ": " + age + " (" + email + ")");' },
-                    { type: 'normal', lineNum: 13, content: '    }' },
-                    { type: 'added', lineNum: 14, content: '    // END_MERGE: Enhanced Telemetry' },
-                    { type: 'normal', lineNum: 15, content: '}' }
-                ],
-                added: 3,
-                modified: 1,
-                removed: 0
-            },
-            'OrderService.java': {
-                baseHeader: 'base / OrderService.java (v1)',
-                compareHeader: 'compare / OrderService.java (v2)',
-                addedField: 'fraudCheckEnabled, currencyCode',
-                addedMarker: '// START_MERGE: verifyFraudScore()',
-                modMethod: 'processOrder()',
-                modNote: 'Fraud verification guard injected',
-                baseLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class OrderService {' },
-                    { type: 'normal', lineNum: 4, content: '    private String serviceId;' },
-                    { type: 'normal', lineNum: 5, content: '    private boolean active;' },
-                    { type: 'normal', lineNum: 6, content: '    private double taxRate;' },
-                    { type: 'spacer', content: '' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 7, content: '' },
-                    { type: 'normal', lineNum: 8, content: '    public OrderService(String serviceId, double taxRate) { ... }' },
-                    { type: 'normal', lineNum: 9, content: '    public boolean isServiceAvailable() { return this.active; }' },
-                    { type: 'normal', lineNum: 10, content: '    public double calculateTotal(double baseAmount, int quantity) { ... }' },
-                    { type: 'normal', lineNum: 11, content: '' },
-                    { type: 'normal', lineNum: 12, content: '    public void processOrder(String orderId, String customerId, double amount) {' },
-                    { type: 'normal', lineNum: 13, content: '        System.out.println("Processing order " + orderId + " for customer " + customerId + ": $" + amount);' },
-                    { type: 'normal', lineNum: 14, content: '    }' },
-                    { type: 'spacer', content: '' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 15, content: '    public String getServiceStatus() { return active ? "ONLINE" : "OFFLINE"; }' },
-                    { type: 'normal', lineNum: 16, content: '}' }
-                ],
-                compareLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class OrderService {' },
-                    { type: 'normal', lineNum: 4, content: '    private String serviceId;' },
-                    { type: 'normal', lineNum: 5, content: '    private boolean active;' },
-                    { type: 'normal', lineNum: 6, content: '    private double taxRate;' },
-                    { type: 'added', lineNum: 7, content: '    private boolean fraudCheckEnabled; // ADDED' },
-                    { type: 'added', lineNum: 8, content: '    private String currencyCode; // ADDED' },
-                    { type: 'normal', lineNum: 9, content: '' },
-                    { type: 'normal', lineNum: 10, content: '    public OrderService(String serviceId, double taxRate) { ... }' },
-                    { type: 'normal', lineNum: 11, content: '    public boolean isServiceAvailable() { return this.active; }' },
-                    { type: 'normal', lineNum: 12, content: '    public double calculateTotal(double baseAmount, int quantity) { ... }' },
-                    { type: 'normal', lineNum: 13, content: '' },
-                    { type: 'normal', lineNum: 14, content: '    public void processOrder(String orderId, String customerId, double amount) {' },
-                    { type: 'modified', lineNum: 15, content: '        if (this.fraudCheckEnabled && !verifyFraudScore(customerId, amount)) return;' },
-                    { type: 'normal', lineNum: 16, content: '        System.out.println("Processing order " + orderId + " [" + currencyCode + "] for customer " + customerId + ": $" + amount);' },
-                    { type: 'normal', lineNum: 17, content: '    }' },
-                    { type: 'added', lineNum: 18, content: '    public boolean verifyFraudScore(String customerId, double amount) { return amount < 10000.0; }' },
-                    { type: 'normal', lineNum: 19, content: '    public String getServiceStatus() { return active ? "ONLINE" : "OFFLINE"; }' },
-                    { type: 'normal', lineNum: 20, content: '}' }
-                ],
-                added: 3,
-                modified: 1,
-                removed: 0
-            },
-            'UserAccount.java': {
-                baseHeader: 'base / UserAccount.java (v1)',
-                compareHeader: 'compare / UserAccount.java (v2)',
-                addedField: 'mfaSecret, mfaActive',
-                addedMarker: '// START_MERGE: validateMfaCode()',
-                modMethod: 'markVerified()',
-                modNote: 'MFA readiness telemetry injected',
-                baseLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class UserAccount {' },
-                    { type: 'normal', lineNum: 4, content: '    private long id;' },
-                    { type: 'normal', lineNum: 5, content: '    private String username;' },
-                    { type: 'normal', lineNum: 6, content: '    private String email;' },
-                    { type: 'normal', lineNum: 7, content: '    private boolean verified;' },
-                    { type: 'normal', lineNum: 8, content: '    private String role;' },
-                    { type: 'spacer', content: '' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 9, content: '    public UserAccount(long id, String username, String email) { ... }' },
-                    { type: 'normal', lineNum: 10, content: '    public long getId() { return this.id; }' },
-                    { type: 'normal', lineNum: 11, content: '    public String getUsername() { return this.username; }' },
-                    { type: 'normal', lineNum: 12, content: '    public void markVerified() {' },
-                    { type: 'normal', lineNum: 13, content: '        this.verified = true;' },
-                    { type: 'normal', lineNum: 14, content: '    }' },
-                    { type: 'spacer', content: '' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 15, content: '    public String getDisplayName() { return this.username + " <" + this.email + ">"; }' },
-                    { type: 'normal', lineNum: 16, content: '}' }
-                ],
-                compareLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class UserAccount {' },
-                    { type: 'normal', lineNum: 4, content: '    private long id;' },
-                    { type: 'normal', lineNum: 5, content: '    private String username;' },
-                    { type: 'normal', lineNum: 6, content: '    private String email;' },
-                    { type: 'normal', lineNum: 7, content: '    private boolean verified;' },
-                    { type: 'normal', lineNum: 8, content: '    private String role;' },
-                    { type: 'added', lineNum: 9, content: '    private String mfaSecret; // ADDED' },
-                    { type: 'added', lineNum: 10, content: '    private boolean mfaActive; // ADDED' },
-                    { type: 'normal', lineNum: 11, content: '    public UserAccount(long id, String username, String email) { ... }' },
-                    { type: 'normal', lineNum: 12, content: '    public long getId() { return this.id; }' },
-                    { type: 'normal', lineNum: 13, content: '    public String getUsername() { return this.username; }' },
-                    { type: 'normal', lineNum: 14, content: '    public void markVerified() {' },
-                    { type: 'modified', lineNum: 15, content: '        this.verified = true; System.out.println("Verified. MFA ready: " + mfaActive);' },
-                    { type: 'normal', lineNum: 16, content: '    }' },
-                    { type: 'added', lineNum: 17, content: '    public void enableMfa(String secret) { this.mfaSecret = secret; this.mfaActive = true; }' },
-                    { type: 'added', lineNum: 18, content: '    public boolean validateMfaCode(String inputCode) { return this.mfaActive && inputCode != null; }' },
-                    { type: 'normal', lineNum: 19, content: '    public String getDisplayName() { return this.username + " <" + this.email + ">"; }' },
-                    { type: 'normal', lineNum: 20, content: '}' }
-                ],
-                added: 4,
-                modified: 1,
-                removed: 0
-            },
-            'PaymentGateway.java': {
-                baseHeader: 'base / PaymentGateway.java (v1)',
-                compareHeader: 'compare / PaymentGateway.java (v2)',
-                addedField: 'webhookEndpoint, idempotencyEnabled',
-                addedMarker: '// START_MERGE: dispatchWebhook()',
-                modMethod: 'charge()',
-                modNote: 'Idempotency verification & webhook dispatch',
-                baseLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class PaymentGateway {' },
-                    { type: 'normal', lineNum: 4, content: '    public static final int DEFAULT_TIMEOUT_MS = 5000;' },
-                    { type: 'normal', lineNum: 5, content: '    private String merchantKey;' },
-                    { type: 'normal', lineNum: 6, content: '    private int retryAttempts;' },
-                    { type: 'spacer', content: '' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 7, content: '    public PaymentGateway(String merchantKey) { ... }' },
-                    { type: 'normal', lineNum: 8, content: '    public boolean charge(String customerId, double amount) {' },
-                    { type: 'normal', lineNum: 9, content: '        System.out.println("Executing baseline charge: $" + amount + " for " + customerId);' },
-                    { type: 'normal', lineNum: 10, content: '        return amount > 0;' },
-                    { type: 'normal', lineNum: 11, content: '    }' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 12, content: '    public boolean refund(String transactionId, double amount) { ... }' },
-                    { type: 'normal', lineNum: 13, content: '}' }
-                ],
-                compareLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class PaymentGateway {' },
-                    { type: 'normal', lineNum: 4, content: '    public static final int DEFAULT_TIMEOUT_MS = 5000;' },
-                    { type: 'normal', lineNum: 5, content: '    private String merchantKey;' },
-                    { type: 'normal', lineNum: 6, content: '    private int retryAttempts;' },
-                    { type: 'added', lineNum: 7, content: '    private String webhookEndpoint; // ADDED' },
-                    { type: 'added', lineNum: 8, content: '    private boolean idempotencyEnabled; // ADDED' },
-                    { type: 'normal', lineNum: 9, content: '    public PaymentGateway(String merchantKey) { ... }' },
-                    { type: 'normal', lineNum: 10, content: '    public boolean charge(String customerId, double amount) {' },
-                    { type: 'modified', lineNum: 11, content: '        if (idempotencyEnabled) System.out.println("Idempotent token verified for " + customerId);' },
-                    { type: 'normal', lineNum: 12, content: '        dispatchWebhook("EVT_CHARGE", customerId + ":" + amount);' },
-                    { type: 'normal', lineNum: 13, content: '        return amount > 0;' },
-                    { type: 'normal', lineNum: 14, content: '    }' },
-                    { type: 'added', lineNum: 15, content: '    public String dispatchWebhook(String eventId, String payload) { return "DISPATCHED:" + eventId; }' },
-                    { type: 'normal', lineNum: 16, content: '    public boolean refund(String transactionId, double amount) { ... }' },
-                    { type: 'normal', lineNum: 17, content: '}' }
-                ],
-                added: 3,
-                modified: 1,
-                removed: 0
-            },
-            'CacheManager.java': {
-                baseHeader: 'base / CacheManager.java (v1)',
-                compareHeader: 'compare / CacheManager.java (v2)',
-                addedField: 'defaultTtlMillis, evictionWorkerRunning',
-                addedMarker: '// START_MERGE: isExpired(), getDefaultTtl()',
-                modMethod: 'put()',
-                modNote: 'TTL expiration timestamp calculation',
-                baseLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class CacheManager {' },
-                    { type: 'normal', lineNum: 4, content: '    public static final int MAX_ENTRIES = 1000;' },
-                    { type: 'normal', lineNum: 5, content: '    private int cacheSize;' },
-                    { type: 'normal', lineNum: 6, content: '    private boolean compressionEnabled;' },
-                    { type: 'spacer', content: '' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 7, content: '    public CacheManager(int cacheSize) { ... }' },
-                    { type: 'normal', lineNum: 8, content: '    public String get(String key) { return "val_" + key; }' },
-                    { type: 'normal', lineNum: 9, content: '    public void put(String key, String value) {' },
-                    { type: 'normal', lineNum: 10, content: '        System.out.println("Storing entry: " + key + " => " + value);' },
-                    { type: 'normal', lineNum: 11, content: '    }' },
-                    { type: 'spacer', content: '' },
-                    { type: 'normal', lineNum: 12, content: '    public void evict(String key) { ... }' },
-                    { type: 'normal', lineNum: 13, content: '    public int size() { return this.cacheSize; }' },
-                    { type: 'normal', lineNum: 14, content: '}' }
-                ],
-                compareLines: [
-                    { type: 'normal', lineNum: 1, content: 'package com.example;' },
-                    { type: 'normal', lineNum: 2, content: '' },
-                    { type: 'normal', lineNum: 3, content: 'public class CacheManager {' },
-                    { type: 'normal', lineNum: 4, content: '    public static final int MAX_ENTRIES = 1000;' },
-                    { type: 'normal', lineNum: 5, content: '    private int cacheSize;' },
-                    { type: 'normal', lineNum: 6, content: '    private boolean compressionEnabled;' },
-                    { type: 'added', lineNum: 7, content: '    private long defaultTtlMillis; // ADDED' },
-                    { type: 'added', lineNum: 8, content: '    private boolean evictionWorkerRunning; // ADDED' },
-                    { type: 'normal', lineNum: 9, content: '    public CacheManager(int cacheSize) { ... }' },
-                    { type: 'normal', lineNum: 10, content: '    public String get(String key) { return "val_" + key; }' },
-                    { type: 'normal', lineNum: 11, content: '    public void put(String key, String value) {' },
-                    { type: 'modified', lineNum: 12, content: '        long expireAt = System.currentTimeMillis() + this.defaultTtlMillis;' },
-                    { type: 'normal', lineNum: 13, content: '        System.out.println("Storing with TTL: " + key + " (expires: " + expireAt + ")");' },
-                    { type: 'normal', lineNum: 14, content: '    }' },
-                    { type: 'added', lineNum: 15, content: '    public boolean isExpired(String key, long currentTimestamp) { return currentTimestamp > System.currentTimeMillis(); }' },
-                    { type: 'normal', lineNum: 16, content: '    public void evict(String key) { ... }' },
-                    { type: 'normal', lineNum: 17, content: '    public int size() { return this.cacheSize; }' },
-                    { type: 'normal', lineNum: 18, content: '}' }
-                ],
-                added: 3,
-                modified: 1,
-                removed: 0
+        // 7. Dynamic AST Delta Comparison & Side-by-Side Diff Inspector
+        function getFileDiffData(fileName) {
+            const report = window.javaLensReportData || {};
+            const attrs = (report.compare_attributes || []).filter(a => {
+                if (!a.file) return false;
+                const b = a.file.replace(/\\/g, '/').split('/').pop();
+                return b === fileName;
+            });
+            const methods = (report.compare_methods || []).filter(m => {
+                if (!m.file) return false;
+                const b = m.file.replace(/\\/g, '/').split('/').pop();
+                return b === fileName;
+            });
+
+            if (attrs.length === 0 && methods.length === 0) {
+                return null;
             }
-        };
+
+            const firstItem = attrs[0] || methods[0];
+            const pkgName = firstItem.package || '';
+            const fullClass = firstItem.class || fileName.replace(/\.java$/, '');
+            const simpleClassName = fullClass.includes('.') ? fullClass.substring(fullClass.lastIndexOf('.') + 1) : fullClass;
+
+            const baseLines = [];
+            const compareLines = [];
+
+            let lineNumBase = 1;
+            let lineNumComp = 1;
+
+            if (pkgName && pkgName !== 'default') {
+                baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: `package ${pkgName};` });
+                compareLines.push({ type: 'normal', lineNum: lineNumComp++, content: `package ${pkgName};` });
+                baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: '' });
+                compareLines.push({ type: 'normal', lineNum: lineNumComp++, content: '' });
+            }
+
+            baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: `public class ${simpleClassName} {` });
+            compareLines.push({ type: 'normal', lineNum: lineNumComp++, content: `public class ${simpleClassName} {` });
+
+            let addedCount = 0;
+            let modCount = 0;
+            let removedCount = 0;
+            const addedFieldNames = [];
+            const modMethodNames = [];
+
+            // Process attributes
+            attrs.forEach(attr => {
+                const name = attr.attribute_name;
+                const st = attr.status;
+                if (st === 'UNCHANGED') {
+                    const mods = attr.modifiers_old ? attr.modifiers_old + ' ' : '';
+                    const init = attr.initializer_old ? ` = ${attr.initializer_old}` : '';
+                    const decl = `    ${mods}${attr.attribute_type_old} ${name}${init};`;
+                    baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: decl });
+                    compareLines.push({ type: 'normal', lineNum: lineNumComp++, content: decl });
+                } else if (st === 'ADDED') {
+                    addedCount++;
+                    addedFieldNames.push(name);
+                    const mods = attr.modifiers_new ? attr.modifiers_new + ' ' : '';
+                    const init = attr.initializer_new ? ` = ${attr.initializer_new}` : '';
+                    const decl = `    ${mods}${attr.attribute_type_new} ${name}${init}; // ADDED`;
+                    baseLines.push({ type: 'spacer', content: '' });
+                    compareLines.push({ type: 'added', lineNum: lineNumComp++, content: decl });
+                } else if (st === 'REMOVED') {
+                    removedCount++;
+                    const mods = attr.modifiers_old ? attr.modifiers_old + ' ' : '';
+                    const init = attr.initializer_old ? ` = ${attr.initializer_old}` : '';
+                    const decl = `    ${mods}${attr.attribute_type_old} ${name}${init};`;
+                    baseLines.push({ type: 'removed', lineNum: lineNumBase++, content: decl });
+                    compareLines.push({ type: 'spacer', content: '' });
+                } else if (st === 'MODIFIED') {
+                    modCount++;
+                    const modsOld = attr.modifiers_old ? attr.modifiers_old + ' ' : '';
+                    const initOld = attr.initializer_old ? ` = ${attr.initializer_old}` : '';
+                    const declOld = `    ${modsOld}${attr.attribute_type_old} ${name}${initOld};`;
+
+                    const modsNew = attr.modifiers_new ? attr.modifiers_new + ' ' : '';
+                    const initNew = attr.initializer_new ? ` = ${attr.initializer_new}` : '';
+                    const declNew = `    ${modsNew}${attr.attribute_type_new} ${name}${initNew}; // MODIFIED`;
+
+                    baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: declOld });
+                    compareLines.push({ type: 'modified', lineNum: lineNumComp++, content: declNew });
+                }
+            });
+
+            if (attrs.length > 0 && methods.length > 0) {
+                baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: '' });
+                compareLines.push({ type: 'normal', lineNum: lineNumComp++, content: '' });
+            }
+
+            // Process methods
+            methods.forEach(meth => {
+                const name = meth.method_name;
+                const isCtor = meth.kind_old === 'constructor' || meth.kind_new === 'constructor' || name === '<init>' || name === simpleClassName;
+                const displayName = isCtor ? simpleClassName : name;
+                const st = meth.status;
+
+                if (st === 'UNCHANGED') {
+                    const mods = meth.modifiers_old ? meth.modifiers_old + ' ' : '';
+                    const ret = isCtor ? '' : (meth.return_type_old ? meth.return_type_old + ' ' : 'void ');
+                    const params = meth.parameters_old || '';
+                    const decl = `    ${mods}${ret}${displayName}(${params}) { ... }`;
+                    baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: decl });
+                    compareLines.push({ type: 'normal', lineNum: lineNumComp++, content: decl });
+                } else if (st === 'ADDED') {
+                    addedCount++;
+                    const mods = meth.modifiers_new ? meth.modifiers_new + ' ' : '';
+                    const ret = isCtor ? '' : (meth.return_type_new ? meth.return_type_new + ' ' : 'void ');
+                    const params = meth.parameters_new || '';
+                    const decl = `    ${mods}${ret}${displayName}(${params}) { ... }`;
+
+                    baseLines.push({ type: 'spacer', content: '' });
+                    baseLines.push({ type: 'spacer', content: '' });
+                    baseLines.push({ type: 'spacer', content: '' });
+
+                    compareLines.push({ type: 'added', lineNum: lineNumComp++, content: `    // START_MERGE: ${displayName}()` });
+                    compareLines.push({ type: 'added', lineNum: lineNumComp++, content: decl });
+                    compareLines.push({ type: 'added', lineNum: lineNumComp++, content: `    // END_MERGE: ${displayName}()` });
+                } else if (st === 'REMOVED') {
+                    removedCount++;
+                    const mods = meth.modifiers_old ? meth.modifiers_old + ' ' : '';
+                    const ret = isCtor ? '' : (meth.return_type_old ? meth.return_type_old + ' ' : 'void ');
+                    const params = meth.parameters_old || '';
+                    const decl = `    ${mods}${ret}${displayName}(${params}) { ... }`;
+                    baseLines.push({ type: 'removed', lineNum: lineNumBase++, content: decl });
+                    compareLines.push({ type: 'spacer', content: '' });
+                } else if (st === 'MODIFIED') {
+                    modCount++;
+                    modMethodNames.push(displayName + '()');
+                    const modsOld = meth.modifiers_old ? meth.modifiers_old + ' ' : '';
+                    const retOld = isCtor ? '' : (meth.return_type_old ? meth.return_type_old + ' ' : 'void ');
+                    const paramsOld = meth.parameters_old || '';
+                    const declOld = `    ${modsOld}${retOld}${displayName}(${paramsOld}) { ... }`;
+
+                    const modsNew = meth.modifiers_new ? meth.modifiers_new + ' ' : '';
+                    const retNew = isCtor ? '' : (meth.return_type_new ? meth.return_type_new + ' ' : 'void ');
+                    const paramsNew = meth.parameters_new || '';
+                    const declNew = `    ${modsNew}${retNew}${displayName}(${paramsNew}) { ... } // MODIFIED`;
+
+                    baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: declOld });
+                    compareLines.push({ type: 'modified', lineNum: lineNumComp++, content: declNew });
+                }
+            });
+
+            baseLines.push({ type: 'normal', lineNum: lineNumBase++, content: '}' });
+            compareLines.push({ type: 'normal', lineNum: lineNumComp++, content: '}' });
+
+            return {
+                baseHeader: `base / ${fileName} (existing)`,
+                compareHeader: `compare / ${fileName} (generated)`,
+                addedField: addedFieldNames.length > 0 ? addedFieldNames.join(', ') : 'None',
+                addedMarker: addedCount > 0 ? '// START_MERGE / END_MERGE blocks' : 'None',
+                modMethod: modMethodNames.length > 0 ? modMethodNames.join(', ') : 'None',
+                modNote: modCount > 0 ? `${modCount} signature / member modification(s)` : 'No modifications',
+                baseLines: baseLines,
+                compareLines: compareLines,
+                added: addedCount,
+                modified: modCount,
+                removed: removedCount
+            };
+        }
+
+        function renderEmptyDiffState() {
+            const leftPane = document.getElementById('compare-left-code-pane');
+            const rightPane = document.getElementById('compare-right-code-pane');
+            const label = document.getElementById('diff-selected-file-label');
+            const hdr = document.getElementById('compare-file-header-label');
+            if (label) label.innerText = "Select a file to inspect…";
+            if (hdr) hdr.innerText = "—";
+
+            const emptyHtml = `
+                <div class="flex flex-col items-center justify-center p-12 text-center text-zinc-500 font-mono">
+                    <span class="material-symbols-outlined text-4xl mb-2 text-zinc-600 select-none">difference</span>
+                    <p class="text-xs">No AST delta data available for comparison.</p>
+                    <p class="text-[11px] text-zinc-600 mt-1">Select or compare existing and generated code folders above.</p>
+                </div>
+            `;
+            if (leftPane) leftPane.innerHTML = emptyHtml;
+            if (rightPane) rightPane.innerHTML = emptyHtml;
+            const grid = document.getElementById('compare-delta-grid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="col-span-3 bg-zinc-950/80 p-4 rounded-lg border border-zinc-800 text-center text-zinc-500 font-mono text-xs">
+                        No comparison deltas recorded.
+                    </div>
+                `;
+            }
+        }
 
         function updateDiffFileSelectors() {
             const uniqueFiles = new Set();
@@ -2674,14 +2607,6 @@
                 });
             }
 
-            if (uniqueFiles.size === 0) {
-                uniqueFiles.add('MyClass.java');
-                uniqueFiles.add('OrderService.java');
-                uniqueFiles.add('UserAccount.java');
-                uniqueFiles.add('PaymentGateway.java');
-                uniqueFiles.add('CacheManager.java');
-            }
-
             allCompareFiles = Array.from(uniqueFiles).sort();
             const stats = document.getElementById('diff-selector-stats');
             if (stats) {
@@ -2690,6 +2615,8 @@
 
             if (allCompareFiles.length > 0) {
                 selectCompareFile(allCompareFiles[0]);
+            } else {
+                renderEmptyDiffState();
             }
         }
 
@@ -2743,7 +2670,15 @@
         }
 
         function loadDiffPanes(fileName) {
-            const data = diffData[fileName] || diffData['MyClass.java'];
+            if (!fileName) {
+                renderEmptyDiffState();
+                return;
+            }
+            const data = getFileDiffData(fileName);
+            if (!data) {
+                renderEmptyDiffState();
+                return;
+            }
             renderDiffCode(data.baseLines, 'compare-left-code-pane');
             renderDiffCode(data.compareLines, 'compare-right-code-pane');
             renderDeltaSummaryCards(fileName, data);
@@ -2780,35 +2715,35 @@
         function renderDeltaSummaryCards(fileName, data) {
             const grid = document.getElementById('compare-delta-grid');
             if (!grid) return;
-            const addedField = data.addedField || 'email';
-            const addedMarker = data.addedMarker || '// START_MERGE block';
-            const modMethod = data.modMethod || 'printInfo()';
-            const modNote = data.modNote || 'Parameters intact, body updated';
+            const addedField = data.addedField || 'None';
+            const addedMarker = data.addedMarker || 'No merge marker';
+            const modMethod = data.modMethod || 'None';
+            const modNote = data.modNote || 'No modifications';
 
             grid.innerHTML = `
                 <div class="bg-zinc-950/80 p-3 rounded-lg border border-zinc-800/80 border-l-2 border-l-emerald-500 shadow-sm shadow-emerald-950/20">
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="font-mono text-[10px] text-emerald-400 font-semibold tracking-wide uppercase">Added Declarations</span>
-                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">+${data.added}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">+${data.added || 0}</span>
                     </div>
-                    <p class="text-xs text-zinc-300 font-mono truncate">Field: <span class="text-emerald-300 font-semibold">${addedField}</span></p>
-                    <p class="text-[11px] text-zinc-400 font-mono truncate">${addedMarker}</p>
+                    <p class="text-xs text-zinc-300 font-mono truncate">Field: <span class="text-emerald-300 font-semibold">${escapeHTML(addedField)}</span></p>
+                    <p class="text-[11px] text-zinc-400 font-mono truncate">${escapeHTML(addedMarker)}</p>
                 </div>
                 <div class="bg-zinc-950/80 p-3 rounded-lg border border-zinc-800/80 border-l-2 border-l-amber-500 shadow-sm shadow-amber-950/20">
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="font-mono text-[10px] text-amber-400 font-semibold tracking-wide uppercase">Modified Signatures</span>
-                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-500/30">~${data.modified}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-500/30">~${data.modified || 0}</span>
                     </div>
-                    <p class="text-xs text-zinc-300 font-mono truncate">Method: <span class="text-amber-300 font-semibold">${modMethod}</span></p>
-                    <p class="text-[11px] text-zinc-400 font-mono">${modNote}</p>
+                    <p class="text-xs text-zinc-300 font-mono truncate">Method: <span class="text-amber-300 font-semibold">${escapeHTML(modMethod)}</span></p>
+                    <p class="text-[11px] text-zinc-400 font-mono">${escapeHTML(modNote)}</p>
                 </div>
                 <div class="bg-zinc-950/80 p-3 rounded-lg border border-zinc-800/80 border-l-2 border-l-zinc-700 shadow-sm">
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="font-mono text-[10px] text-zinc-400 font-semibold tracking-wide uppercase">Removed Nodes</span>
-                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-900 text-zinc-400 border border-zinc-700/30">${data.removed}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-900 text-zinc-400 border border-zinc-700/30">${data.removed || 0}</span>
                     </div>
-                    <p class="text-xs text-zinc-400 font-mono">0 declarations removed</p>
-                    <p class="text-[11px] text-emerald-400/80 font-mono">✓ Contract backward-compatible</p>
+                    <p class="text-xs text-zinc-400 font-mono">${data.removed || 0} declarations removed</p>
+                    <p class="text-[11px] text-emerald-400/80 font-mono">${(data.removed || 0) === 0 ? '✓ Contract backward-compatible' : '⚠ Breaking changes detected'}</p>
                 </div>
             `;
         }
@@ -3129,7 +3064,11 @@
             if (!window.location.protocol.startsWith('http')) {
                 showToast("Comparing AST signatures", "info");
                 logToTerminal(`[SIM] Comparing ${baseDir} vs ${featDir}...`, "text-zinc-200");
-                loadDiffPanes('MyClass.java');
+                if (allCompareFiles.length > 0) {
+                    selectCompareFile(allCompareFiles[0]);
+                } else {
+                    renderEmptyDiffState();
+                }
                 return;
             }
 

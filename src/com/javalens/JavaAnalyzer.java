@@ -269,23 +269,6 @@ public class JavaAnalyzer {
         extractClasspathResourceIfMissing("/analyzer.properties", Paths.get("analyzer.properties"));
         extractClasspathResourceIfMissing("/README.md", Paths.get("README.md"));
 
-        String[] sampleFiles = {
-            "samples/v1/CacheManager.java",
-            "samples/v1/LegacyAuditLogger.java",
-            "samples/v1/MyClass.java",
-            "samples/v1/OrderService.java",
-            "samples/v1/PaymentGateway.java",
-            "samples/v1/UserAccount.java",
-            "samples/v2/CacheManager.java",
-            "samples/v2/MyClass.java",
-            "samples/v2/NotificationService.java",
-            "samples/v2/OrderService.java",
-            "samples/v2/PaymentGateway.java",
-            "samples/v2/UserAccount.java"
-        };
-        for (String sample : sampleFiles) {
-            extractClasspathResourceIfMissing("/" + sample, Paths.get(sample));
-        }
     }
 
     private static void extractClasspathResourceIfMissing(String resourcePath, Path destination) {

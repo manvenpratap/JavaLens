@@ -31,19 +31,14 @@ public class AttributeModel {
         }
         if (name != null) {
             String lowerName = name.toLowerCase();
-            if (lowerName.equals("id") || lowerName.equals("_id")) {
+            if (lowerName.equals("id") || lowerName.equals("_id") || lowerName.equals("pk") || lowerName.equals("_pk") || lowerName.equals("uuid") || lowerName.equals("guid")) {
                 return true;
             }
             if (className != null) {
                 String simpleClass = className.contains(".") ? className.substring(className.lastIndexOf('.') + 1) : className;
                 String lowerClass = simpleClass.toLowerCase();
-                if (lowerName.equals(lowerClass + "id") || lowerName.equals(lowerClass + "_id")) {
-                    return true;
-                }
-                if (lowerClass.endsWith("account") && (lowerName.equals("userid") || lowerName.equals("accountid"))) {
-                    return true;
-                }
-                if (lowerClass.endsWith("service") && lowerName.equals(lowerClass.replace("service", "") + "id")) {
+                if (lowerName.equals(lowerClass + "id") || lowerName.equals(lowerClass + "_id") ||
+                    lowerName.equals("id_" + lowerClass) || lowerName.equals("pk_" + lowerClass)) {
                     return true;
                 }
             }
@@ -60,12 +55,16 @@ public class AttributeModel {
         }
         if (name != null) {
             String lowerName = name.toLowerCase();
-            if (lowerName.equals("id") || lowerName.equals("_id")) {
+            if (lowerName.equals("id") || lowerName.equals("_id") || lowerName.equals("pk") || lowerName.equals("_pk") || lowerName.equals("uuid") || lowerName.equals("guid")) {
                 return "Naming convention ('" + name + "')";
             }
             if (className != null) {
                 String simpleClass = className.contains(".") ? className.substring(className.lastIndexOf('.') + 1) : className;
-                return "Naming convention ('" + name + "' for " + simpleClass + ")";
+                String lowerClass = simpleClass.toLowerCase();
+                if (lowerName.equals(lowerClass + "id") || lowerName.equals(lowerClass + "_id") ||
+                    lowerName.equals("id_" + lowerClass) || lowerName.equals("pk_" + lowerClass)) {
+                    return "Naming convention ('" + name + "' for " + simpleClass + ")";
+                }
             }
         }
         return "None";
