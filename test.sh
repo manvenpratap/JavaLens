@@ -59,6 +59,21 @@ cat "$MERGED_DIR/MyClass.java"
 echo -e "\nVerified existing-only file preserved in output folder (ExtraV1Only.java):"
 cat "$MERGED_DIR/ExtraV1Only.java"
 
+# Verify merge_results.csv generated in merge directory
+if [ -f "$MERGED_DIR/merge_results.csv" ]; then
+    echo "✔ PASS: merge_results.csv exists in merge output folder."
+    cat "$MERGED_DIR/merge_results.csv"
+    if grep -q "existing_size_bytes" "$MERGED_DIR/merge_results.csv" && grep -q "type_changes" "$MERGED_DIR/merge_results.csv"; then
+        echo "✔ PASS: merge_results.csv contains size and type change columns."
+    else
+        echo "❌ FAIL: merge_results.csv missing size or type change columns!"
+        exit 1
+    fi
+else
+    echo "❌ FAIL: merge_results.csv missing from merge output folder!"
+    exit 1
+fi
+
 rm -f test_workspace/v1/ExtraV1Only.java
 
 # 5. Test Report Mode (Script run = CSV only!)
@@ -77,9 +92,28 @@ else
     exit 1
 fi
 
+if [ -f "$REPORT_RUN_DIR/merge_results.csv" ]; then
+    echo "✔ PASS: merge_results.csv exists in unified report run folder."
+    if grep -q "type_changes" "$REPORT_RUN_DIR/merge_results.csv" && grep -q "delta_bytes" "$REPORT_RUN_DIR/merge_results.csv"; then
+        echo "✔ PASS: merge_results.csv contains 11 size and type change columns."
+    else
+        echo "❌ FAIL: merge_results.csv missing size and type change columns!"
+        exit 1
+    fi
+else
+    echo "❌ FAIL: merge_results.csv missing from report run folder!"
+    exit 1
+fi
+
 if [ -f "$REPORT_RUN_DIR/javalens_summary.txt" ]; then
     echo "✔ PASS: javalens_summary.txt exists."
     cat "$REPORT_RUN_DIR/javalens_summary.txt"
+    if grep -q "MERGE SIZE & TYPE CHANGES SUMMARY" "$REPORT_RUN_DIR/javalens_summary.txt"; then
+        echo "✔ PASS: javalens_summary.txt contains MERGE SIZE & TYPE CHANGES SUMMARY."
+    else
+        echo "❌ FAIL: javalens_summary.txt missing size & type changes summary!"
+        exit 1
+    fi
 else
     echo "❌ FAIL: javalens_summary.txt missing!"
     exit 1

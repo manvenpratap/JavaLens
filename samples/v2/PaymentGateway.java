@@ -6,6 +6,7 @@ public class PaymentGateway {
     private int retryAttempts;
 
     // START_MERGE
+    private long transactionTimeout;
     private String webhookEndpoint;
     private boolean idempotencyEnabled;
     private String apiKey;

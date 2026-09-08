@@ -271,7 +271,23 @@ public class ReportGenerator {
                 for (int i = 1; i < mLines.size(); i++) {
                     String[] parts = ParserUtil.parseCsvLine(mLines.get(i));
                     if (parts.length >= 2) {
-                        mergeResults.add(new MergeEngine.MergeResult(parts[0], parts[1], parts.length > 2 ? parts[2] : ""));
+                        String file = parts[0];
+                        String status = parts[1];
+                        if (parts.length >= 11) {
+                            long exSize = parseLong(parts[2], 0L);
+                            long mgSize = parseLong(parts[3], 0L);
+                            long dBytes = parseLong(parts[4], 0L);
+                            int exLines = parseInt(parts[5], 0);
+                            int mgLines = parseInt(parts[6], 0);
+                            int dLines = parseInt(parts[7], 0);
+                            String typeChanges = parts[8];
+                            String sizeSummary = parts[9];
+                            String msg = parts[10];
+                            mergeResults.add(new MergeEngine.MergeResult(file, status, msg, exSize, mgSize, dBytes, exLines, mgLines, dLines, typeChanges, sizeSummary));
+                        } else {
+                            String msg = parts.length > 2 ? parts[2] : "";
+                            mergeResults.add(new MergeEngine.MergeResult(file, status, msg));
+                        }
                     }
                 }
             } catch (Exception ignored) {}
@@ -494,6 +510,14 @@ public class ReportGenerator {
                 MergeEngine.MergeResult r = mergeResults.get(i);
                 pw.print("    { \"file\": \"" + escapeJson(r.relPath) +
                          "\", \"status\": \"" + escapeJson(r.status) +
+                         "\", \"existingSizeBytes\": " + r.existingSizeBytes +
+                         ", \"mergedSizeBytes\": " + r.mergedSizeBytes +
+                         ", \"deltaBytes\": " + r.deltaBytes +
+                         ", \"existingLines\": " + r.existingLines +
+                         ", \"mergedLines\": " + r.mergedLines +
+                         ", \"deltaLines\": " + r.deltaLines +
+                         ", \"typeChanges\": \"" + escapeJson(r.typeChanges) +
+                         "\", \"sizeSummary\": \"" + escapeJson(r.sizeSummary) +
                          "\", \"message\": \"" + escapeJson(r.message) + "\" }");
                 if (i < mergeResults.size() - 1) pw.println(",");
                 else pw.println();
@@ -655,16 +679,22 @@ public class ReportGenerator {
             pw.println("      </table>");
             pw.println("    </div>");
 
-            pw.println("    <div class=\"section-title\">Merge Operation Audit Trail</div>");
+            pw.println("    <div class=\"section-title\">Merge Operation Audit Trail &amp; Size / Type Telemetry</div>");
             pw.println("    <div class=\"table-box\">");
             pw.println("      <table>");
-            pw.println("        <thead><tr><th>Target File</th><th>Status</th><th>Diagnostics</th></tr></thead>");
+            pw.println("        <thead><tr><th>Target File</th><th>Status</th><th>Existing Size</th><th>Merged Size</th><th>Delta (Bytes)</th><th>Lines Delta</th><th>Type Changes</th><th>Diagnostics</th></tr></thead>");
             pw.println("        <tbody>");
             for (MergeEngine.MergeResult r : mergeResults) {
+                String bColor = r.deltaBytes > 0 ? "#10b981" : (r.deltaBytes < 0 ? "#f43f5e" : "var(--text-muted)");
                 pw.println("          <tr>");
-                pw.println("            <td>" + escapeHtml(r.relPath) + "</td>");
+                pw.println("            <td style=\"font-weight: 600;\">" + escapeHtml(r.relPath) + "</td>");
                 pw.println("            <td><span class=\"badge badge-added\">" + escapeHtml(r.status) + "</span></td>");
-                pw.println("            <td style=\"color: var(--text-muted);\">" + escapeHtml(r.message) + "</td>");
+                pw.println("            <td>" + (r.existingSizeBytes > 0 ? MergeEngine.formatBytes(r.existingSizeBytes) : "0 B") + " (" + r.existingLines + " L)</td>");
+                pw.println("            <td>" + (r.mergedSizeBytes > 0 ? MergeEngine.formatBytes(r.mergedSizeBytes) : "0 B") + " (" + r.mergedLines + " L)</td>");
+                pw.println("            <td style=\"color: " + bColor + "; font-family: monospace;\">" + (r.deltaBytes > 0 ? "+" : "") + MergeEngine.formatBytes(r.deltaBytes) + "</td>");
+                pw.println("            <td style=\"font-family: monospace;\">" + (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L</td>");
+                pw.println("            <td style=\"color: #38bdf8; font-size: 11px;\">" + escapeHtml(r.typeChanges) + "</td>");
+                pw.println("            <td style=\"color: var(--text-muted); font-size: 11px;\">" + escapeHtml(r.message) + "</td>");
                 pw.println("          </tr>");
             }
             pw.println("        </tbody>");
@@ -718,10 +748,14 @@ public class ReportGenerator {
             pw.println();
             pw.println("## Merge Operations Audit");
             pw.println();
-            pw.println("| File | Status | Message |");
-            pw.println("|---|---|---|");
+            pw.println("| File | Status | Old Size | Merged Size | Byte Delta | Lines Delta | Type Changes | Details |");
+            pw.println("|---|---|---|---|---|---|---|---|");
             for (MergeEngine.MergeResult r : mergeResults) {
-                pw.println("| `" + r.relPath + "` | **" + r.status + "** | " + r.message + " |");
+                String oldSz = r.existingSizeBytes > 0 ? MergeEngine.formatBytes(r.existingSizeBytes) : "0 B";
+                String newSz = r.mergedSizeBytes > 0 ? MergeEngine.formatBytes(r.mergedSizeBytes) : "0 B";
+                String byteDelta = (r.deltaBytes > 0 ? "+" : "") + MergeEngine.formatBytes(r.deltaBytes);
+                String linesDelta = (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L";
+                pw.println("| `" + r.relPath + "` | **" + r.status + "** | " + oldSz + " | " + newSz + " | " + byteDelta + " | " + linesDelta + " | " + r.typeChanges + " | " + r.message + " |");
             }
             pw.println();
             pw.println("## AST Members Breakdown");
@@ -762,6 +796,14 @@ public class ReportGenerator {
             for (MergeEngine.MergeResult r : mergeResults) {
                 pw.println("    <MergeResult file=\"" + escapeXml(r.relPath) +
                            "\" status=\"" + escapeXml(r.status) +
+                           "\" existingSizeBytes=\"" + r.existingSizeBytes +
+                           "\" mergedSizeBytes=\"" + r.mergedSizeBytes +
+                           "\" deltaBytes=\"" + r.deltaBytes +
+                           "\" existingLines=\"" + r.existingLines +
+                           "\" mergedLines=\"" + r.mergedLines +
+                           "\" deltaLines=\"" + r.deltaLines +
+                           "\" typeChanges=\"" + escapeXml(r.typeChanges) +
+                           "\" sizeSummary=\"" + escapeXml(r.sizeSummary) +
                            "\" message=\"" + escapeXml(r.message) + "\" />");
             }
             pw.println("  </MergeResults>");
@@ -917,7 +959,10 @@ public class ReportGenerator {
             s2.append("  <sheetData>\n");
             rowIdx = 1;
             s2.append("    <row r=\"").append(rowIdx).append("\">\n");
-            String[] mHdr = new String[]{"File", "Status", "Message"};
+            String[] mHdr = new String[]{
+                "File", "Status", "Existing Size (Bytes)", "Merged Size (Bytes)", "Byte Delta",
+                "Existing Lines", "Merged Lines", "Lines Delta", "Type Changes", "Size Summary", "Message"
+            };
             for (int c = 0; c < mHdr.length; c++) {
                 String colRef = toExcelCol(c) + rowIdx;
                 s2.append("      <c r=\"").append(colRef).append("\" t=\"inlineStr\" s=\"1\"><is><t>")
@@ -929,7 +974,19 @@ public class ReportGenerator {
                 for (MergeEngine.MergeResult r : mergeResults) {
                     rowIdx++;
                     s2.append("    <row r=\"").append(rowIdx).append("\">\n");
-                    String[] mVals = new String[]{r.relPath, r.status, r.message != null ? r.message : ""};
+                    String[] mVals = new String[]{
+                        r.relPath,
+                        r.status,
+                        String.valueOf(r.existingSizeBytes),
+                        String.valueOf(r.mergedSizeBytes),
+                        (r.deltaBytes > 0 ? "+" : "") + r.deltaBytes,
+                        String.valueOf(r.existingLines),
+                        String.valueOf(r.mergedLines),
+                        (r.deltaLines > 0 ? "+" : "") + r.deltaLines,
+                        r.typeChanges != null ? r.typeChanges : "No type changes",
+                        r.sizeSummary != null ? r.sizeSummary : "",
+                        r.message != null ? r.message : ""
+                    };
                     for (int c = 0; c < mVals.length; c++) {
                         String colRef = toExcelCol(c) + rowIdx;
                         s2.append("      <c r=\"").append(colRef).append("\" t=\"inlineStr\"><is><t>")
@@ -1023,6 +1080,24 @@ public class ReportGenerator {
             pw.println("Files Merged            : " + summary.mergedFiles);
             if (mergeResults != null && !mergeResults.isEmpty()) {
                 pw.println();
+                pw.println("--------------------------------------------------------------------------------");
+                pw.println(" MERGE SIZE & TYPE CHANGES SUMMARY");
+                pw.println("--------------------------------------------------------------------------------");
+                pw.printf("%-24s %-8s %10s %10s %12s %12s  %-30s%n",
+                        "File", "Status", "Old Size", "New Size", "Byte Delta", "Lines Delta", "Type Changes");
+                pw.println("--------------------------------------------------------------------------------");
+                for (MergeEngine.MergeResult r : mergeResults) {
+                    String oldSz = r.existingSizeBytes > 0 ? MergeEngine.formatBytes(r.existingSizeBytes) : "0 B";
+                    String newSz = r.mergedSizeBytes > 0 ? MergeEngine.formatBytes(r.mergedSizeBytes) : "0 B";
+                    String byteDelta = (r.deltaBytes > 0 ? "+" : "") + MergeEngine.formatBytes(r.deltaBytes);
+                    String linesDelta = (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L";
+                    pw.printf("%-24s %-8s %10s %10s %12s %12s  %s%n",
+                            truncateStr(r.relPath, 24), r.status, oldSz, newSz, byteDelta, linesDelta, r.typeChanges);
+                }
+                pw.println();
+                pw.println("--------------------------------------------------------------------------------");
+                pw.println(" MERGE ACTIVITY DETAILS");
+                pw.println("--------------------------------------------------------------------------------");
                 pw.printf("%-40s %-15s %s%n", "File", "Status", "Details");
                 pw.println("--------------------------------------------------------------------------------");
                 for (MergeEngine.MergeResult r : mergeResults) {
@@ -1292,13 +1367,23 @@ public class ReportGenerator {
 
     private static void writeMergeResultsCsv(Path mergeCsv,
                                               List<MergeEngine.MergeResult> mergeResults) throws IOException {
-        try (PrintWriter pw = new PrintWriter(new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(mergeCsv.toFile()), "UTF-8")))) {
-            pw.println(csvRow(new String[]{"file", "status", "message"}));
-            for (MergeEngine.MergeResult r : mergeResults) {
-                pw.println(csvRow(new String[]{r.relPath, r.status, r.message}));
-            }
-        }
+        MergeEngine.writeMergeResultsCsv(mergeCsv, mergeResults);
+    }
+
+    private static long parseLong(String val, long fallback) {
+        if (val == null || val.isBlank()) return fallback;
+        try { return Long.parseLong(val.trim()); } catch (Exception e) { return fallback; }
+    }
+
+    private static int parseInt(String val, int fallback) {
+        if (val == null || val.isBlank()) return fallback;
+        try { return Integer.parseInt(val.trim()); } catch (Exception e) { return fallback; }
+    }
+
+    private static String truncateStr(String str, int maxLen) {
+        if (str == null) return "";
+        if (str.length() <= maxLen) return str;
+        return str.substring(0, maxLen - 3) + "...";
     }
 
     // ── CSV Utilities ────────────────────────────────────────────────────────

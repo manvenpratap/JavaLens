@@ -6,6 +6,7 @@ public class PaymentGateway {
     private int retryAttempts;
 
     // START_MERGE
+    private int transactionTimeout;
     // END_MERGE
 
     public PaymentGateway(String merchantKey) {
