@@ -273,7 +273,20 @@ public class ReportGenerator {
                     if (parts.length >= 2) {
                         String file = parts[0];
                         String status = parts[1];
-                        if (parts.length >= 11) {
+                        if (parts.length >= 13) {
+                            long exSize = parseLong(parts[2], 0L);
+                            long mgSize = parseLong(parts[3], 0L);
+                            long dBytes = parseLong(parts[4], 0L);
+                            int exLines = parseInt(parts[5], 0);
+                            int mgLines = parseInt(parts[6], 0);
+                            int dLines = parseInt(parts[7], 0);
+                            String typeChanges = parts[8];
+                            String pkChanges = parts[9];
+                            String mandChanges = parts[10];
+                            String sizeSummary = parts[11];
+                            String msg = parts[12];
+                            mergeResults.add(new MergeEngine.MergeResult(file, status, msg, exSize, mgSize, dBytes, exLines, mgLines, dLines, typeChanges, pkChanges, mandChanges, sizeSummary));
+                        } else if (parts.length >= 11) {
                             long exSize = parseLong(parts[2], 0L);
                             long mgSize = parseLong(parts[3], 0L);
                             long dBytes = parseLong(parts[4], 0L);
@@ -517,6 +530,8 @@ public class ReportGenerator {
                          ", \"mergedLines\": " + r.mergedLines +
                          ", \"deltaLines\": " + r.deltaLines +
                          ", \"typeChanges\": \"" + escapeJson(r.typeChanges) +
+                         "\", \"primaryKeyChanges\": \"" + escapeJson(r.primaryKeyChanges) +
+                         "\", \"mandatoryChanges\": \"" + escapeJson(r.mandatoryChanges) +
                          "\", \"sizeSummary\": \"" + escapeJson(r.sizeSummary) +
                          "\", \"message\": \"" + escapeJson(r.message) + "\" }");
                 if (i < mergeResults.size() - 1) pw.println(",");
@@ -682,7 +697,7 @@ public class ReportGenerator {
             pw.println("    <div class=\"section-title\">Merge Operation Audit Trail &amp; Size / Type Telemetry</div>");
             pw.println("    <div class=\"table-box\">");
             pw.println("      <table>");
-            pw.println("        <thead><tr><th>Target File</th><th>Status</th><th>Existing Size</th><th>Merged Size</th><th>Delta (Bytes)</th><th>Lines Delta</th><th>Type Changes</th><th>Diagnostics</th></tr></thead>");
+            pw.println("        <thead><tr><th>Target File</th><th>Status</th><th>Existing Size</th><th>Merged Size</th><th>Delta (Bytes)</th><th>Lines Delta</th><th>Type Changes</th><th>Primary Key Changes</th><th>Mandatory Changes</th><th>Diagnostics</th></tr></thead>");
             pw.println("        <tbody>");
             for (MergeEngine.MergeResult r : mergeResults) {
                 String bColor = r.deltaBytes > 0 ? "#10b981" : (r.deltaBytes < 0 ? "#f43f5e" : "var(--text-muted)");
@@ -694,6 +709,8 @@ public class ReportGenerator {
                 pw.println("            <td style=\"color: " + bColor + "; font-family: monospace;\">" + (r.deltaBytes > 0 ? "+" : "") + MergeEngine.formatBytes(r.deltaBytes) + "</td>");
                 pw.println("            <td style=\"font-family: monospace;\">" + (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L</td>");
                 pw.println("            <td style=\"color: #38bdf8; font-size: 11px;\">" + escapeHtml(r.typeChanges) + "</td>");
+                pw.println("            <td style=\"color: #f59e0b; font-size: 11px;\">" + escapeHtml(r.primaryKeyChanges) + "</td>");
+                pw.println("            <td style=\"color: #ec4899; font-size: 11px;\">" + escapeHtml(r.mandatoryChanges) + "</td>");
                 pw.println("            <td style=\"color: var(--text-muted); font-size: 11px;\">" + escapeHtml(r.message) + "</td>");
                 pw.println("          </tr>");
             }
@@ -748,14 +765,14 @@ public class ReportGenerator {
             pw.println();
             pw.println("## Merge Operations Audit");
             pw.println();
-            pw.println("| File | Status | Old Size | Merged Size | Byte Delta | Lines Delta | Type Changes | Details |");
-            pw.println("|---|---|---|---|---|---|---|---|");
+            pw.println("| File | Status | Old Size | Merged Size | Byte Delta | Lines Delta | Type Changes | Primary Key Changes | Mandatory Changes | Details |");
+            pw.println("|---|---|---|---|---|---|---|---|---|---|");
             for (MergeEngine.MergeResult r : mergeResults) {
                 String oldSz = r.existingSizeBytes > 0 ? MergeEngine.formatBytes(r.existingSizeBytes) : "0 B";
                 String newSz = r.mergedSizeBytes > 0 ? MergeEngine.formatBytes(r.mergedSizeBytes) : "0 B";
                 String byteDelta = (r.deltaBytes > 0 ? "+" : "") + MergeEngine.formatBytes(r.deltaBytes);
                 String linesDelta = (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L";
-                pw.println("| `" + r.relPath + "` | **" + r.status + "** | " + oldSz + " | " + newSz + " | " + byteDelta + " | " + linesDelta + " | " + r.typeChanges + " | " + r.message + " |");
+                pw.println("| `" + r.relPath + "` | **" + r.status + "** | " + oldSz + " | " + newSz + " | " + byteDelta + " | " + linesDelta + " | " + r.typeChanges + " | " + r.primaryKeyChanges + " | " + r.mandatoryChanges + " | " + r.message + " |");
             }
             pw.println();
             pw.println("## AST Members Breakdown");
@@ -803,6 +820,8 @@ public class ReportGenerator {
                            "\" mergedLines=\"" + r.mergedLines +
                            "\" deltaLines=\"" + r.deltaLines +
                            "\" typeChanges=\"" + escapeXml(r.typeChanges) +
+                           "\" primaryKeyChanges=\"" + escapeXml(r.primaryKeyChanges) +
+                           "\" mandatoryChanges=\"" + escapeXml(r.mandatoryChanges) +
                            "\" sizeSummary=\"" + escapeXml(r.sizeSummary) +
                            "\" message=\"" + escapeXml(r.message) + "\" />");
             }
@@ -961,7 +980,8 @@ public class ReportGenerator {
             s2.append("    <row r=\"").append(rowIdx).append("\">\n");
             String[] mHdr = new String[]{
                 "File", "Status", "Existing Size (Bytes)", "Merged Size (Bytes)", "Byte Delta",
-                "Existing Lines", "Merged Lines", "Lines Delta", "Type Changes", "Size Summary", "Message"
+                "Existing Lines", "Merged Lines", "Lines Delta", "Type Changes",
+                "Primary Key Changes", "Mandatory Attribute Changes", "Size Summary", "Message"
             };
             for (int c = 0; c < mHdr.length; c++) {
                 String colRef = toExcelCol(c) + rowIdx;
@@ -984,6 +1004,8 @@ public class ReportGenerator {
                         String.valueOf(r.mergedLines),
                         (r.deltaLines > 0 ? "+" : "") + r.deltaLines,
                         r.typeChanges != null ? r.typeChanges : "No type changes",
+                        r.primaryKeyChanges != null ? r.primaryKeyChanges : "Preserved existing PK",
+                        r.mandatoryChanges != null ? r.mandatoryChanges : "No mandatory changes",
                         r.sizeSummary != null ? r.sizeSummary : "",
                         r.message != null ? r.message : ""
                     };
@@ -1093,6 +1115,19 @@ public class ReportGenerator {
                     String linesDelta = (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L";
                     pw.printf("%-24s %-8s %10s %10s %12s %12s  %s%n",
                             truncateStr(r.relPath, 24), r.status, oldSz, newSz, byteDelta, linesDelta, r.typeChanges);
+                }
+                pw.println();
+                pw.println("--------------------------------------------------------------------------------");
+                pw.println(" PRIMARY KEY & MANDATORY ATTRIBUTE AUDIT");
+                pw.println("--------------------------------------------------------------------------------");
+                pw.printf("%-24s %-8s %-38s %-45s%n",
+                        "File", "Status", "Primary Key Changes", "Mandatory Attribute Changes");
+                pw.println("--------------------------------------------------------------------------------");
+                for (MergeEngine.MergeResult r : mergeResults) {
+                    String pkShort = r.primaryKeyChanges != null && r.primaryKeyChanges.length() > 38 ? r.primaryKeyChanges.substring(0, 35) + "..." : (r.primaryKeyChanges != null ? r.primaryKeyChanges : "");
+                    String mandShort = r.mandatoryChanges != null && r.mandatoryChanges.length() > 45 ? r.mandatoryChanges.substring(0, 42) + "..." : (r.mandatoryChanges != null ? r.mandatoryChanges : "");
+                    pw.printf("%-24s %-8s %-38s %-45s%n",
+                            truncateStr(r.relPath, 24), r.status, pkShort, mandShort);
                 }
                 pw.println();
                 pw.println("--------------------------------------------------------------------------------");

@@ -1,8 +1,11 @@
 package com.example;
 
 public class UserAccount {
+    @Id
     private long id;
+    @NotNull
     private String username;
+    @NotNull
     private String email;
     private boolean verified;
     private String role;

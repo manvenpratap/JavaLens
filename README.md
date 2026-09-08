@@ -292,7 +292,17 @@ The embedded server exposes clean HTTP endpoints:
 | Column | Description |
 | :--- | :--- |
 | `file` | Relative path of the processed destination file |
-| `status` | `MERGED`, `SKIPPED`, `WARNING`, or `ERROR` |
+| `status` | `MERGED`, `COPIED`, `ADDED`, `SKIPPED`, `WARNING`, or `ERROR` |
+| `existing_size_bytes` | File size in bytes prior to merge (0 for newly added files) |
+| `merged_size_bytes` | Output file size in bytes after merge |
+| `delta_bytes` | Net byte delta (`merged_size_bytes - existing_size_bytes`) |
+| `existing_lines` | Line count prior to merge (0 for newly added files) |
+| `merged_lines` | Output line count after merge |
+| `delta_lines` | Net line count delta (`merged_lines - existing_lines`) |
+| `type_changes` | Detailed audit of attribute and method type modifications |
+| `primary_key_changes` | Primary key audit: `@Id`, `@EmbeddedId`, `*Id` convention, additions, transitions |
+| `mandatory_changes` | Mandatory attribute audit: `@NotNull`, `@Column(nullable = false)`, primitives, `final` |
+| `size_summary` | Human-readable byte and line delta summary |
 | `message` | Operational outcome or reason for skip/error |
 
 ### 3. Standard Analysis Datasets

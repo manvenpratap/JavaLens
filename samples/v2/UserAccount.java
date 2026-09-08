@@ -1,13 +1,18 @@
 package com.example;
 
 public class UserAccount {
+    @Id
     private long id;
+    @NotNull
     private String username;
+    @NotNull
     private String email;
     private boolean verified;
+    @NotNull
     private String role;
 
     // START_MERGE
+    @NotNull
     private String mfaSecret;
     private boolean mfaActive;
     private long lastLoginTimestamp;

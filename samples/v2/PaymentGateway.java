@@ -2,13 +2,18 @@ package com.example;
 
 public class PaymentGateway {
     public static final int DEFAULT_TIMEOUT_MS = 5000;
+    @Id
     private String merchantKey;
+    @NotNull
     private int retryAttempts;
 
     // START_MERGE
     private long transactionTimeout;
+    @NotNull
+    @Column(nullable = false)
     private String webhookEndpoint;
     private boolean idempotencyEnabled;
+    @NotNull
     private String apiKey;
     // END_MERGE
 

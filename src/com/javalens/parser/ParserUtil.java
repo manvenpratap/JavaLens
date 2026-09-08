@@ -111,7 +111,7 @@ public class ParserUtil {
     private static String annotations(ModifiersTree modTree) {
         if (modTree == null) return "";
         return modTree.getAnnotations().stream()
-                      .map(a -> "@" + a.getAnnotationType())
+                      .map(a -> a.toString().trim())
                       .collect(Collectors.joining(" "));
     }
 

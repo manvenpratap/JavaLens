@@ -63,10 +63,10 @@ cat "$MERGED_DIR/ExtraV1Only.java"
 if [ -f "$MERGED_DIR/merge_results.csv" ]; then
     echo "✔ PASS: merge_results.csv exists in merge output folder."
     cat "$MERGED_DIR/merge_results.csv"
-    if grep -q "existing_size_bytes" "$MERGED_DIR/merge_results.csv" && grep -q "type_changes" "$MERGED_DIR/merge_results.csv"; then
-        echo "✔ PASS: merge_results.csv contains size and type change columns."
+    if grep -q "existing_size_bytes" "$MERGED_DIR/merge_results.csv" && grep -q "type_changes" "$MERGED_DIR/merge_results.csv" && grep -q "primary_key_changes" "$MERGED_DIR/merge_results.csv" && grep -q "mandatory_changes" "$MERGED_DIR/merge_results.csv"; then
+        echo "✔ PASS: merge_results.csv contains size, type, PK, and mandatory change columns."
     else
-        echo "❌ FAIL: merge_results.csv missing size or type change columns!"
+        echo "❌ FAIL: merge_results.csv missing size, type, PK, or mandatory change columns!"
         exit 1
     fi
 else
@@ -94,10 +94,10 @@ fi
 
 if [ -f "$REPORT_RUN_DIR/merge_results.csv" ]; then
     echo "✔ PASS: merge_results.csv exists in unified report run folder."
-    if grep -q "type_changes" "$REPORT_RUN_DIR/merge_results.csv" && grep -q "delta_bytes" "$REPORT_RUN_DIR/merge_results.csv"; then
-        echo "✔ PASS: merge_results.csv contains 11 size and type change columns."
+    if grep -q "type_changes" "$REPORT_RUN_DIR/merge_results.csv" && grep -q "primary_key_changes" "$REPORT_RUN_DIR/merge_results.csv" && grep -q "mandatory_changes" "$REPORT_RUN_DIR/merge_results.csv" && grep -q "delta_bytes" "$REPORT_RUN_DIR/merge_results.csv"; then
+        echo "✔ PASS: merge_results.csv contains 13 size, type, PK, and mandatory change columns."
     else
-        echo "❌ FAIL: merge_results.csv missing size and type change columns!"
+        echo "❌ FAIL: merge_results.csv missing size, type, PK, or mandatory change columns!"
         exit 1
     fi
 else
@@ -108,10 +108,10 @@ fi
 if [ -f "$REPORT_RUN_DIR/javalens_summary.txt" ]; then
     echo "✔ PASS: javalens_summary.txt exists."
     cat "$REPORT_RUN_DIR/javalens_summary.txt"
-    if grep -q "MERGE SIZE & TYPE CHANGES SUMMARY" "$REPORT_RUN_DIR/javalens_summary.txt"; then
-        echo "✔ PASS: javalens_summary.txt contains MERGE SIZE & TYPE CHANGES SUMMARY."
+    if grep -q "MERGE SIZE & TYPE CHANGES SUMMARY" "$REPORT_RUN_DIR/javalens_summary.txt" && grep -q "PRIMARY KEY & MANDATORY ATTRIBUTE AUDIT" "$REPORT_RUN_DIR/javalens_summary.txt"; then
+        echo "✔ PASS: javalens_summary.txt contains MERGE SIZE & TYPE CHANGES and PK & MANDATORY AUDIT."
     else
-        echo "❌ FAIL: javalens_summary.txt missing size & type changes summary!"
+        echo "❌ FAIL: javalens_summary.txt missing size/type or PK/mandatory audit tables!"
         exit 1
     fi
 else

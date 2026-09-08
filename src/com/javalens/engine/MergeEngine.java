@@ -25,12 +25,15 @@ public class MergeEngine {
         public final int mergedLines;
         public final int deltaLines;
         public final String typeChanges;
+        public final String primaryKeyChanges;
+        public final String mandatoryChanges;
         public final String sizeSummary;
 
         public MergeResult(String relPath, String status, String message,
                            long existingSizeBytes, long mergedSizeBytes, long deltaBytes,
                            int existingLines, int mergedLines, int deltaLines,
-                           String typeChanges, String sizeSummary) {
+                           String typeChanges, String primaryKeyChanges, String mandatoryChanges,
+                           String sizeSummary) {
             this.relPath = relPath;
             this.status = status;
             this.message = message;
@@ -41,12 +44,23 @@ public class MergeEngine {
             this.mergedLines = mergedLines;
             this.deltaLines = deltaLines;
             this.typeChanges = typeChanges != null ? typeChanges : "No type changes";
+            this.primaryKeyChanges = primaryKeyChanges != null ? primaryKeyChanges : "No PK changes";
+            this.mandatoryChanges = mandatoryChanges != null ? mandatoryChanges : "No mandatory changes";
             this.sizeSummary = sizeSummary != null ? sizeSummary : "";
         }
 
-        // Backward compatibility constructor
+        // Backward compatibility constructor (11 arguments)
+        public MergeResult(String relPath, String status, String message,
+                           long existingSizeBytes, long mergedSizeBytes, long deltaBytes,
+                           int existingLines, int mergedLines, int deltaLines,
+                           String typeChanges, String sizeSummary) {
+            this(relPath, status, message, existingSizeBytes, mergedSizeBytes, deltaBytes,
+                 existingLines, mergedLines, deltaLines, typeChanges, "No PK changes", "No mandatory changes", sizeSummary);
+        }
+
+        // Backward compatibility constructor (3 arguments)
         public MergeResult(String relPath, String status, String message) {
-            this(relPath, status, message, 0L, 0L, 0L, 0, 0, 0, "No type changes", "");
+            this(relPath, status, message, 0L, 0L, 0L, 0, 0, 0, "No type changes", "No PK changes", "No mandatory changes", "");
         }
     }
 
@@ -114,20 +128,25 @@ public class MergeEngine {
             long deltaBytes = mgSize - exSize;
             int deltaLines = mgLines - exLines;
             String typeChanges = detectTypeChanges(baseFile, destOut);
+            KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(baseFile, destOut);
             String sizeSummary = buildSizeSummary(exSize, mgSize, exLines, mgLines);
 
             if (modified) {
                 System.out.println("Successfully merged to: " + destOut);
-                System.out.println("  Size  : " + sizeSummary);
-                System.out.println("  Types : " + typeChanges);
+                System.out.println("  Size      : " + sizeSummary);
+                System.out.println("  Types     : " + typeChanges);
+                System.out.println("  PK        : " + km.primaryKeyChanges);
+                System.out.println("  Mandatory : " + km.mandatoryChanges);
                 results.add(new MergeResult(destOut.getFileName().toString(), "MERGED", "Successfully merged to " + destOut,
-                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, sizeSummary));
+                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
             } else {
                 System.out.println("Preserved base file to: " + destOut);
-                System.out.println("  Size  : " + sizeSummary);
-                System.out.println("  Types : " + typeChanges);
+                System.out.println("  Size      : " + sizeSummary);
+                System.out.println("  Types     : " + typeChanges);
+                System.out.println("  PK        : " + km.primaryKeyChanges);
+                System.out.println("  Mandatory : " + km.mandatoryChanges);
                 results.add(new MergeResult(destOut.getFileName().toString(), "COPIED", "Preserved base file to " + destOut,
-                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, sizeSummary));
+                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
             }
             try {
                 if (Files.isDirectory(outputTarget)) {
@@ -182,14 +201,17 @@ public class MergeEngine {
                 long deltaBytes = mgSize - exSize;
                 int deltaLines = mgLines - exLines;
                 String typeChanges = detectTypeChanges(file1, destOut);
+                KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(file1, destOut);
                 String sizeSummary = buildSizeSummary(exSize, mgSize, exLines, mgLines);
 
-                System.out.println("  [COPIED]  " + rel + " (present in existing Java files only)");
-                System.out.println("            Size  : " + sizeSummary);
-                System.out.println("            Types : " + typeChanges);
+                System.out.println("  [COPIED]    " + rel + " (present in existing Java files only)");
+                System.out.println("            Size      : " + sizeSummary);
+                System.out.println("            Types     : " + typeChanges);
+                System.out.println("            PK        : " + km.primaryKeyChanges);
+                System.out.println("            Mandatory : " + km.mandatoryChanges);
                 copiedCount++;
                 results.add(new MergeResult(rel, "COPIED", "Present in existing Java files only; preserved in output folder",
-                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, sizeSummary));
+                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
             } else if (!inExisting && inGenerated) {
                 // Newly generated file does not exist in existing Java files -> copy new file to output folder
                 Files.copy(file2, destOut, StandardCopyOption.REPLACE_EXISTING);
@@ -198,13 +220,16 @@ public class MergeEngine {
                 long deltaBytes = mgSize;
                 int deltaLines = mgLines;
                 String typeChanges = detectTypeChanges(null, destOut);
+                KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(null, destOut);
                 String sizeSummary = buildSizeSummary(0L, mgSize, 0, mgLines);
                 System.out.println("  [ADDED]     " + rel + " (new file from generated javafiles folder)");
-                System.out.println("            Size  : " + sizeSummary);
-                System.out.println("            Types : " + typeChanges);
+                System.out.println("            Size      : " + sizeSummary);
+                System.out.println("            Types     : " + typeChanges);
+                System.out.println("            PK        : " + km.primaryKeyChanges);
+                System.out.println("            Mandatory : " + km.mandatoryChanges);
                 addedCount++;
                 results.add(new MergeResult(rel, "ADDED", "New file from generated folder",
-                        0L, mgSize, deltaBytes, 0, mgLines, deltaLines, typeChanges, sizeSummary));
+                        0L, mgSize, deltaBytes, 0, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
             } else {
                 // File exists in both -> perform marker-based merge
                 try {
@@ -214,22 +239,27 @@ public class MergeEngine {
                     long deltaBytes = mgSize - exSize;
                     int deltaLines = mgLines - exLines;
                     String typeChanges = detectTypeChanges(file1, destOut);
+                    KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(file1, destOut);
                     String sizeSummary = buildSizeSummary(exSize, mgSize, exLines, mgLines);
 
                     if (modified) {
                         System.out.println("  [MERGED]    " + rel + " (features merged from generated files)");
-                        System.out.println("            Size  : " + sizeSummary);
-                        System.out.println("            Types : " + typeChanges);
+                        System.out.println("            Size      : " + sizeSummary);
+                        System.out.println("            Types     : " + typeChanges);
+                        System.out.println("            PK        : " + km.primaryKeyChanges);
+                        System.out.println("            Mandatory : " + km.mandatoryChanges);
                         mergedCount++;
                         results.add(new MergeResult(rel, "MERGED", "Merged features from generated folder",
-                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, sizeSummary));
+                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
                     } else {
                         System.out.println("  [COPIED]    " + rel + " (no marker modifications found)");
-                        System.out.println("            Size  : " + sizeSummary);
-                        System.out.println("            Types : " + typeChanges);
+                        System.out.println("            Size      : " + sizeSummary);
+                        System.out.println("            Types     : " + typeChanges);
+                        System.out.println("            PK        : " + km.primaryKeyChanges);
+                        System.out.println("            Mandatory : " + km.mandatoryChanges);
                         copiedCount++;
                         results.add(new MergeResult(rel, "COPIED", "No marker modifications; wrote to output folder",
-                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, sizeSummary));
+                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
                     }
                 } catch (Exception e) {
                     System.err.println("  [ERROR]   " + rel + " : " + e.getMessage());
@@ -240,13 +270,14 @@ public class MergeEngine {
                     long mgSize = Files.exists(destOut) ? Files.size(destOut) : 0L;
                     int mgLines = countLines(destOut);
                     results.add(new MergeResult(rel, "ERROR", e.getMessage(),
-                            exSize, mgSize, mgSize - exSize, exLines, mgLines, mgLines - exLines, "Error: " + e.getMessage(), ""));
+                            exSize, mgSize, mgSize - exSize, exLines, mgLines, mgLines - exLines, "Error: " + e.getMessage(), "Error", "Error", ""));
                 }
             }
         }
 
         // Print Merge Size & Type Changes Summary Table
         printMergeSummaryTable(results);
+        printKeyAndMandatoryAuditTable(results);
 
         System.out.printf("Summary: %d files merged, %d files copied/preserved, %d files added to %s%n",
                 mergedCount, copiedCount, addedCount, outputDir);
@@ -269,7 +300,9 @@ public class MergeEngine {
                 new OutputStreamWriter(new FileOutputStream(mergeCsv.toFile()), StandardCharsets.UTF_8)))) {
             pw.println(toCsvRow(
                 "file", "status", "existing_size_bytes", "merged_size_bytes", "delta_bytes",
-                "existing_lines", "merged_lines", "delta_lines", "type_changes", "size_summary", "message"
+                "existing_lines", "merged_lines", "delta_lines",
+                "type_changes", "primary_key_changes", "mandatory_changes",
+                "size_summary", "message"
             ));
             for (MergeResult r : mergeResults) {
                 pw.println(toCsvRow(
@@ -282,6 +315,8 @@ public class MergeEngine {
                     String.valueOf(r.mergedLines),
                     String.valueOf(r.deltaLines),
                     r.typeChanges != null ? r.typeChanges : "No type changes",
+                    r.primaryKeyChanges != null ? r.primaryKeyChanges : "No PK changes",
+                    r.mandatoryChanges != null ? r.mandatoryChanges : "No mandatory changes",
                     r.sizeSummary != null ? r.sizeSummary : "",
                     r.message != null ? r.message : ""
                 ));
@@ -322,6 +357,176 @@ public class MergeEngine {
         }
         System.out.println("========================================================================================================================");
         System.out.println();
+    }
+
+    public static void printKeyAndMandatoryAuditTable(List<MergeResult> results) {
+        System.out.println();
+        System.out.println("========================================================================================================================");
+        System.out.println("                                      PRIMARY KEY & MANDATORY ATTRIBUTE AUDIT");
+        System.out.println("========================================================================================================================");
+        System.out.printf("%-24s %-8s %-38s %-45s%n",
+                "File", "Status", "Primary Key Changes", "Mandatory Attribute Changes");
+        System.out.println("------------------------------------------------------------------------------------------------------------------------");
+        for (MergeResult r : results) {
+            String pkShort = r.primaryKeyChanges.length() > 38 ? r.primaryKeyChanges.substring(0, 35) + "..." : r.primaryKeyChanges;
+            String mandShort = r.mandatoryChanges.length() > 45 ? r.mandatoryChanges.substring(0, 42) + "..." : r.mandatoryChanges;
+            System.out.printf("%-24s %-8s %-38s %-45s%n",
+                    truncate(r.relPath, 24), r.status, pkShort, mandShort);
+        }
+        System.out.println("========================================================================================================================");
+        System.out.println();
+    }
+
+    public static class KeyAndMandatoryChanges {
+        public final String primaryKeyChanges;
+        public final String mandatoryChanges;
+
+        public KeyAndMandatoryChanges(String primaryKeyChanges, String mandatoryChanges) {
+            this.primaryKeyChanges = primaryKeyChanges;
+            this.mandatoryChanges = mandatoryChanges;
+        }
+    }
+
+    public static KeyAndMandatoryChanges detectKeyAndMandatoryChanges(Path existingFile, Path mergedFile) {
+        if (existingFile == null || !Files.exists(existingFile)) {
+            try {
+                if (mergedFile != null && Files.exists(mergedFile)) {
+                    JavaModel newM = ParserUtil.parseFile(mergedFile, mergedFile.getParent());
+                    List<String> pkList = new ArrayList<>();
+                    List<String> mandList = new ArrayList<>();
+                    for (AttributeModel a : newM.getAttributes()) {
+                        if (a.isPrimaryKey()) {
+                            pkList.add("'" + a.name + "' (" + a.type + ", " + a.getPrimaryKeyReason() + ")");
+                        } else if (a.isMandatory()) {
+                            mandList.add("'" + a.name + "' (" + a.type + ", " + a.getMandatoryReason() + ")");
+                        }
+                    }
+                    String pk = pkList.isEmpty() ? "No primary key" : "New file PK: " + String.join(", ", pkList);
+                    String mand = mandList.isEmpty() ? "No mandatory attributes" : "New file mandatory: " + String.join("; ", mandList);
+                    return new KeyAndMandatoryChanges(pk, mand);
+                }
+            } catch (Exception ignored) {}
+            return new KeyAndMandatoryChanges("New file added", "New file added");
+        }
+
+        if (mergedFile == null || !Files.exists(mergedFile)) {
+            return new KeyAndMandatoryChanges("File removed", "File removed");
+        }
+
+        List<String> pkChanges = new ArrayList<>();
+        List<String> mandChanges = new ArrayList<>();
+
+        try {
+            JavaModel oldM = ParserUtil.parseFile(existingFile, existingFile.getParent());
+            JavaModel newM = ParserUtil.parseFile(mergedFile, mergedFile.getParent());
+
+            Map<String, AttributeModel> oldAttrs = new LinkedHashMap<>();
+            for (AttributeModel a : oldM.getAttributes()) {
+                oldAttrs.put(a.name, a);
+            }
+            Map<String, AttributeModel> newAttrs = new LinkedHashMap<>();
+            for (AttributeModel a : newM.getAttributes()) {
+                newAttrs.put(a.name, a);
+            }
+
+            // 1. Primary Key Analysis
+            Map<String, AttributeModel> oldPKs = new LinkedHashMap<>();
+            for (AttributeModel a : oldM.getAttributes()) {
+                if (a.isPrimaryKey()) oldPKs.put(a.name, a);
+            }
+            Map<String, AttributeModel> newPKs = new LinkedHashMap<>();
+            for (AttributeModel a : newM.getAttributes()) {
+                if (a.isPrimaryKey()) newPKs.put(a.name, a);
+            }
+
+            if (oldPKs.isEmpty() && newPKs.isEmpty()) {
+                pkChanges.add("No primary key");
+            } else if (oldPKs.isEmpty() && !newPKs.isEmpty()) {
+                for (AttributeModel a : newPKs.values()) {
+                    pkChanges.add("Primary key added: '" + a.name + "' (" + a.type + ", " + a.getPrimaryKeyReason() + ")");
+                }
+            } else if (!oldPKs.isEmpty() && newPKs.isEmpty()) {
+                for (AttributeModel a : oldPKs.values()) {
+                    pkChanges.add("WARNING: Primary key removed: '" + a.name + "'");
+                }
+            } else {
+                for (String oldName : oldPKs.keySet()) {
+                    if (!newPKs.containsKey(oldName)) {
+                        pkChanges.add("Primary key removed: '" + oldName + "'");
+                    }
+                }
+                for (String newName : newPKs.keySet()) {
+                    if (!oldPKs.containsKey(newName)) {
+                        AttributeModel newPK = newPKs.get(newName);
+                        pkChanges.add("Primary key added: '" + newName + "' (" + newPK.type + ", " + newPK.getPrimaryKeyReason() + ")");
+                    }
+                }
+                for (String name : oldPKs.keySet()) {
+                    if (newPKs.containsKey(name)) {
+                        AttributeModel oldPK = oldPKs.get(name);
+                        AttributeModel newPK = newPKs.get(name);
+                        if (!Objects.equals(oldPK.type, newPK.type)) {
+                            pkChanges.add("PK '" + name + "' type changed: " + oldPK.type + " -> " + newPK.type);
+                        } else if (!Objects.equals(oldPK.annotations, newPK.annotations)) {
+                            pkChanges.add("PK '" + name + "' annotations updated: " + newPK.annotations);
+                        } else {
+                            pkChanges.add("Preserved PK '" + name + "' (" + newPK.type + ")");
+                        }
+                    }
+                }
+            }
+
+            // 2. Mandatory Attributes Analysis
+            for (Map.Entry<String, AttributeModel> entry : oldAttrs.entrySet()) {
+                String name = entry.getKey();
+                AttributeModel oldA = entry.getValue();
+                if (newAttrs.containsKey(name)) {
+                    AttributeModel newA = newAttrs.get(name);
+                    boolean oldMand = oldA.isMandatory();
+                    boolean newMand = newA.isMandatory();
+                    if (!oldMand && newMand) {
+                        mandChanges.add("Attribute '" + name + "' became mandatory (" + newA.getMandatoryReason() + ")");
+                    } else if (oldMand && !newMand) {
+                        mandChanges.add("Attribute '" + name + "' became optional (was: " + oldA.getMandatoryReason() + ")");
+                    } else if (oldMand && newMand && !Objects.equals(oldA.type, newA.type)) {
+                        mandChanges.add("Mandatory attribute '" + name + "' type changed: " + oldA.type + " -> " + newA.type);
+                    }
+                }
+            }
+
+            for (Map.Entry<String, AttributeModel> entry : newAttrs.entrySet()) {
+                String name = entry.getKey();
+                if (!oldAttrs.containsKey(name)) {
+                    AttributeModel newA = entry.getValue();
+                    if (newA.isMandatory() && !newA.isPrimaryKey()) {
+                        mandChanges.add("Added mandatory: '" + name + "' (" + newA.type + ", " + newA.getMandatoryReason() + ")");
+                    }
+                }
+            }
+
+            for (Map.Entry<String, AttributeModel> entry : oldAttrs.entrySet()) {
+                String name = entry.getKey();
+                if (!newAttrs.containsKey(name)) {
+                    AttributeModel oldA = entry.getValue();
+                    if (oldA.isMandatory()) {
+                        mandChanges.add("Removed mandatory: '" + name + "'");
+                    }
+                }
+            }
+
+            if (mandChanges.isEmpty()) {
+                long totalMand = newAttrs.values().stream().filter(AttributeModel::isMandatory).count();
+                mandChanges.add(totalMand > 0 ? "Preserved " + totalMand + " mandatory attribute(s)" : "No mandatory attributes");
+            }
+
+        } catch (Exception e) {
+            pkChanges.add("PK check error: " + e.getMessage());
+            mandChanges.add("Mandatory check error: " + e.getMessage());
+        }
+
+        String pkResult = String.join("; ", pkChanges);
+        String mandResult = String.join("; ", mandChanges);
+        return new KeyAndMandatoryChanges(pkResult, mandResult);
     }
 
     public static String detectTypeChanges(Path existingFile, Path mergedFile) {

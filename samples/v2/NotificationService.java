@@ -5,11 +5,15 @@ package com.example;
  * Demonstrates automatic addition of new standalone classes during merge operations.
  */
 public class NotificationService {
+    @Id
+    private String notificationId;
+    @NotNull
     private String defaultSender;
     private boolean pushEnabled;
     private int maxRetries;
 
     public NotificationService() {
+        this.notificationId = "NTF-DEFAULT";
         this.defaultSender = "notifications@example.com";
         this.pushEnabled = true;
         this.maxRetries = 3;

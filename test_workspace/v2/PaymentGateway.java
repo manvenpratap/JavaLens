@@ -2,13 +2,19 @@ package com.example;
 
 public class PaymentGateway {
     public static final int DEFAULT_TIMEOUT_MS = 5000;
+    @Id
     private String merchantKey;
+    @NotNull
     private int retryAttempts;
 
     // START_MERGE
-    private long transactionTimeout; // CHANGED TYPE: int -> long
-    private String webhookEndpoint; // ADDED
-    private boolean idempotencyEnabled; // ADDED
+    private long transactionTimeout;
+    @NotNull
+    @Column(nullable = false)
+    private String webhookEndpoint;
+    private boolean idempotencyEnabled;
+    @NotNull
+    private String apiKey;
     // END_MERGE
 
     public PaymentGateway(String merchantKey) {
@@ -20,14 +26,28 @@ public class PaymentGateway {
     public boolean charge(String customerId, double amount) {
         System.out.println("Executing enhanced charge: $" + amount + " for customer " + customerId);
         if (idempotencyEnabled) {
-            System.out.println("Idempotent token verified for customer " + customerId);
+            System.out.println("Idempotent charge token verified for customer " + customerId);
         }
-        dispatchWebhook("EVT_CHARGE", customerId + ":" + amount);
+        dispatchWebhook("EVT_CHARGE_SUCCESS", customerId + ":" + amount);
         return amount > 0;
     }
 
     public String dispatchWebhook(String eventId, String payload) {
-        return "DISPATCHED:" + eventId + " -> " + this.webhookEndpoint;
+        String eventUrl = (this.webhookEndpoint != null) ? this.webhookEndpoint : "https://api.payments.internal/events";
+        System.out.println("Dispatching webhook event [" + eventId + "] to " + eventUrl + " with payload: " + payload);
+        return "DISPATCHED:" + eventId;
+    }
+
+    public boolean validateSignature(String signature, String payload) {
+        return signature != null && !signature.isEmpty() && payload != null;
+    }
+
+    public String getWebhookEndpoint() {
+        return this.webhookEndpoint;
+    }
+
+    public void setWebhookEndpoint(String endpoint) {
+        this.webhookEndpoint = endpoint;
     }
     // END_MERGE
 
