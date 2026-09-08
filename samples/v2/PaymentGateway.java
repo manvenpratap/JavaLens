@@ -6,6 +6,9 @@ public class PaymentGateway {
     private int retryAttempts;
 
     // START_MERGE
+    private String webhookEndpoint;
+    private boolean idempotencyEnabled;
+    private String apiKey;
     // END_MERGE
 
     public PaymentGateway(String merchantKey) {
@@ -15,8 +18,30 @@ public class PaymentGateway {
 
     // START_MERGE
     public boolean charge(String customerId, double amount) {
-        System.out.println("Executing baseline charge: $" + amount + " for customer " + customerId);
+        System.out.println("Executing enhanced charge: $" + amount + " for customer " + customerId);
+        if (idempotencyEnabled) {
+            System.out.println("Idempotent charge token verified for customer " + customerId);
+        }
+        dispatchWebhook("EVT_CHARGE_SUCCESS", customerId + ":" + amount);
         return amount > 0;
+    }
+
+    public String dispatchWebhook(String eventId, String payload) {
+        String eventUrl = (this.webhookEndpoint != null) ? this.webhookEndpoint : "https://api.payments.internal/events";
+        System.out.println("Dispatching webhook event [" + eventId + "] to " + eventUrl + " with payload: " + payload);
+        return "DISPATCHED:" + eventId;
+    }
+
+    public boolean validateSignature(String signature, String payload) {
+        return signature != null && !signature.isEmpty() && payload != null;
+    }
+
+    public String getWebhookEndpoint() {
+        return this.webhookEndpoint;
+    }
+
+    public void setWebhookEndpoint(String endpoint) {
+        this.webhookEndpoint = endpoint;
     }
     // END_MERGE
 

@@ -549,11 +549,11 @@ public class WebServer {
 
         // 5. If no run directory exists, auto-generate a fresh report so downloads never 404
         try {
-            if (config.getOldPath() == null || !Files.exists(Paths.get(config.getOldPath()))) {
-                config.setOldPath(Files.exists(Paths.get("samples/v2")) ? "samples/v2" : "test_workspace/v1");
+            if (config.getExistingPath() == null || !Files.exists(Paths.get(config.getExistingPath()))) {
+                config.setExistingPath(Files.exists(Paths.get("samples/v1")) ? "samples/v1" : "test_workspace/v1");
             }
-            if (config.getNewPath() == null || !Files.exists(Paths.get(config.getNewPath()))) {
-                config.setNewPath(Files.exists(Paths.get("samples/v1")) ? "samples/v1" : "test_workspace/v2");
+            if (config.getGeneratedPath() == null || !Files.exists(Paths.get(config.getGeneratedPath()))) {
+                config.setGeneratedPath(Files.exists(Paths.get("samples/v2")) ? "samples/v2" : "test_workspace/v2");
             }
             config.setOutputDir("java_analysis_output");
             Path reportCsv = ReportGenerator.generateFullReport(config);

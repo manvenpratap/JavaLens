@@ -271,12 +271,14 @@ public class JavaAnalyzer {
 
         String[] sampleFiles = {
             "samples/v1/CacheManager.java",
+            "samples/v1/LegacyAuditLogger.java",
             "samples/v1/MyClass.java",
             "samples/v1/OrderService.java",
             "samples/v1/PaymentGateway.java",
             "samples/v1/UserAccount.java",
             "samples/v2/CacheManager.java",
             "samples/v2/MyClass.java",
+            "samples/v2/NotificationService.java",
             "samples/v2/OrderService.java",
             "samples/v2/PaymentGateway.java",
             "samples/v2/UserAccount.java"
