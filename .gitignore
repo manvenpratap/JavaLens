@@ -19,3 +19,5 @@ java_report_data.js
 # OS specific files
 .DS_Store
 Thumbs.db
+
+graphify-out/
