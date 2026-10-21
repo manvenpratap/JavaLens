@@ -45,8 +45,13 @@ public class ParserUtil {
             for (Tree typeTree : cu.getTypeDecls()) {
                 if (!(typeTree instanceof ClassTree cls)) continue;
 
-                String className = pkg.isEmpty() ? cls.getSimpleName().toString()
-                                                 : pkg + "." + cls.getSimpleName();
+                String simpleName = cls.getSimpleName().toString();
+                String className = pkg.isEmpty() ? simpleName
+                                                 : pkg + "." + simpleName;
+                if (model.getClassName() == null || model.getClassName().isEmpty()) {
+                    model.setClassName(className);
+                    model.setSimpleClassName(simpleName);
+                }
 
                 for (Tree member : cls.getMembers()) {
 
@@ -96,7 +101,11 @@ public class ParserUtil {
                 }
             }
         }
-        return model != null ? model : new JavaModel(relPath, "");
+        if (model != null) {
+            com.javalens.archetype.ArchetypeClassifier.getInstance().classify(model);
+            return model;
+        }
+        return new JavaModel(relPath, "");
     }
 
     // ── AST extraction helpers ────────────────────────────────────────────────
@@ -198,11 +207,33 @@ public class ParserUtil {
         String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                                .format(java.time.LocalDateTime.now());
 
+        com.javalens.archetype.ArchetypeClassifier classifier = com.javalens.archetype.ArchetypeClassifier.getInstance();
+        StringBuilder rulesJson = new StringBuilder("[");
+        List<com.javalens.archetype.ArchetypeRule> curRules = classifier.getRules();
+        for (int k = 0; k < curRules.size(); k++) {
+            if (k > 0) rulesJson.append(",");
+            rulesJson.append(curRules.get(k).toJson());
+        }
+        rulesJson.append("]");
+
+        StringBuilder mergerRulesJson = new StringBuilder("[");
+        List<com.javalens.archetype.MergerRule> curMRules = classifier.getMergerRules();
+        for (int k = 0; k < curMRules.size(); k++) {
+            if (k > 0) mergerRulesJson.append(",");
+            mergerRulesJson.append(curMRules.get(k).toJson());
+        }
+        mergerRulesJson.append("]");
+
         StringBuilder js = new StringBuilder();
         js.append("window.javaLensReportData = {\n");
         js.append("  \"timestamp\": \"").append(timestamp).append("\",\n");
         js.append("  \"mode\": \"").append(mode).append("\",\n");
         js.append("  \"activeRunFolder\": \"").append(runFolder.replace("\\", "/")).append("\",\n");
+        js.append("  \"archetypes\": {\n");
+        js.append("    \"preset\": \"").append(classifier.getCurrentPreset()).append("\",\n");
+        js.append("    \"rules\": ").append(rulesJson).append(",\n");
+        js.append("    \"mergerRules\": ").append(mergerRulesJson).append("\n");
+        js.append("  },\n");
         js.append("  \"attributes\": ").append(attrJson).append(",\n");
         js.append("  \"methods\": ").append(methJson).append(",\n");
         js.append("  \"compare_attributes\": ").append(compAttrJson).append(",\n");

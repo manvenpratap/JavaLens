@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 public class Config {
@@ -31,6 +32,9 @@ public class Config {
     private String sourceFolder = "";
     private int serverPort = 8080;
     private String configFilePath = DEFAULT_CONF_FILE;
+    private String archetypesPreset = "bancs";
+    private String archetypesRulesJson = "";
+    private String mergerRulesJson = "";
 
     /**
      * Resolves the configuration file location following priority:
@@ -171,6 +175,35 @@ public class Config {
                         // already scanned above, skip next arg
                         if (i + 1 < args.length) i++;
                         break;
+                    case "--archetype-preset":
+                    case "--archetypes-preset":
+                        if (i + 1 < args.length) config.archetypesPreset = args[++i];
+                        break;
+                    case "--archetype-rules":
+                    case "--archetypes-rules":
+                        if (i + 1 < args.length) {
+                            String rArg = args[++i];
+                            if (Files.exists(Paths.get(rArg))) {
+                                try {
+                                    config.archetypesRulesJson = Files.readString(Paths.get(rArg));
+                                } catch (Exception ignored) {}
+                            } else {
+                                config.archetypesRulesJson = rArg;
+                            }
+                        }
+                        break;
+                    case "--merger-rules":
+                        if (i + 1 < args.length) {
+                            String mArg = args[++i];
+                            if (Files.exists(Paths.get(mArg))) {
+                                try {
+                                    config.mergerRulesJson = Files.readString(Paths.get(mArg));
+                                } catch (Exception ignored) {}
+                            } else {
+                                config.mergerRulesJson = mArg;
+                            }
+                        }
+                        break;
                     case "--save-config":
                         if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
                             saveConfigTarget = args[++i];
@@ -216,6 +249,9 @@ public class Config {
         }
 
         if (saveAndExit) {
+            com.javalens.archetype.ArchetypeClassifier.resetInstance(
+                config.archetypesPreset, config.archetypesRulesJson, config.mergerRulesJson
+            );
             config.saveProperties(saveConfigTarget);
             System.out.println("JavaLens configuration written to: " + saveConfigTarget);
             System.exit(0);
@@ -247,6 +283,11 @@ public class Config {
             printHelp();
             System.exit(1);
         }
+
+        // Initialize active archetype classifier singleton with loaded config
+        com.javalens.archetype.ArchetypeClassifier.resetInstance(
+            config.archetypesPreset, config.archetypesRulesJson, config.mergerRulesJson
+        );
 
         return config;
     }
@@ -343,6 +384,10 @@ public class Config {
                     this.serverPort = Integer.parseInt(pVal.trim());
                 } catch (NumberFormatException ignored) {}
             }
+            // Archetypes & Merger Rules
+            this.archetypesPreset = getProp(props, archetypesPreset, "archetypes.preset", "archetype.preset", "archetypesPreset");
+            this.archetypesRulesJson = getProp(props, archetypesRulesJson, "archetypes.rulesJson", "archetype.rulesJson", "archetypesRulesJson");
+            this.mergerRulesJson = getProp(props, mergerRulesJson, "merger.rulesJson", "mergerRulesJson");
         }
     }
 
@@ -406,7 +451,36 @@ public class Config {
         sb.append("enhancement.merge.enabled=").append(mergeEnabled).append("\n\n");
 
         sb.append("# Web GUI Server Port\n");
-        sb.append("server.port=").append(serverPort).append("\n");
+        sb.append("server.port=").append(serverPort).append("\n\n");
+
+        sb.append("# Class & Method Archetype Configuration\n");
+        sb.append("archetypes.preset=").append(archetypesPreset != null ? archetypesPreset : "bancs").append("\n");
+        String rulesToSave = archetypesRulesJson;
+        if (rulesToSave == null || rulesToSave.trim().isEmpty() || rulesToSave.trim().equals("[]")) {
+            List<com.javalens.archetype.ArchetypeRule> curRules = com.javalens.archetype.ArchetypePreset.getRulesForPreset(archetypesPreset);
+            StringBuilder rb = new StringBuilder("[");
+            for (int k = 0; k < curRules.size(); k++) {
+                if (k > 0) rb.append(",");
+                rb.append(curRules.get(k).toJson());
+            }
+            rb.append("]");
+            rulesToSave = rb.toString();
+        }
+        sb.append("archetypes.rulesJson=").append(rulesToSave).append("\n\n");
+
+        sb.append("# Archetype Merger Policy Rules\n");
+        String mergerToSave = mergerRulesJson;
+        if (mergerToSave == null || mergerToSave.trim().isEmpty() || mergerToSave.trim().equals("[]")) {
+            List<com.javalens.archetype.MergerRule> curMRules = com.javalens.archetype.ArchetypePreset.getMergerRulesForPreset(archetypesPreset);
+            StringBuilder mb = new StringBuilder("[");
+            for (int k = 0; k < curMRules.size(); k++) {
+                if (k > 0) mb.append(",");
+                mb.append(curMRules.get(k).toJson());
+            }
+            mb.append("]");
+            mergerToSave = mb.toString();
+        }
+        sb.append("merger.rulesJson=").append(mergerToSave).append("\n");
 
         try {
             Files.writeString(file.toPath(), sb.toString());
@@ -524,6 +598,9 @@ public class Config {
         System.out.println("  -t, --threads <num>                             Number of parallel threads (default: available cores)");
         System.out.println("  -p, --port <num>                                Web server port (default: 8080)");
         System.out.println("  -c, --config <path>                             Path to .conf or properties config file (default: javalens.conf)");
+        System.out.println("  --archetype-preset <name>                       Archetype preset (bancs, spring, ddd; default: bancs)");
+        System.out.println("  --archetype-rules <json|file>                   Custom class/method archetype rules JSON or file");
+        System.out.println("  --merger-rules <json|file>                      Custom archetype merger rules JSON or file");
         System.out.println("  --save-config [path]                            Write current runtime configuration to .conf file and exit");
         System.out.println("  -h, --help                                      Show this help message");
     }
@@ -544,6 +621,9 @@ public class Config {
     public boolean isMergeEnabled() { return mergeEnabled; }
     public int getServerPort() { return serverPort; }
     public String getConfigFilePath() { return configFilePath; }
+    public String getArchetypesPreset() { return archetypesPreset; }
+    public String getArchetypesRulesJson() { return archetypesRulesJson; }
+    public String getMergerRulesJson() { return mergerRulesJson; }
 
     // Setters
     public void setMode(Mode mode) { this.mode = mode; }
@@ -561,4 +641,14 @@ public class Config {
     public void setMergeEnabled(boolean mergeEnabled) { this.mergeEnabled = mergeEnabled; }
     public void setServerPort(int serverPort) { this.serverPort = serverPort; }
     public void setConfigFilePath(String configFilePath) { this.configFilePath = configFilePath; }
+    public void setArchetypesPreset(String archetypesPreset) { this.archetypesPreset = archetypesPreset; }
+    public void setArchetypesRulesJson(String archetypesRulesJson) { this.archetypesRulesJson = archetypesRulesJson; }
+    public void setMergerRulesJson(String mergerRulesJson) { this.mergerRulesJson = mergerRulesJson; }
+
+    public String getArchetypePreset() { return archetypesPreset; }
+    public void setArchetypePreset(String preset) { this.archetypesPreset = preset; }
+    public String getArchetypeRulesPath() { return archetypesRulesJson; }
+    public void setArchetypeRulesPath(String path) { this.archetypesRulesJson = path; }
+    public String getMergerRulesPath() { return mergerRulesJson; }
+    public void setMergerRulesPath(String path) { this.mergerRulesJson = path; }
 }

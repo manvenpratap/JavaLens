@@ -23,6 +23,20 @@ It includes an interactive terminal wizard, high-throughput CLI modes, marker-gu
 
 ---
 
+## 🏛️ System Architecture & Compiled Diagrams
+
+JavaLens architecture, analysis workflows, semantic compare sequences, and lifecycles are formally modeled and compiled via [Archify](https://github.com/tt-a1i/archify):
+
+* 📐 **System Architecture**: [Interactive HTML View](./docs/diagrams/architecture.html) | [Spec](./docs/diagrams/architecture.json)
+* 🔄 **Synthesis Workflow**: [Interactive HTML View](./docs/diagrams/workflow.html) | [Spec](./docs/diagrams/workflow.json)
+* ⚡ **Compare Sequence**: [Interactive HTML View](./docs/diagrams/sequence.html) | [Spec](./docs/diagrams/sequence.json)
+* 🌊 **Data Flow Pipeline**: [Interactive HTML View](./docs/diagrams/dataflow.html) | [Spec](./docs/diagrams/dataflow.json)
+* ⏱️ **Pipeline Lifecycle**: [Interactive HTML View](./docs/diagrams/lifecycle.html) | [Spec](./docs/diagrams/lifecycle.json)
+
+For detailed blueprints and Mermaid specifications, see [**`PROJECT_CONTEXT.md`**](./PROJECT_CONTEXT.md).
+
+---
+
 ## Requirements
 
 * **JDK 17 or higher** (OpenJDK, Eclipse Temurin, Amazon Corretto, or Oracle JDK).

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "JavaLens - AST Synthesis Data Flow Pipeline",
+    "output": "dataflow.html",
+    "viewBox": [1080, 520],
+    "animation": "trace",
+    "quality_profile": "showcase"
+  },
+  "stages": [
+    { "label": "Source Directories" },
+    { "label": "Tree API Extraction" },
+    { "label": "Delta Classifier" },
+    { "label": "Marker Merger" },
+    { "label": "Reporting & GUI" }
+  ],
+  "nodes": [
+    { "id": "java_files", "type": "frontend", "label": "Java Source Files", "sublabel": ".java codebases", "stage": 0, "row": 1, "tag": "source" },
+    { "id": "compiler_tree", "type": "backend", "label": "Compiler Tree AST", "sublabel": "com.sun.source.tree", "stage": 1, "row": 1, "tag": "jdk" },
+    { "id": "delta_engine", "type": "backend", "label": "Delta Comparator", "sublabel": "semantic diff engine", "stage": 2, "row": 1, "tag": "diff" },
+    { "id": "merge_engine", "type": "backend", "label": "Marker Merger", "sublabel": "safe block splicing", "stage": 3, "row": 1, "tag": "merge" },
+    { "id": "csv_matrix", "type": "database", "label": "Activity CSV Matrix", "sublabel": "consolidated report", "stage": 4, "row": 0, "tag": "csv" },
+    { "id": "web_gui", "type": "frontend", "label": "Web GUI Console", "sublabel": "real-time telemetry", "stage": 4, "row": 2, "tag": "gui" }
+  ],
+  "flows": [
+    { "id": "f1", "from": "java_files", "to": "compiler_tree", "label": "parse AST", "classification": "source files", "variant": "emphasis" },
+    { "id": "f2", "from": "compiler_tree", "to": "delta_engine", "label": "signatures", "classification": "AST models", "variant": "emphasis" },
+    { "id": "f3", "from": "delta_engine", "to": "merge_engine", "label": "changes", "classification": "deltas", "variant": "emphasis" },
+    { "id": "f4", "from": "merge_engine", "to": "csv_matrix", "label": "activity report", "classification": "CSV rows", "variant": "emphasis" },
+    { "id": "f5", "from": "merge_engine", "to": "web_gui", "label": "telemetry", "classification": "JSON feed", "variant": "default" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Zero Leaks or External Egress", "items": ["Entire execution is 100% contained within the local JVM sandbox"] }
+  ]
+}

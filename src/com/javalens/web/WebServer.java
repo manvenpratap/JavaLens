@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class WebServer {
@@ -58,6 +59,7 @@ public class WebServer {
         server.createContext("/api/report-csv", new ReportCsvHandler());
         server.createContext("/api/report-download", new ReportDownloadHandler());
         server.createContext("/api/file", new FileContentHandler());
+        server.createContext("/api/archetypes", new ArchetypesHandler());
         server.setExecutor(null); // default executor
         server.start();
         System.out.println("=================================================");
@@ -170,7 +172,7 @@ public class WebServer {
 
             if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
                 String json = String.format(
-                    "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"existingPath\":\"%s\",\"generatedPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b}",
+                    "{\"configFilePath\":\"%s\",\"mode\":\"%s\",\"sourceFolder\":\"%s\",\"outputDir\":\"%s\",\"threads\":%d,\"serverPort\":%d,\"activeRunFolder\":\"%s\",\"oldPath\":\"%s\",\"newPath\":\"%s\",\"existingPath\":\"%s\",\"generatedPath\":\"%s\",\"startMarker\":\"%s\",\"endMarker\":\"%s\",\"compareEnabled\":%b,\"mergeEnabled\":%b,\"archetypePreset\":\"%s\",\"archetypeRulesPath\":\"%s\",\"mergerRulesPath\":\"%s\"}",
                     escapeJson(config.getConfigFilePath()),
                     escapeJson(config.getMode().name().toLowerCase()),
                     escapeJson(config.getSourceFolder()),
@@ -185,7 +187,10 @@ public class WebServer {
                     escapeJson(config.getStartMarker()),
                     escapeJson(config.getEndMarker()),
                     config.isCompareEnabled(),
-                    config.isMergeEnabled()
+                    config.isMergeEnabled(),
+                    escapeJson(config.getArchetypePreset()),
+                    escapeJson(config.getArchetypeRulesPath()),
+                    escapeJson(config.getMergerRulesPath())
                 );
                 exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
                 byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
@@ -220,6 +225,13 @@ public class WebServer {
                 if (params.containsKey("endMarker")) config.setEndMarker(params.get("endMarker"));
                 if (params.containsKey("compareEnabled")) config.setCompareEnabled(Boolean.parseBoolean(params.get("compareEnabled")));
                 if (params.containsKey("mergeEnabled")) config.setMergeEnabled(Boolean.parseBoolean(params.get("mergeEnabled")));
+                if (params.containsKey("archetypePreset")) {
+                    String p = params.get("archetypePreset");
+                    config.setArchetypePreset(p);
+                    com.javalens.archetype.ArchetypeClassifier.resetInstance(p, null, null);
+                }
+                if (params.containsKey("archetypeRulesPath")) config.setArchetypeRulesPath(params.get("archetypeRulesPath"));
+                if (params.containsKey("mergerRulesPath")) config.setMergerRulesPath(params.get("mergerRulesPath"));
 
                 // Save to active .conf file on local machine
                 config.save();
@@ -227,6 +239,55 @@ public class WebServer {
             } else {
                 exchange.sendResponseHeaders(405, -1);
             }
+        }
+    }
+
+    private static class ArchetypesHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            com.javalens.archetype.ArchetypeClassifier classifier = com.javalens.archetype.ArchetypeClassifier.getInstance();
+
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                Map<String, String> params = parseBodyParams(exchange);
+                if (params.containsKey("preset")) {
+                    String newPreset = params.get("preset").trim().toLowerCase();
+                    classifier.init(newPreset, null, null);
+                    Config cfg = new Config();
+                    cfg.load();
+                    cfg.setArchetypePreset(newPreset);
+                    cfg.save();
+                }
+            }
+
+            StringBuilder rulesJson = new StringBuilder("[");
+            List<com.javalens.archetype.ArchetypeRule> curRules = classifier.getRules();
+            for (int k = 0; k < curRules.size(); k++) {
+                if (k > 0) rulesJson.append(",");
+                rulesJson.append(curRules.get(k).toJson());
+            }
+            rulesJson.append("]");
+
+            StringBuilder mergerRulesJson = new StringBuilder("[");
+            List<com.javalens.archetype.MergerRule> curMRules = classifier.getMergerRules();
+            for (int k = 0; k < curMRules.size(); k++) {
+                if (k > 0) mergerRulesJson.append(",");
+                mergerRulesJson.append(curMRules.get(k).toJson());
+            }
+            mergerRulesJson.append("]");
+
+            String json = String.format(
+                "{\"preset\":\"%s\",\"presets\":[\"bancs\",\"spring\",\"ddd\"],\"rules\":%s,\"mergerRules\":%s}",
+                escapeJson(classifier.getCurrentPreset()),
+                rulesJson,
+                mergerRulesJson
+            );
+
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, bytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(bytes);
+            os.close();
         }
     }
 

@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "JavaLens - Codebase Synthesis & Merge Workflow",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "output": "workflow.html"
+  },
+  "lanes": [
+    { "id": "input", "label": "Codebase Sources" },
+    { "id": "ast", "label": "Compiler Tree AST" },
+    { "id": "diff", "label": "Semantic Comparator" },
+    { "id": "merge", "label": "Merge & Activity Report" }
+  ],
+  "phases": [
+    { "id": "p1", "label": "1. Analyze", "fromCol": 0, "toCol": 1 },
+    { "id": "p2", "label": "2. Compare", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "p3", "label": "3. Merge & Export", "fromCol": 4, "toCol": 5 }
+  ],
+  "groups": [
+    { "id": "ast_group", "label": "Java Compiler Tree Walk", "lane": "ast", "fromCol": 1, "toCol": 2, "variant": "emphasis" }
+  ],
+  "mainPath": ["scan_sources", "parse_compilation", "extract_signatures", "compare_deltas", "transfer_blocks", "export_report"],
+  "nodes": [
+    { "id": "scan_sources", "lane": "input", "col": 0, "type": "frontend", "label": "Source Input", "sublabel": "baseline vs feature dirs", "width": 140 },
+    { "id": "parse_compilation", "lane": "ast", "col": 1, "type": "backend", "label": "Compiler AST", "sublabel": "com.sun.source.tree", "width": 140 },
+    { "id": "extract_signatures", "lane": "ast", "col": 2, "type": "backend", "label": "Member Extractor", "sublabel": "fields, methods, types", "tag": "microsecond", "width": 140 },
+    { "id": "compare_deltas", "lane": "diff", "col": 3, "type": "backend", "label": "Delta Classifier", "sublabel": "Added, Modified, Removed", "width": 140 },
+    { "id": "transfer_blocks", "lane": "merge", "col": 4, "type": "backend", "label": "Marker Merger", "sublabel": "START_MERGE blocks", "width": 140 },
+    { "id": "export_report", "lane": "merge", "col": 5, "type": "database", "label": "Consolidated CSV", "sublabel": "full activity audit report", "tag": "artifact", "width": 140 }
+  ],
+  "edges": [
+    { "id": "e1", "from": "scan_sources", "to": "parse_compilation", "variant": "emphasis" },
+    { "id": "e2", "from": "parse_compilation", "to": "extract_signatures", "variant": "default" },
+    { "id": "e3", "from": "extract_signatures", "to": "compare_deltas", "label": "AST models", "variant": "emphasis" },
+    { "id": "e4", "from": "compare_deltas", "to": "transfer_blocks", "label": "delta diff", "variant": "emphasis" },
+    { "id": "e5", "from": "transfer_blocks", "to": "export_report", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "5-Stage Unified Pipeline", "items": ["analyze baseline -> analyze feature -> compare deltas -> merge marker blocks -> re-analyze merged output", "Consolidated single CSV tracks all newly added and modified members"] }
+  ]
+}

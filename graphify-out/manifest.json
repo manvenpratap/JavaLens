@@ -1,0 +1,550 @@
+{
+  "/Volumes/Study/Projects/javalens/java_report_data.js": {
+    "mtime": 1788843122.9796178,
+    "hash": "1af1ac47c8a46b22d441bd53490c0820"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/TradeOrderService.java": {
+    "mtime": 1788841100.766962,
+    "hash": "5f655139f0579049e82740c08a25e86b"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/MyClass.java": {
+    "mtime": 1788841100.4070284,
+    "hash": "0b813f81ef65ce4f4e4a72452563c030"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/PaymentGateway.java": {
+    "mtime": 1788841100.6673417,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/OrderService.java": {
+    "mtime": 1788841100.5183718,
+    "hash": "f5e7912ca47083da25ea548af5e1a683"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/CacheManager.java": {
+    "mtime": 1788841100.2710917,
+    "hash": "8066efb69e6402bf147779d345001f73"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/TradePosition.java": {
+    "mtime": 1788841100.8392003,
+    "hash": "8cbc180983db0518509aa7447e82df80"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/UserAccount.java": {
+    "mtime": 1788841100.8787427,
+    "hash": "b69581df6767c97819a0b8fe72dd19b6"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/test_merge/run_20260908_094819/TRDGOrderBookGrabber.java": {
+    "mtime": 1788841100.7217484,
+    "hash": "2536a6e3e37b3f1932474a3a27d5601a"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/TradeOrderService.java": {
+    "mtime": 1788843122.916123,
+    "hash": "5f655139f0579049e82740c08a25e86b"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/MyClass.java": {
+    "mtime": 1788843122.8449323,
+    "hash": "0b813f81ef65ce4f4e4a72452563c030"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/PaymentGateway.java": {
+    "mtime": 1788843122.8859665,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/OrderService.java": {
+    "mtime": 1788843122.8679357,
+    "hash": "f5e7912ca47083da25ea548af5e1a683"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/CacheManager.java": {
+    "mtime": 1788843122.8000805,
+    "hash": "8066efb69e6402bf147779d345001f73"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/TradePosition.java": {
+    "mtime": 1788843122.9300456,
+    "hash": "8cbc180983db0518509aa7447e82df80"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/UserAccount.java": {
+    "mtime": 1788843122.949356,
+    "hash": "b69581df6767c97819a0b8fe72dd19b6"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/bancs_test/run_20260908_102202/TRDGOrderBookGrabber.java": {
+    "mtime": 1788843122.8999093,
+    "hash": "2536a6e3e37b3f1932474a3a27d5601a"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/TradeOrderService.java": {
+    "mtime": 1788843073.780726,
+    "hash": "5f655139f0579049e82740c08a25e86b"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/MyClass.java": {
+    "mtime": 1788843073.7085433,
+    "hash": "0b813f81ef65ce4f4e4a72452563c030"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/PaymentGateway.java": {
+    "mtime": 1788843073.7541118,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/OrderService.java": {
+    "mtime": 1788843073.734953,
+    "hash": "f5e7912ca47083da25ea548af5e1a683"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/CacheManager.java": {
+    "mtime": 1788843073.6674995,
+    "hash": "8066efb69e6402bf147779d345001f73"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/TradePosition.java": {
+    "mtime": 1788843073.7928185,
+    "hash": "8cbc180983db0518509aa7447e82df80"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/UserAccount.java": {
+    "mtime": 1788843073.8094797,
+    "hash": "b69581df6767c97819a0b8fe72dd19b6"
+  },
+  "/Volumes/Study/Projects/javalens/test_out/merge_bancs_test/run_20260908_102113/TRDGOrderBookGrabber.java": {
+    "mtime": 1788843073.7674794,
+    "hash": "2536a6e3e37b3f1932474a3a27d5601a"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/TradeOrderService.java": {
+    "mtime": 1788840912.4098346,
+    "hash": "2fc2faa2e40644ae27995ec9ee2f77e6"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/MyClass.java": {
+    "mtime": 1788739242.8265362,
+    "hash": "326f59b97c57aaaa9614a701b6f875a5"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/PaymentGateway.java": {
+    "mtime": 1788838491.102387,
+    "hash": "f2a5b5577195584bde744b83344362ba"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/OrderService.java": {
+    "mtime": 1788739927.2097838,
+    "hash": "be1cf84c7ebd013d70ea2b0cd13030fd"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/CacheManager.java": {
+    "mtime": 1788739994.3611689,
+    "hash": "2daacf1f1168b388ab7fe2dbecb88151"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/LegacyAuditLogger.java": {
+    "mtime": 1788836014.2361763,
+    "hash": "948ad2844431a23358ec2ea29348646d"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/TradePosition.java": {
+    "mtime": 1788840841.04316,
+    "hash": "8cbc180983db0518509aa7447e82df80"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/UserAccount.java": {
+    "mtime": 1788838476.0524757,
+    "hash": "249c38c9699652c6fbc592759769ab03"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v1/TRDGOrderBookGrabber.java": {
+    "mtime": 1788840841.0429053,
+    "hash": "2536a6e3e37b3f1932474a3a27d5601a"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/TradeOrderService.java": {
+    "mtime": 1788840912.412759,
+    "hash": "01eb57240b078c2bd49623c0cbf09240"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/MyClass.java": {
+    "mtime": 1788836025.379505,
+    "hash": "f3ce4aea79e7dc888bd8f125b9c67c2a"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/PaymentGateway.java": {
+    "mtime": 1788838500.9969785,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/OrderService.java": {
+    "mtime": 1788836036.2062447,
+    "hash": "687bab52d7aeca2d5bf583b883bef85f"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/NotificationService.java": {
+    "mtime": 1788838508.910588,
+    "hash": "033aa51d711ec3838d44b99f4327f30a"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/CacheManager.java": {
+    "mtime": 1788836056.858168,
+    "hash": "bb807b17d0499de5c3808477e463dc27"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/TradePosition.java": {
+    "mtime": 1788840841.046025,
+    "hash": "d740edd58597386fb470a729225d6b18"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/UserAccount.java": {
+    "mtime": 1788838482.5110211,
+    "hash": "902e1d3467d49de4c837d4ac8ae54eb5"
+  },
+  "/Volumes/Study/Projects/javalens/samples/v2/TRDGOrderBookGrabber.java": {
+    "mtime": 1788840841.0457566,
+    "hash": "07787f0683bdc5585d782a8ed8067b1f"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/TradeOrderService.java": {
+    "mtime": 1788840897.8124952,
+    "hash": "2fc2faa2e40644ae27995ec9ee2f77e6"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/MyClass.java": {
+    "mtime": 1788840793.770168,
+    "hash": "326f59b97c57aaaa9614a701b6f875a5"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/PaymentGateway.java": {
+    "mtime": 1788840793.770462,
+    "hash": "f2a5b5577195584bde744b83344362ba"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/OrderService.java": {
+    "mtime": 1788840793.7707264,
+    "hash": "be1cf84c7ebd013d70ea2b0cd13030fd"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/CacheManager.java": {
+    "mtime": 1788840793.7709792,
+    "hash": "2daacf1f1168b388ab7fe2dbecb88151"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/TradePosition.java": {
+    "mtime": 1788840829.381812,
+    "hash": "8cbc180983db0518509aa7447e82df80"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/UserAccount.java": {
+    "mtime": 1788840793.7712483,
+    "hash": "249c38c9699652c6fbc592759769ab03"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v1/TRDGOrderBookGrabber.java": {
+    "mtime": 1788840820.5793777,
+    "hash": "2536a6e3e37b3f1932474a3a27d5601a"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/TradeOrderService.java": {
+    "mtime": 1788840906.7720442,
+    "hash": "01eb57240b078c2bd49623c0cbf09240"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/MyClass.java": {
+    "mtime": 1788673898.880744,
+    "hash": "bcc1e4f116ab76ff48ef50f0756b4906"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/PaymentGateway.java": {
+    "mtime": 1788838513.5333061,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/OrderService.java": {
+    "mtime": 1788739923.2508652,
+    "hash": "f5e7912ca47083da25ea548af5e1a683"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/CacheManager.java": {
+    "mtime": 1788739990.2800174,
+    "hash": "ed1da2b6a25d5af1d029df714785c968"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/TradePosition.java": {
+    "mtime": 1788840837.426082,
+    "hash": "d740edd58597386fb470a729225d6b18"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/UserAccount.java": {
+    "mtime": 1788838513.5286908,
+    "hash": "902e1d3467d49de4c837d4ac8ae54eb5"
+  },
+  "/Volumes/Study/Projects/javalens/test_workspace/v2/TRDGOrderBookGrabber.java": {
+    "mtime": 1788840824.284889,
+    "hash": "07787f0683bdc5585d782a8ed8067b1f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_085105/MyClass.java": {
+    "mtime": 1788837665.5311818,
+    "hash": "764cf1e1e1ad84a45dc1e4738b8e2615"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_085105/PaymentGateway.java": {
+    "mtime": 1788837665.5469713,
+    "hash": "9be744f533beedb4024b21397bf9ed00"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_085105/OrderService.java": {
+    "mtime": 1788837665.5408716,
+    "hash": "687bab52d7aeca2d5bf583b883bef85f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_085105/NotificationService.java": {
+    "mtime": 1788837665.5366762,
+    "hash": "3307f1adaaea72ce640aa57d5ea9cf11"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_085105/CacheManager.java": {
+    "mtime": 1788837665.390364,
+    "hash": "bb807b17d0499de5c3808477e463dc27"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_085105/LegacyAuditLogger.java": {
+    "mtime": 1788837665.5242798,
+    "hash": "948ad2844431a23358ec2ea29348646d"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_085105/UserAccount.java": {
+    "mtime": 1788837665.554325,
+    "hash": "7808dab3767b8030817de5927a398a9f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/merged/MyClass.java": {
+    "mtime": 1788837167.7357092,
+    "hash": "764cf1e1e1ad84a45dc1e4738b8e2615"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/merged/PaymentGateway.java": {
+    "mtime": 1788837167.7379968,
+    "hash": "5c32f53aa8ebf1b1917cda40b84192bb"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/merged/OrderService.java": {
+    "mtime": 1788837167.737482,
+    "hash": "687bab52d7aeca2d5bf583b883bef85f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/merged/NotificationService.java": {
+    "mtime": 1788837167.7359889,
+    "hash": "3307f1adaaea72ce640aa57d5ea9cf11"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/merged/CacheManager.java": {
+    "mtime": 1788837167.733936,
+    "hash": "bb807b17d0499de5c3808477e463dc27"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/merged/LegacyAuditLogger.java": {
+    "mtime": 1788837167.7350194,
+    "hash": "948ad2844431a23358ec2ea29348646d"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/merged/UserAccount.java": {
+    "mtime": 1788837167.7386868,
+    "hash": "7808dab3767b8030817de5927a398a9f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/merged/MyClass.java": {
+    "mtime": 1788838728.2989876,
+    "hash": "764cf1e1e1ad84a45dc1e4738b8e2615"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/merged/PaymentGateway.java": {
+    "mtime": 1788838728.3001254,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/merged/OrderService.java": {
+    "mtime": 1788838728.2995107,
+    "hash": "687bab52d7aeca2d5bf583b883bef85f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/merged/NotificationService.java": {
+    "mtime": 1788838728.2992067,
+    "hash": "033aa51d711ec3838d44b99f4327f30a"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/merged/CacheManager.java": {
+    "mtime": 1788838728.2984796,
+    "hash": "bb807b17d0499de5c3808477e463dc27"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/merged/LegacyAuditLogger.java": {
+    "mtime": 1788838728.298705,
+    "hash": "948ad2844431a23358ec2ea29348646d"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/merged/UserAccount.java": {
+    "mtime": 1788838728.300618,
+    "hash": "b69581df6767c97819a0b8fe72dd19b6"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/merged/MyClass.java": {
+    "mtime": 1788840277.179911,
+    "hash": "764cf1e1e1ad84a45dc1e4738b8e2615"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/merged/PaymentGateway.java": {
+    "mtime": 1788840277.181583,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/merged/OrderService.java": {
+    "mtime": 1788840277.181093,
+    "hash": "687bab52d7aeca2d5bf583b883bef85f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/merged/NotificationService.java": {
+    "mtime": 1788840277.180338,
+    "hash": "033aa51d711ec3838d44b99f4327f30a"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/merged/CacheManager.java": {
+    "mtime": 1788840277.1782596,
+    "hash": "bb807b17d0499de5c3808477e463dc27"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/merged/LegacyAuditLogger.java": {
+    "mtime": 1788840277.179272,
+    "hash": "948ad2844431a23358ec2ea29348646d"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/merged/UserAccount.java": {
+    "mtime": 1788840277.1819494,
+    "hash": "b69581df6767c97819a0b8fe72dd19b6"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090536/MyClass.java": {
+    "mtime": 1788838537.067553,
+    "hash": "764cf1e1e1ad84a45dc1e4738b8e2615"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090536/PaymentGateway.java": {
+    "mtime": 1788838537.0974302,
+    "hash": "a5a48110b1d0945209bc9d87c575b535"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090536/OrderService.java": {
+    "mtime": 1788838537.0845847,
+    "hash": "687bab52d7aeca2d5bf583b883bef85f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090536/NotificationService.java": {
+    "mtime": 1788838537.0767074,
+    "hash": "033aa51d711ec3838d44b99f4327f30a"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090536/CacheManager.java": {
+    "mtime": 1788838536.897277,
+    "hash": "bb807b17d0499de5c3808477e463dc27"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090536/LegacyAuditLogger.java": {
+    "mtime": 1788838537.0539238,
+    "hash": "948ad2844431a23358ec2ea29348646d"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090536/UserAccount.java": {
+    "mtime": 1788838537.1136498,
+    "hash": "b69581df6767c97819a0b8fe72dd19b6"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/merged/MyClass.java": {
+    "mtime": 1788837185.5572267,
+    "hash": "764cf1e1e1ad84a45dc1e4738b8e2615"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/merged/PaymentGateway.java": {
+    "mtime": 1788837185.5584295,
+    "hash": "5c32f53aa8ebf1b1917cda40b84192bb"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/merged/OrderService.java": {
+    "mtime": 1788837185.5579786,
+    "hash": "687bab52d7aeca2d5bf583b883bef85f"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/merged/NotificationService.java": {
+    "mtime": 1788837185.5574813,
+    "hash": "3307f1adaaea72ce640aa57d5ea9cf11"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/merged/CacheManager.java": {
+    "mtime": 1788837185.5565443,
+    "hash": "bb807b17d0499de5c3808477e463dc27"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/merged/LegacyAuditLogger.java": {
+    "mtime": 1788837185.5568366,
+    "hash": "948ad2844431a23358ec2ea29348646d"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/merged/UserAccount.java": {
+    "mtime": 1788837185.5588539,
+    "hash": "7808dab3767b8030817de5927a398a9f"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/Config.java": {
+    "mtime": 1788842347.5905218,
+    "hash": "2bb7335e4ef0f1e6eee068c8f4142e05"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/JavaAnalyzer.java": {
+    "mtime": 1788842177.110277,
+    "hash": "e9609aee153e0e9702508cddfc2c294f"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/archetype/MergerRule.java": {
+    "mtime": 1788840281.4490569,
+    "hash": "227280f82fde8a79134b155bb50b12de"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/archetype/ArchetypePreset.java": {
+    "mtime": 1788840293.837724,
+    "hash": "a81b7a8f8d504679578d089a55e44245"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/archetype/ArchetypeRule.java": {
+    "mtime": 1788840274.4715333,
+    "hash": "8cde2b91e6d0afcf6a629ce7a31ca26a"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/archetype/ArchetypeClassifier.java": {
+    "mtime": 1788841089.4683566,
+    "hash": "68d007be2ff37f0b6d5e4fe29c28a555"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/web/WebServer.java": {
+    "mtime": 1788842355.6325333,
+    "hash": "c451030f44101080a1325774e49fcc58"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/cli/InteractiveCli.java": {
+    "mtime": 1788745955.7625692,
+    "hash": "12db527f8980eed55e2dfcdb28b79b06"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/parser/ParserUtil.java": {
+    "mtime": 1788840460.784363,
+    "hash": "cbf521040fc70c0a15102382ef8f6b88"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/model/JavaModel.java": {
+    "mtime": 1788840328.8498073,
+    "hash": "2b07cd81d13eef054b0b03fe22caac04"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/model/AttributeModel.java": {
+    "mtime": 1788838824.065062,
+    "hash": "97e622f3d3d99f95c223896c21b3ad0d"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/model/MethodModel.java": {
+    "mtime": 1788840750.0133476,
+    "hash": "a61d77c852bb470d87ea716b53f53f88"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/engine/MergeEngine.java": {
+    "mtime": 1788840525.912177,
+    "hash": "f1dcfc936db2afd6806c8ec27de5abab"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/engine/ReportGenerator.java": {
+    "mtime": 1788842338.4217618,
+    "hash": "48d50cfb2b3f7a85a3d0d2e52c87ba38"
+  },
+  "/Volumes/Study/Projects/javalens/src/com/javalens/engine/CompareEngine.java": {
+    "mtime": 1788842266.2911487,
+    "hash": "d60342691c986dd0daebcbe0c0a18e08"
+  },
+  "/Volumes/Study/Projects/javalens/PROJECT_CONTEXT.md": {
+    "mtime": 1791169451.7587113,
+    "hash": "ae54088851708a82518254445412b761"
+  },
+  "/Volumes/Study/Projects/javalens/index.html": {
+    "mtime": 1788842750.9683726,
+    "hash": "f9552c6280ece761b275dffadd9a6ae3"
+  },
+  "/Volumes/Study/Projects/javalens/README.md": {
+    "mtime": 1791169473.7244751,
+    "hash": "e82643006c9b59eacb79f36208958581"
+  },
+  "/Volumes/Study/Projects/javalens/wiki/Architecture-and-System-Design.md": {
+    "mtime": 1792382854.2860548,
+    "hash": "c7077c42c470cdc6c89855ea9a7a5633"
+  },
+  "/Volumes/Study/Projects/javalens/wiki/Home.md": {
+    "mtime": 1792382854.2861385,
+    "hash": "d8ee56426dd0db5a6239d8d7688b1c09"
+  },
+  "/Volumes/Study/Projects/javalens/wiki/_Sidebar.md": {
+    "mtime": 1792382854.2862144,
+    "hash": "eb4aa8c220444a65aed56345fcead495"
+  },
+  "/Volumes/Study/Projects/javalens/wiki/_Footer.md": {
+    "mtime": 1792382854.2862947,
+    "hash": "f0cf6ed1be22319108c93da87dedd62b"
+  },
+  "/Volumes/Study/Projects/javalens/docs/diagrams/sequence.html": {
+    "mtime": 1791169439.3116727,
+    "hash": "512f507dc713cf4a73d3ebdabd2f72e0"
+  },
+  "/Volumes/Study/Projects/javalens/docs/diagrams/dataflow.html": {
+    "mtime": 1791169439.452405,
+    "hash": "f2e239d04142ffcd9e739a588e7acf48"
+  },
+  "/Volumes/Study/Projects/javalens/docs/diagrams/architecture.html": {
+    "mtime": 1791169439.009112,
+    "hash": "df05fc8c64c16453232edc87ece2a204"
+  },
+  "/Volumes/Study/Projects/javalens/docs/diagrams/lifecycle.html": {
+    "mtime": 1791169439.605947,
+    "hash": "b7978af96229cff91a90ce81bfb7693f"
+  },
+  "/Volumes/Study/Projects/javalens/docs/diagrams/workflow.html": {
+    "mtime": 1791169439.1730623,
+    "hash": "52b5dfb510df644c2a4b008eb1127860"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260907_064857/javalens_report.md": {
+    "mtime": 1788743937.1433742,
+    "hash": "c1bf02b9924790c0d324188f5fd0e84c"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260907_064857/javalens_report.html": {
+    "mtime": 1788743937.1426232,
+    "hash": "af160231959aede8b2b20c61a5bc8a03"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084247/javalens_summary.txt": {
+    "mtime": 1788837167.770406,
+    "hash": "8c1cd0fbe4b7168e715af432530761dd"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/javalens_report.html": {
+    "mtime": 1788838748.1643271,
+    "hash": "9412c568dfee177f9b9d950001d4b9e7"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_090848/javalens_summary.txt": {
+    "mtime": 1788838728.3167386,
+    "hash": "9e5da0249d84bcfcc7c01675bd9e4070"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_093437/javalens_summary.txt": {
+    "mtime": 1788840277.2005272,
+    "hash": "2a50080eb78177d7709d061b518a1bce"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260908_084305/javalens_summary.txt": {
+    "mtime": 1788837185.5783846,
+    "hash": "7243e5164838f202ea9bda951127199a"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260907_064622/javalens_report.md": {
+    "mtime": 1788743782.8236916,
+    "hash": "b9b5ced61e2b646cb58b0233aee0978c"
+  },
+  "/Volumes/Study/Projects/javalens/java_analysis_output/run_20260907_064622/javalens_report.html": {
+    "mtime": 1788743782.8160357,
+    "hash": "c2870df89ab122cf80e139843e8a8ded"
+  }
+}

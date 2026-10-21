@@ -30,7 +30,8 @@ public class CompareEngine {
         "parameters_old", "parameters_new",
         "throws_old", "throws_new",
         "annotations_old", "annotations_new",
-        "kind_old", "kind_new"
+        "kind_old", "kind_new",
+        "archetype_badge", "archetype_label", "archetype_category", "archetype_color", "merger_action"
     };
 
     public static void execute(Config config) throws Exception {
@@ -290,25 +291,29 @@ public class CompareEngine {
                                 Objects.equals(oldM.annotations, newM.annotations) &&
                                 Objects.equals(oldM.kind, newM.kind);
                 String status = match ? "UNCHANGED" : "MODIFIED";
+                MethodModel refM = newM != null ? newM : oldM;
                 methQ.put(new String[]{
                     status, relPath, newM.packageName, newM.className, newM.name,
                     oldM.returnType, newM.returnType, oldM.modifiers, newM.modifiers,
                     oldM.parameters, newM.parameters, oldM.throwsList, newM.throwsList,
-                    oldM.annotations, newM.annotations, oldM.kind, newM.kind
+                    oldM.annotations, newM.annotations, oldM.kind, newM.kind,
+                    refM.getArchetypeBadge(), refM.getArchetypeLabel(), refM.getArchetypeCategory(), refM.getArchetypeColor(), refM.getMergerAction()
                 });
             } else if (oldM != null) {
                 methQ.put(new String[]{
                     "REMOVED", relPath, oldM.packageName, oldM.className, oldM.name,
                     oldM.returnType, "", oldM.modifiers, "",
                     oldM.parameters, "", oldM.throwsList, "",
-                    oldM.annotations, "", oldM.kind, ""
+                    oldM.annotations, "", oldM.kind, "",
+                    oldM.getArchetypeBadge(), oldM.getArchetypeLabel(), oldM.getArchetypeCategory(), oldM.getArchetypeColor(), oldM.getMergerAction()
                 });
             } else {
                 methQ.put(new String[]{
                     "ADDED", relPath, newM.packageName, newM.className, newM.name,
                     "", newM.returnType, "", newM.modifiers,
                     "", newM.parameters, "", newM.throwsList,
-                    "", newM.annotations, "", newM.kind
+                    "", newM.annotations, "", newM.kind,
+                    newM.getArchetypeBadge(), newM.getArchetypeLabel(), newM.getArchetypeCategory(), newM.getArchetypeColor(), newM.getMergerAction()
                 });
             }
         }
@@ -338,12 +343,14 @@ public class CompareEngine {
             if ("ADDED".equals(status)) {
                 methQ.put(new String[]{
                     status, relPath, m.packageName, m.className, m.name,
-                    "", m.returnType, "", m.modifiers, "", m.parameters, "", m.throwsList, "", m.annotations, "", m.kind
+                    "", m.returnType, "", m.modifiers, "", m.parameters, "", m.throwsList, "", m.annotations, "", m.kind,
+                    m.getArchetypeBadge(), m.getArchetypeLabel(), m.getArchetypeCategory(), m.getArchetypeColor(), m.getMergerAction()
                 });
             } else {
                 methQ.put(new String[]{
                     status, relPath, m.packageName, m.className, m.name,
-                    m.returnType, "", m.modifiers, "", m.parameters, "", m.throwsList, "", m.annotations, "", m.kind, ""
+                    m.returnType, "", m.modifiers, "", m.parameters, "", m.throwsList, "", m.annotations, "", m.kind, "",
+                    m.getArchetypeBadge(), m.getArchetypeLabel(), m.getArchetypeCategory(), m.getArchetypeColor(), m.getMergerAction()
                 });
             }
         }

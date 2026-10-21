@@ -1093,6 +1093,37 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Merge Results & Itemized Modifications Audit -->
+                                <div id="merge-results-container" class="hidden surface-card p-5 rounded-lg space-y-4 animate-fade-in mt-4">
+                                    <div class="flex items-center justify-between border-b border-zinc-800 pb-3 flex-wrap gap-2">
+                                        <div>
+                                            <h3 class="font-mono text-sm font-semibold text-zinc-100 flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-emerald-400 text-base">rule</span>
+                                                <span>Merge Results &amp; Itemized Modifications Audit</span>
+                                            </h3>
+                                            <p class="text-[11px] text-zinc-400 mt-0.5">Itemized audit of preserved methods, merged marker blocks, added attributes, and archetype policies.</p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input id="merge-results-search" type="text" placeholder="Filter merge results…" class="px-2.5 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:border-zinc-600 outline-none w-48" oninput="renderMergeResultsTable()">
+                                        </div>
+                                    </div>
+                                    <div class="overflow-x-auto max-h-[450px] overflow-y-auto">
+                                        <table class="w-full text-xs font-mono">
+                                            <thead class="bg-zinc-925 sticky top-0 z-10">
+                                                <tr class="text-zinc-400 border-b border-zinc-800 text-[11px]">
+                                                    <th class="px-3 py-2 text-left font-medium">File</th>
+                                                    <th class="px-3 py-2 text-left font-medium">Status</th>
+                                                    <th class="px-3 py-2 text-center font-medium">Markers</th>
+                                                    <th class="px-3 py-2 text-left font-medium">Size Delta</th>
+                                                    <th class="px-3 py-2 text-left font-medium">Archetypes</th>
+                                                    <th class="px-3 py-2 text-left font-medium">Itemized Modifications</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="merge-results-body" class="divide-y divide-zinc-800/50"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </section>
                     </div>
@@ -1428,6 +1459,87 @@
                                             <input id="settings-merge-enabled" type="checkbox" checked class="accent-zinc-200 w-4 h-4 rounded">
                                             <span class="text-xs text-zinc-200 font-mono">Enable Merge Engine</span>
                                         </label>
+                                    </div>
+                                </div>
+
+                                <!-- Class & Method Archetypes & Templates Configurator -->
+                                <div class="surface-card p-5 rounded-lg space-y-4">
+                                    <div class="flex items-center justify-between border-b border-zinc-800 pb-3 flex-wrap gap-2">
+                                        <div>
+                                            <h3 class="font-mono text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-purple-400 text-base">category</span>
+                                                <span>Class &amp; Method Archetypes &amp; Merger Policies</span>
+                                            </h3>
+                                            <p class="text-[11px] text-zinc-400 mt-0.5">Configurable architectural pattern templates adapted from CodeLens. Dynamic classification without hardcoding.</p>
+                                        </div>
+                                        <div class="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+                                            <span class="text-[10px] font-mono text-zinc-500 uppercase px-1.5">Preset:</span>
+                                            <button type="button" onclick="selectArchetypePreset('bancs')" id="preset-btn-bancs" class="px-2.5 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer bg-purple-950/80 text-purple-300 border border-purple-600/50">BaNCS</button>
+                                            <button type="button" onclick="selectArchetypePreset('spring')" id="preset-btn-spring" class="px-2.5 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-transparent">Spring MVC</button>
+                                            <button type="button" onclick="selectArchetypePreset('ddd')" id="preset-btn-ddd" class="px-2.5 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-transparent">DDD</button>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" id="settings-archetype-preset" value="bancs">
+
+                                    <!-- Preset Summary Banner -->
+                                    <div id="archetype-preset-banner" class="p-3 rounded-lg bg-zinc-950/90 border border-zinc-800 text-xs font-mono flex items-start gap-2.5">
+                                        <span class="material-symbols-outlined text-purple-400 text-sm mt-0.5 flex-shrink-0">account_balance</span>
+                                        <div class="space-y-1 text-zinc-300 text-[11px] leading-relaxed">
+                                            <span class="text-purple-300 font-semibold">Active Template: TCS BaNCS Banking Core</span> — classifies <code class="text-sky-300">{MODULE}ET</code> (Fetch, Preserve Base), <code class="text-emerald-300">{MODULE}BT</code> (Mutate, Marker Merge), <code class="text-indigo-300">{MODULE}TO</code> (Task-Own), <code class="text-cyan-300">{MODULE}TC</code> (Task-Common), <code class="text-amber-300">{MODULE}PS</code> (Batch Process), <code class="text-teal-300">{MODULE}DG</code> (Data Grabber), <code class="text-pink-300">MO_*</code> (Message Objects), and persistent entities.
+                                        </div>
+                                    </div>
+
+                                    <!-- Merger Policy Rules Overview Table -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-[11px] font-mono text-zinc-400 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                                                <span class="material-symbols-outlined text-[13px] text-emerald-400">merge</span>
+                                                <span>Active Merger Policy Rules</span>
+                                            </h4>
+                                            <span class="text-[10px] font-mono text-zinc-500">Method-Level Merge Directives</span>
+                                        </div>
+                                        <div class="overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950">
+                                            <table class="w-full text-xs font-mono">
+                                                <thead class="bg-zinc-925 text-[10px] text-zinc-400 border-b border-zinc-800 uppercase">
+                                                    <tr>
+                                                        <th class="px-3 py-1.5 text-left">Archetype</th>
+                                                        <th class="px-3 py-1.5 text-left">Merger Action</th>
+                                                        <th class="px-3 py-1.5 text-left">Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="archetype-merger-rules-body" class="divide-y divide-zinc-800/40 text-[11px]">
+                                                    <!-- Dynamic rows rendered by JS -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Archetype Rules Overview Table -->
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-[11px] font-mono text-zinc-400 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                                                <span class="material-symbols-outlined text-[13px] text-sky-400">pattern</span>
+                                                <span>Classification Archetype Rules</span>
+                                            </h4>
+                                            <span class="text-[10px] font-mono text-zinc-500" id="archetype-rules-count">0 rules active</span>
+                                        </div>
+                                        <div class="overflow-x-auto max-h-52 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950">
+                                            <table class="w-full text-xs font-mono">
+                                                <thead class="bg-zinc-925 text-[10px] text-zinc-400 border-b border-zinc-800 uppercase sticky top-0 z-10">
+                                                    <tr>
+                                                        <th class="px-3 py-1.5 text-left">Badge</th>
+                                                        <th class="px-3 py-1.5 text-left">Target</th>
+                                                        <th class="px-3 py-1.5 text-left">Pattern / Matcher</th>
+                                                        <th class="px-3 py-1.5 text-left">Archetype Label</th>
+                                                        <th class="px-3 py-1.5 text-left">Category</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="archetype-rules-body" class="divide-y divide-zinc-800/40 text-[11px]">
+                                                    <!-- Dynamic rows rendered by JS -->
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1778,7 +1890,12 @@
                         paramCount: m.parameter_count || '0',
                         mods: m.modifiers ? m.modifiers.split(' ').filter(Boolean) : [],
                         annotations: m.annotations ? m.annotations.split(' ').filter(Boolean) : [],
-                        kind: m.kind || 'method'
+                        kind: m.kind || 'method',
+                        archetypeBadge: m.archetype_badge || '',
+                        archetypeLabel: m.archetype_label || '',
+                        archetypeCategory: m.archetype_category || '',
+                        archetypeColor: m.archetype_color || '#64748b',
+                        mergerAction: m.merger_action || ''
                     });
                 });
 
@@ -2025,7 +2142,10 @@
                     items = items.filter(m => 
                         m.name.toLowerCase().includes(searchQuery) ||
                         m.ret.toLowerCase().includes(searchQuery) ||
-                        m.params.toLowerCase().includes(searchQuery)
+                        m.params.toLowerCase().includes(searchQuery) ||
+                        (m.archetypeBadge && m.archetypeBadge.toLowerCase().includes(searchQuery)) ||
+                        (m.archetypeLabel && m.archetypeLabel.toLowerCase().includes(searchQuery)) ||
+                        (m.mergerAction && m.mergerAction.toLowerCase().includes(searchQuery))
                     );
                 }
 
@@ -2041,12 +2161,26 @@
                     const modBadges = item.mods.map(m => renderModifierBadge(m)).join(' ') || '<span class="text-zinc-600">—</span>';
                     const annBadges = item.annotations.map(a => `<span class="text-pink-400 font-mono text-[11px] font-medium bg-pink-950/40 border border-pink-800/40 px-1.5 py-0.5 rounded">${escapeHTML(a)}</span>`).join(' ') || '<span class="text-zinc-600">—</span>';
 
+                    const archBadge = item.archetypeBadge ? `
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tracking-wider uppercase flex-shrink-0" style="background:${item.archetypeColor}22; color:${item.archetypeColor}; border: 1px solid ${item.archetypeColor}55;" title="${escapeHTML((item.archetypeLabel || item.archetypeBadge) + (item.mergerAction ? ' | Merger: ' + item.mergerAction : ''))}">
+                            ${escapeHTML(item.archetypeBadge)}
+                        </span>
+                    ` : '';
+
+                    const mergerBadge = item.mergerAction && item.mergerAction !== 'MARKER_MERGE' ? `
+                        <span class="inline-flex items-center px-1 py-0.2 rounded text-[8px] font-mono uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 flex-shrink-0" title="Merger Rule: ${escapeHTML(item.mergerAction)}">
+                            ${escapeHTML(item.mergerAction)}
+                        </span>
+                    ` : '';
+
                     row.innerHTML = `
                         <div class="col-span-5 sm:col-span-5 flex items-center gap-2 truncate">
                             <button onclick="copyToClipboard('${escapeHTML(item.name + item.params)}', this)" class="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-white transition-opacity p-0.5" title="Copy method signature" aria-label="Copy signature">
                                 <span class="material-symbols-outlined text-[13px]" aria-hidden="true">content_copy</span>
                             </button>
+                            ${archBadge}
                             <span class="text-zinc-100 font-semibold truncate">${escapeHTML(item.name)}</span>
+                            ${mergerBadge}
                             <span class="text-sky-300/80 truncate text-[11px] font-mono">${escapeHTML(item.params)}</span>
                         </div>
                         <div class="col-span-3 sm:col-span-2 text-cyan-300 truncate font-mono text-[11px] font-medium">${escapeHTML(item.ret)}</div>
@@ -2921,6 +3055,9 @@
                 const me = document.getElementById('settings-merge-enabled');
                 if (me) me.checked = config.mergeEnabled;
             }
+            if (config.archetypePreset) {
+                selectArchetypePreset(config.archetypePreset);
+            }
             updateDefaultOutputPreview();
         }
 
@@ -2937,6 +3074,7 @@
             const endMarker = document.getElementById('settings-end-marker')?.value || '// END_MERGE';
             const compareEnabled = document.getElementById('settings-compare-enabled')?.checked ? 'true' : 'false';
             const mergeEnabled = document.getElementById('settings-merge-enabled')?.checked ? 'true' : 'false';
+            const archetypePreset = document.getElementById('settings-archetype-preset')?.value.trim() || 'bancs';
 
             if (window.location.protocol.startsWith('http')) {
                 const params = new URLSearchParams({
@@ -2953,7 +3091,8 @@
                     startMarker: startMarker,
                     endMarker: endMarker,
                     compareEnabled: compareEnabled,
-                    mergeEnabled: mergeEnabled
+                    mergeEnabled: mergeEnabled,
+                    archetypePreset: archetypePreset
                 });
 
                 fetch('/api/config', {
@@ -3124,9 +3263,270 @@
                     if (success) {
                         document.getElementById('merge-success-pane')?.classList.remove('hidden');
                         showToast("Marker merge completed successfully", "success");
+                        reloadReportData();
+                        setTimeout(() => renderMergeResultsTable(), 600);
                     }
                 }
             );
+        }
+
+        function renderMergeResultsTable() {
+            const container = document.getElementById('merge-results-container');
+            const tbody = document.getElementById('merge-results-body');
+            if (!container || !tbody) return;
+
+            const results = (window.javaLensReportData && window.javaLensReportData.merge_results) ? window.javaLensReportData.merge_results : [];
+            if (!results || results.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            const searchQuery = (document.getElementById('merge-results-search')?.value || '').toLowerCase().trim();
+
+            const filtered = results.filter(r => {
+                if (!searchQuery) return true;
+                return (r.file || '').toLowerCase().includes(searchQuery) ||
+                       (r.class || '').toLowerCase().includes(searchQuery) ||
+                       (r.status || '').toLowerCase().includes(searchQuery) ||
+                       (r.archetype_summary || '').toLowerCase().includes(searchQuery) ||
+                       (r.modifications_detail || '').toLowerCase().includes(searchQuery);
+            });
+
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-zinc-500 italic">No matching merge results found.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-900/80 transition-colors align-top";
+
+                const isMerged = (r.status || '').toUpperCase() === 'MERGED';
+                const statusBadge = isMerged
+                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/40">MERGED</span>'
+                    : '<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-sky-950/60 text-sky-300 border border-sky-500/30">COPIED</span>';
+
+                const markersText = `${r.markers_applied || '0'} / ${r.markers_found || '0'}`;
+                const markerBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-mono ${parseInt(r.markers_applied || '0') > 0 ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-600/40' : 'bg-zinc-900 text-zinc-500 border border-zinc-800'}">${markersText}</span>`;
+
+                const sizeDeltaVal = parseInt(r.size_change_bytes || '0');
+                const sizeDeltaClass = sizeDeltaVal > 0 ? 'text-emerald-400' : (sizeDeltaVal < 0 ? 'text-rose-400' : 'text-zinc-500');
+                const sizeDeltaText = (sizeDeltaVal >= 0 ? '+' : '') + sizeDeltaVal + ' B';
+                const linesDelta = `+${r.lines_added || '0'} / -${r.lines_removed || '0'}`;
+
+                // Parse archetype summary pills
+                const archPills = (r.archetype_summary || '').split(',').map(s => s.trim()).filter(Boolean).map(pill => {
+                    const parts = pill.split(':');
+                    const badge = parts[0] || '';
+                    const count = parts[1] || '1';
+                    return `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-900 text-indigo-300 border border-indigo-900/60">${escapeHTML(badge)}<span class="text-zinc-500 text-[8px] font-normal">x${count}</span></span>`;
+                }).join(' ') || '<span class="text-zinc-600 text-[10px]">—</span>';
+
+                // Parse itemized modifications detail
+                const rawMods = (r.modifications_detail || '').split(';').map(m => m.trim()).filter(Boolean);
+                let modsHtml = '';
+                if (rawMods.length === 0) {
+                    modsHtml = '<span class="text-zinc-500 text-[10px] italic">No modifications detected.</span>';
+                } else {
+                    const renderedPills = rawMods.map(item => {
+                        let colorClass = 'bg-zinc-900 text-zinc-300 border-zinc-800';
+                        let icon = 'info';
+                        const lower = item.toLowerCase();
+                        if (lower.startsWith('modified method')) {
+                            colorClass = 'bg-amber-950/60 text-amber-300 border-amber-800/50';
+                            icon = 'edit';
+                        } else if (lower.startsWith('preserved method')) {
+                            colorClass = 'bg-sky-950/60 text-sky-300 border-sky-800/50';
+                            icon = 'shield';
+                        } else if (lower.startsWith('added method')) {
+                            colorClass = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50';
+                            icon = 'add_circle';
+                        } else if (lower.startsWith('added attribute')) {
+                            colorClass = 'bg-purple-950/60 text-purple-300 border-purple-800/50';
+                            icon = 'playlist_add';
+                        } else if (lower.includes('type:')) {
+                            colorClass = 'bg-rose-950/60 text-rose-300 border-rose-800/50';
+                            icon = 'swap_horiz';
+                        }
+                        return `
+                            <div class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] border ${colorClass} font-mono leading-tight">
+                                <span class="material-symbols-outlined text-[12px] opacity-80">${icon}</span>
+                                <span>${escapeHTML(item)}</span>
+                            </div>
+                        `;
+                    }).join('');
+                    modsHtml = `<div class="flex flex-col gap-1 max-w-xl">${renderedPills}</div>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="px-3 py-2 font-medium text-zinc-100">
+                        <div class="truncate max-w-[170px]" title="${escapeHTML(r.file || '')}">${escapeHTML(r.file ? r.file.substring(r.file.lastIndexOf('/') + 1) : '')}</div>
+                        <div class="text-[10px] text-zinc-500 truncate max-w-[170px]">${escapeHTML(r.class || '')}</div>
+                    </td>
+                    <td class="px-3 py-2">${statusBadge}</td>
+                    <td class="px-3 py-2 text-center">${markerBadge}</td>
+                    <td class="px-3 py-2">
+                        <div class="font-bold text-[11px] ${sizeDeltaClass}">${sizeDeltaText}</div>
+                        <div class="text-[9px] text-zinc-500 font-mono">${linesDelta}</div>
+                    </td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-1 max-w-[180px]">${archPills}</div>
+                    </td>
+                    <td class="px-3 py-2">${modsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Archetype Preset Switching & Configuration
+        let activeArchetypesData = null;
+
+        async function loadArchetypesInfo() {
+            if (window.javaLensReportData && window.javaLensReportData.archetypes) {
+                renderArchetypesUI(window.javaLensReportData.archetypes);
+            }
+            if (window.location.protocol.startsWith('http')) {
+                try {
+                    const res = await fetch('/api/archetypes');
+                    if (res.ok) {
+                        const data = await res.json();
+                        activeArchetypesData = data;
+                        renderArchetypesUI(data);
+                    }
+                } catch (e) {
+                    console.warn("Failed to load archetypes info:", e.message);
+                }
+            }
+        }
+
+        function selectArchetypePreset(preset) {
+            const hidden = document.getElementById('settings-archetype-preset');
+            if (hidden) hidden.value = preset;
+
+            ['bancs', 'spring', 'ddd'].forEach(p => {
+                const btn = document.getElementById(`preset-btn-${p}`);
+                if (!btn) return;
+                if (p === preset) {
+                    btn.className = "px-2.5 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer bg-purple-950/80 text-purple-300 border border-purple-600/50";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-transparent";
+                }
+            });
+
+            if (window.location.protocol.startsWith('http')) {
+                fetch('/api/archetypes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `preset=${encodeURIComponent(preset)}`
+                }).then(res => res.json()).then(data => {
+                    activeArchetypesData = data;
+                    renderArchetypesUI(data);
+                    showToast(`Switched archetype preset to: ${preset.toUpperCase()}`, "info");
+                    logToTerminal(`[ARCHETYPE] Active preset set to '${preset}' with ${data.rules?.length || 0} classification rules.`, "text-purple-300");
+                }).catch(e => {
+                    console.warn("Preset switch failed:", e.message);
+                });
+            } else {
+                updatePresetBanner(preset);
+                showToast(`Preset set to: ${preset.toUpperCase()}`, "info");
+            }
+        }
+
+        function updatePresetBanner(preset) {
+            const banner = document.getElementById('archetype-preset-banner');
+            if (!banner) return;
+            if (preset === 'bancs') {
+                banner.innerHTML = `
+                    <span class="material-symbols-outlined text-purple-400 text-sm mt-0.5 flex-shrink-0">account_balance</span>
+                    <div class="space-y-1 text-zinc-300 text-[11px] leading-relaxed">
+                        <span class="text-purple-300 font-semibold">Active Template: TCS BaNCS Banking Core</span> — classifies <code class="text-sky-300">{MODULE}ET</code> (Fetch, Preserve Base), <code class="text-emerald-300">{MODULE}BT</code> (Mutate, Marker Merge), <code class="text-indigo-300">{MODULE}TO</code> (Task-Own), <code class="text-cyan-300">{MODULE}TC</code> (Task-Common), <code class="text-amber-300">{MODULE}PS</code> (Batch Process), <code class="text-teal-300">{MODULE}DG</code> (Data Grabber), <code class="text-pink-300">MO_*</code> (Message Objects), and persistent entities.
+                    </div>
+                `;
+            } else if (preset === 'spring') {
+                banner.innerHTML = `
+                    <span class="material-symbols-outlined text-emerald-400 text-sm mt-0.5 flex-shrink-0">eco</span>
+                    <div class="space-y-1 text-zinc-300 text-[11px] leading-relaxed">
+                        <span class="text-emerald-300 font-semibold">Active Template: Spring MVC & Boot Architecture</span> — classifies <code class="text-emerald-300">@RestController / @Controller</code>, <code class="text-sky-300">@GetMapping</code> (Fetch), <code class="text-amber-300">@PostMapping / @PutMapping</code> (Mutate), <code class="text-purple-300">@Service / @Repository</code>, and Spring Beans.
+                    </div>
+                `;
+            } else {
+                banner.innerHTML = `
+                    <span class="material-symbols-outlined text-cyan-400 text-sm mt-0.5 flex-shrink-0">hub</span>
+                    <div class="space-y-1 text-zinc-300 text-[11px] leading-relaxed">
+                        <span class="text-cyan-300 font-semibold">Active Template: Domain-Driven Design (DDD)</span> — classifies <code class="text-indigo-300">AggregateRoot</code>, <code class="text-sky-300">ValueObject</code>, <code class="text-purple-300">DomainEvent</code>, <code class="text-emerald-300">Command</code>, <code class="text-amber-300">Query</code>, and <code class="text-teal-300">Specification</code>.
+                    </div>
+                `;
+            }
+        }
+
+        function renderArchetypesUI(data) {
+            if (!data) return;
+            const preset = data.preset || 'bancs';
+            const hidden = document.getElementById('settings-archetype-preset');
+            if (hidden) hidden.value = preset;
+
+            ['bancs', 'spring', 'ddd'].forEach(p => {
+                const btn = document.getElementById(`preset-btn-${p}`);
+                if (!btn) return;
+                if (p === preset) {
+                    btn.className = "px-2.5 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer bg-purple-950/80 text-purple-300 border border-purple-600/50";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-transparent";
+                }
+            });
+
+            updatePresetBanner(preset);
+
+            // Render Merger Policy Rules
+            const mergerBody = document.getElementById('archetype-merger-rules-body');
+            if (mergerBody && data.mergerRules) {
+                mergerBody.innerHTML = '';
+                data.mergerRules.forEach(mr => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-zinc-900 transition-colors";
+                    let actionBadge = '';
+                    if (mr.action === 'PRESERVE_EXISTING') {
+                        actionBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950/70 text-sky-300 border border-sky-500/40">PRESERVE BASE</span>';
+                    } else if (mr.action === 'MARKER_MERGE') {
+                        actionBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/40">MARKER MERGE</span>';
+                    } else if (mr.action === 'CLEAN_OVERWRITE') {
+                        actionBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/70 text-amber-300 border border-amber-500/40">CLEAN OVERWRITE</span>';
+                    } else if (mr.action === 'ADD_IF_MISSING') {
+                        actionBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-950/70 text-teal-300 border border-teal-500/40">ADD IF MISSING</span>';
+                    } else {
+                        actionBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-900 text-zinc-400 border border-zinc-800">${escapeHTML(mr.action)}</span>`;
+                    }
+                    tr.innerHTML = `
+                        <td class="px-3 py-1.5 font-bold text-zinc-100">${escapeHTML(mr.archetype)}</td>
+                        <td class="px-3 py-1.5">${actionBadge}</td>
+                        <td class="px-3 py-1.5 text-zinc-400">${escapeHTML(mr.description || '')}</td>
+                    `;
+                    mergerBody.appendChild(tr);
+                });
+            }
+
+            // Render Classification Rules
+            const rulesBody = document.getElementById('archetype-rules-body');
+            const rulesCount = document.getElementById('archetype-rules-count');
+            if (rulesBody && data.rules) {
+                if (rulesCount) rulesCount.innerText = `${data.rules.length} rules active`;
+                rulesBody.innerHTML = '';
+                data.rules.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-zinc-900 transition-colors";
+                    const badgePill = `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider" style="background:${r.color}22; color:${r.color}; border: 1px solid ${r.color}44;">${escapeHTML(r.badge)}</span>`;
+                    tr.innerHTML = `
+                        <td class="px-3 py-1.5">${badgePill}</td>
+                        <td class="px-3 py-1.5 text-zinc-300 font-medium">${escapeHTML(r.target || r.scope || 'METHOD')}</td>
+                        <td class="px-3 py-1.5 text-sky-300/90 font-mono">${escapeHTML(r.pattern)}</td>
+                        <td class="px-3 py-1.5 text-zinc-200">${escapeHTML(r.label)}</td>
+                        <td class="px-3 py-1.5 text-zinc-400">${escapeHTML(r.category || '')}</td>
+                    `;
+                    rulesBody.appendChild(tr);
+                });
+            }
         }
 
         // 10. Report Pipeline & Unified Report Controls
@@ -3542,6 +3942,8 @@
             s.src = `java_report_data.js?_t=${Date.now()}`;
             s.onload = () => {
                 initData();
+                renderMergeResultsTable();
+                loadArchetypesInfo();
                 showToast("Dashboard synchronized with latest AST report", "info");
             };
             document.body.appendChild(s);
@@ -3724,6 +4126,8 @@
         window.addEventListener('DOMContentLoaded', () => {
             initData();
             fetchRealConfig();
+            loadArchetypesInfo();
+            renderMergeResultsTable();
 
             // Sync CLI panel toggle state with initial visibility
             const panel = document.getElementById('terminal-panel');

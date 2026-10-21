@@ -1,6 +1,8 @@
 package com.javalens.engine;
 
 import com.javalens.Config;
+import com.javalens.archetype.ArchetypeClassifier;
+import com.javalens.archetype.MergerRule;
 import com.javalens.model.AttributeModel;
 import com.javalens.model.JavaModel;
 import com.javalens.model.MethodModel;
@@ -11,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class MergeEngine {
 
@@ -27,12 +30,15 @@ public class MergeEngine {
         public final String typeChanges;
         public final String primaryKeyChanges;
         public final String mandatoryChanges;
+        public final String archetypeSummary;
+        public final String modificationsDetail;
         public final String sizeSummary;
 
         public MergeResult(String relPath, String status, String message,
                            long existingSizeBytes, long mergedSizeBytes, long deltaBytes,
                            int existingLines, int mergedLines, int deltaLines,
                            String typeChanges, String primaryKeyChanges, String mandatoryChanges,
+                           String archetypeSummary, String modificationsDetail,
                            String sizeSummary) {
             this.relPath = relPath;
             this.status = status;
@@ -46,7 +52,20 @@ public class MergeEngine {
             this.typeChanges = typeChanges != null ? typeChanges : "No type changes";
             this.primaryKeyChanges = primaryKeyChanges != null ? primaryKeyChanges : "No PK changes";
             this.mandatoryChanges = mandatoryChanges != null ? mandatoryChanges : "No mandatory changes";
+            this.archetypeSummary = archetypeSummary != null ? archetypeSummary : "None";
+            this.modificationsDetail = modificationsDetail != null ? modificationsDetail : "None";
             this.sizeSummary = sizeSummary != null ? sizeSummary : "";
+        }
+
+        // Backward compatibility constructor (13 arguments)
+        public MergeResult(String relPath, String status, String message,
+                           long existingSizeBytes, long mergedSizeBytes, long deltaBytes,
+                           int existingLines, int mergedLines, int deltaLines,
+                           String typeChanges, String primaryKeyChanges, String mandatoryChanges,
+                           String sizeSummary) {
+            this(relPath, status, message, existingSizeBytes, mergedSizeBytes, deltaBytes,
+                 existingLines, mergedLines, deltaLines, typeChanges, primaryKeyChanges, mandatoryChanges,
+                 "None", "None", sizeSummary);
         }
 
         // Backward compatibility constructor (11 arguments)
@@ -55,12 +74,43 @@ public class MergeEngine {
                            int existingLines, int mergedLines, int deltaLines,
                            String typeChanges, String sizeSummary) {
             this(relPath, status, message, existingSizeBytes, mergedSizeBytes, deltaBytes,
-                 existingLines, mergedLines, deltaLines, typeChanges, "No PK changes", "No mandatory changes", sizeSummary);
+                 existingLines, mergedLines, deltaLines, typeChanges, "No PK changes", "No mandatory changes",
+                 "None", "None", sizeSummary);
         }
 
         // Backward compatibility constructor (3 arguments)
         public MergeResult(String relPath, String status, String message) {
-            this(relPath, status, message, 0L, 0L, 0L, 0, 0, 0, "No type changes", "No PK changes", "No mandatory changes", "");
+            this(relPath, status, message, 0L, 0L, 0L, 0, 0, 0, "No type changes", "No PK changes", "No mandatory changes", "None", "None", "");
+        }
+    }
+
+    public static class MethodMergeDecision {
+        public final String methodName;
+        public final String archetypeBadge;
+        public final String action;
+        public final String detail;
+        public final int linesDelta;
+
+        public MethodMergeDecision(String methodName, String archetypeBadge, String action, String detail, int linesDelta) {
+            this.methodName = methodName;
+            this.archetypeBadge = archetypeBadge;
+            this.action = action;
+            this.detail = detail;
+            this.linesDelta = linesDelta;
+        }
+    }
+
+    public static class MergeOutcome {
+        public final boolean modified;
+        public final List<MethodMergeDecision> decisions;
+        public final String archetypeSummary;
+        public final String modificationsDetail;
+
+        public MergeOutcome(boolean modified, List<MethodMergeDecision> decisions, String archetypeSummary, String modificationsDetail) {
+            this.modified = modified;
+            this.decisions = decisions != null ? decisions : Collections.emptyList();
+            this.archetypeSummary = archetypeSummary != null ? archetypeSummary : "None";
+            this.modificationsDetail = modificationsDetail != null ? modificationsDetail : "None";
         }
     }
 
@@ -95,6 +145,7 @@ public class MergeEngine {
         System.out.println("  Output Folder (Merged Codebase)        : " + outputDir);
         System.out.println("  Start marker                           : \"" + startMarker + "\"");
         System.out.println("  End marker                             : \"" + endMarker + "\"");
+        System.out.println("  Archetype Preset                       : " + config.getArchetypesPreset());
         System.out.println();
 
         List<MergeResult> results;
@@ -122,7 +173,7 @@ public class MergeEngine {
             long exSize = Files.exists(baseFile) ? Files.size(baseFile) : 0L;
             int exLines = countLines(baseFile);
 
-            boolean modified = mergeFileContentsToOutput(sourceFile, baseFile, destOut, startMarker, endMarker);
+            MergeOutcome outcome = mergeFileContentsToOutput(sourceFile, baseFile, destOut, startMarker, endMarker);
             long mgSize = Files.exists(destOut) ? Files.size(destOut) : 0L;
             int mgLines = countLines(destOut);
             long deltaBytes = mgSize - exSize;
@@ -131,22 +182,28 @@ public class MergeEngine {
             KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(baseFile, destOut);
             String sizeSummary = buildSizeSummary(exSize, mgSize, exLines, mgLines);
 
-            if (modified) {
+            if (outcome.modified) {
                 System.out.println("Successfully merged to: " + destOut);
-                System.out.println("  Size      : " + sizeSummary);
-                System.out.println("  Types     : " + typeChanges);
-                System.out.println("  PK        : " + km.primaryKeyChanges);
-                System.out.println("  Mandatory : " + km.mandatoryChanges);
+                System.out.println("  Size         : " + sizeSummary);
+                System.out.println("  Types        : " + typeChanges);
+                System.out.println("  PK           : " + km.primaryKeyChanges);
+                System.out.println("  Mandatory    : " + km.mandatoryChanges);
+                System.out.println("  Archetypes   : " + outcome.archetypeSummary);
+                System.out.println("  Modifications: " + outcome.modificationsDetail);
                 results.add(new MergeResult(destOut.getFileName().toString(), "MERGED", "Successfully merged to " + destOut,
-                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
+                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges,
+                        outcome.archetypeSummary, outcome.modificationsDetail, sizeSummary));
             } else {
                 System.out.println("Preserved base file to: " + destOut);
-                System.out.println("  Size      : " + sizeSummary);
-                System.out.println("  Types     : " + typeChanges);
-                System.out.println("  PK        : " + km.primaryKeyChanges);
-                System.out.println("  Mandatory : " + km.mandatoryChanges);
+                System.out.println("  Size         : " + sizeSummary);
+                System.out.println("  Types        : " + typeChanges);
+                System.out.println("  PK           : " + km.primaryKeyChanges);
+                System.out.println("  Mandatory    : " + km.mandatoryChanges);
+                System.out.println("  Archetypes   : " + outcome.archetypeSummary);
+                System.out.println("  Modifications: " + outcome.modificationsDetail);
                 results.add(new MergeResult(destOut.getFileName().toString(), "COPIED", "Preserved base file to " + destOut,
-                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
+                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges,
+                        outcome.archetypeSummary, outcome.modificationsDetail, sizeSummary));
             }
             try {
                 if (Files.isDirectory(outputTarget)) {
@@ -203,15 +260,20 @@ public class MergeEngine {
                 String typeChanges = detectTypeChanges(file1, destOut);
                 KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(file1, destOut);
                 String sizeSummary = buildSizeSummary(exSize, mgSize, exLines, mgLines);
+                String archetypeSum = countArchetypes(file1);
+                String modDetail = "None (preserved base file)";
 
                 System.out.println("  [COPIED]    " + rel + " (present in existing Java files only)");
-                System.out.println("            Size      : " + sizeSummary);
-                System.out.println("            Types     : " + typeChanges);
-                System.out.println("            PK        : " + km.primaryKeyChanges);
-                System.out.println("            Mandatory : " + km.mandatoryChanges);
+                System.out.println("            Size         : " + sizeSummary);
+                System.out.println("            Types        : " + typeChanges);
+                System.out.println("            PK           : " + km.primaryKeyChanges);
+                System.out.println("            Mandatory    : " + km.mandatoryChanges);
+                System.out.println("            Archetypes   : " + archetypeSum);
+                System.out.println("            Modifications: " + modDetail);
                 copiedCount++;
                 results.add(new MergeResult(rel, "COPIED", "Present in existing Java files only; preserved in output folder",
-                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
+                        exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges,
+                        archetypeSum, modDetail, sizeSummary));
             } else if (!inExisting && inGenerated) {
                 // Newly generated file does not exist in existing Java files -> copy new file to output folder
                 Files.copy(file2, destOut, StandardCopyOption.REPLACE_EXISTING);
@@ -222,18 +284,24 @@ public class MergeEngine {
                 String typeChanges = detectTypeChanges(null, destOut);
                 KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(null, destOut);
                 String sizeSummary = buildSizeSummary(0L, mgSize, 0, mgLines);
+                String archetypeSum = countArchetypes(destOut);
+                String modDetail = "New file added from generated folder";
+
                 System.out.println("  [ADDED]     " + rel + " (new file from generated javafiles folder)");
-                System.out.println("            Size      : " + sizeSummary);
-                System.out.println("            Types     : " + typeChanges);
-                System.out.println("            PK        : " + km.primaryKeyChanges);
-                System.out.println("            Mandatory : " + km.mandatoryChanges);
+                System.out.println("            Size         : " + sizeSummary);
+                System.out.println("            Types        : " + typeChanges);
+                System.out.println("            PK           : " + km.primaryKeyChanges);
+                System.out.println("            Mandatory    : " + km.mandatoryChanges);
+                System.out.println("            Archetypes   : " + archetypeSum);
+                System.out.println("            Modifications: " + modDetail);
                 addedCount++;
                 results.add(new MergeResult(rel, "ADDED", "New file from generated folder",
-                        0L, mgSize, deltaBytes, 0, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
+                        0L, mgSize, deltaBytes, 0, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges,
+                        archetypeSum, modDetail, sizeSummary));
             } else {
-                // File exists in both -> perform marker-based merge
+                // File exists in both -> perform marker-based merge guided by archetype rules
                 try {
-                    boolean modified = mergeFileContentsToOutput(file2, file1, destOut, startMarker, endMarker);
+                    MergeOutcome outcome = mergeFileContentsToOutput(file2, file1, destOut, startMarker, endMarker);
                     long mgSize = Files.exists(destOut) ? Files.size(destOut) : 0L;
                     int mgLines = countLines(destOut);
                     long deltaBytes = mgSize - exSize;
@@ -242,24 +310,30 @@ public class MergeEngine {
                     KeyAndMandatoryChanges km = detectKeyAndMandatoryChanges(file1, destOut);
                     String sizeSummary = buildSizeSummary(exSize, mgSize, exLines, mgLines);
 
-                    if (modified) {
+                    if (outcome.modified) {
                         System.out.println("  [MERGED]    " + rel + " (features merged from generated files)");
-                        System.out.println("            Size      : " + sizeSummary);
-                        System.out.println("            Types     : " + typeChanges);
-                        System.out.println("            PK        : " + km.primaryKeyChanges);
-                        System.out.println("            Mandatory : " + km.mandatoryChanges);
+                        System.out.println("            Size         : " + sizeSummary);
+                        System.out.println("            Types        : " + typeChanges);
+                        System.out.println("            PK           : " + km.primaryKeyChanges);
+                        System.out.println("            Mandatory    : " + km.mandatoryChanges);
+                        System.out.println("            Archetypes   : " + outcome.archetypeSummary);
+                        System.out.println("            Modifications: " + outcome.modificationsDetail);
                         mergedCount++;
                         results.add(new MergeResult(rel, "MERGED", "Merged features from generated folder",
-                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
+                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges,
+                                outcome.archetypeSummary, outcome.modificationsDetail, sizeSummary));
                     } else {
-                        System.out.println("  [COPIED]    " + rel + " (no marker modifications found)");
-                        System.out.println("            Size      : " + sizeSummary);
-                        System.out.println("            Types     : " + typeChanges);
-                        System.out.println("            PK        : " + km.primaryKeyChanges);
-                        System.out.println("            Mandatory : " + km.mandatoryChanges);
+                        System.out.println("  [COPIED]    " + rel + " (no marker modifications found or preserved by rule)");
+                        System.out.println("            Size         : " + sizeSummary);
+                        System.out.println("            Types        : " + typeChanges);
+                        System.out.println("            PK           : " + km.primaryKeyChanges);
+                        System.out.println("            Mandatory    : " + km.mandatoryChanges);
+                        System.out.println("            Archetypes   : " + outcome.archetypeSummary);
+                        System.out.println("            Modifications: " + outcome.modificationsDetail);
                         copiedCount++;
                         results.add(new MergeResult(rel, "COPIED", "No marker modifications; wrote to output folder",
-                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges, sizeSummary));
+                                exSize, mgSize, deltaBytes, exLines, mgLines, deltaLines, typeChanges, km.primaryKeyChanges, km.mandatoryChanges,
+                                outcome.archetypeSummary, outcome.modificationsDetail, sizeSummary));
                     }
                 } catch (Exception e) {
                     System.err.println("  [ERROR]   " + rel + " : " + e.getMessage());
@@ -270,14 +344,16 @@ public class MergeEngine {
                     long mgSize = Files.exists(destOut) ? Files.size(destOut) : 0L;
                     int mgLines = countLines(destOut);
                     results.add(new MergeResult(rel, "ERROR", e.getMessage(),
-                            exSize, mgSize, mgSize - exSize, exLines, mgLines, mgLines - exLines, "Error: " + e.getMessage(), "Error", "Error", ""));
+                            exSize, mgSize, mgSize - exSize, exLines, mgLines, mgLines - exLines,
+                            "Error: " + e.getMessage(), "Error", "Error", "None", "Error during merge: " + e.getMessage(), ""));
                 }
             }
         }
 
-        // Print Merge Size & Type Changes Summary Table
+        // Print Merge Summaries
         printMergeSummaryTable(results);
         printKeyAndMandatoryAuditTable(results);
+        printArchetypeAndModificationsAuditTable(results);
 
         System.out.printf("Summary: %d files merged, %d files copied/preserved, %d files added to %s%n",
                 mergedCount, copiedCount, addedCount, outputDir);
@@ -302,6 +378,7 @@ public class MergeEngine {
                 "file", "status", "existing_size_bytes", "merged_size_bytes", "delta_bytes",
                 "existing_lines", "merged_lines", "delta_lines",
                 "type_changes", "primary_key_changes", "mandatory_changes",
+                "archetype_summary", "modifications_detail",
                 "size_summary", "message"
             ));
             for (MergeResult r : mergeResults) {
@@ -317,6 +394,8 @@ public class MergeEngine {
                     r.typeChanges != null ? r.typeChanges : "No type changes",
                     r.primaryKeyChanges != null ? r.primaryKeyChanges : "No PK changes",
                     r.mandatoryChanges != null ? r.mandatoryChanges : "No mandatory changes",
+                    r.archetypeSummary != null ? r.archetypeSummary : "None",
+                    r.modificationsDetail != null ? r.modificationsDetail : "None",
                     r.sizeSummary != null ? r.sizeSummary : "",
                     r.message != null ? r.message : ""
                 ));
@@ -372,6 +451,24 @@ public class MergeEngine {
             String mandShort = r.mandatoryChanges.length() > 45 ? r.mandatoryChanges.substring(0, 42) + "..." : r.mandatoryChanges;
             System.out.printf("%-24s %-8s %-38s %-45s%n",
                     truncate(r.relPath, 24), r.status, pkShort, mandShort);
+        }
+        System.out.println("========================================================================================================================");
+        System.out.println();
+    }
+
+    public static void printArchetypeAndModificationsAuditTable(List<MergeResult> results) {
+        System.out.println();
+        System.out.println("========================================================================================================================");
+        System.out.println("                                      ARCHETYPE & ITEMIZED MODIFICATIONS AUDIT");
+        System.out.println("========================================================================================================================");
+        System.out.printf("%-20s %-8s %-32s %-54s%n",
+                "File", "Status", "Archetype Summary", "Modifications Detail");
+        System.out.println("------------------------------------------------------------------------------------------------------------------------");
+        for (MergeResult r : results) {
+            String archShort = r.archetypeSummary.length() > 32 ? r.archetypeSummary.substring(0, 29) + "..." : r.archetypeSummary;
+            String modShort = r.modificationsDetail.length() > 54 ? r.modificationsDetail.substring(0, 51) + "..." : r.modificationsDetail;
+            System.out.printf("%-20s %-8s %-32s %-54s%n",
+                    truncate(r.relPath, 20), r.status, archShort, modShort);
         }
         System.out.println("========================================================================================================================");
         System.out.println();
@@ -624,6 +721,27 @@ public class MergeEngine {
         return changes.isEmpty() ? "No type changes" : String.join("; ", changes);
     }
 
+    public static String countArchetypes(Path file) {
+        if (file == null || !Files.exists(file)) return "None";
+        try {
+            JavaModel m = ParserUtil.parseFile(file, file.getParent());
+            Map<String, Integer> counts = new LinkedHashMap<>();
+            if (m.getArchetypeBadge() != null && !"CLASS".equals(m.getArchetypeBadge())) {
+                counts.put(m.getArchetypeBadge(), 1);
+            }
+            for (MethodModel meth : m.getMethods()) {
+                String badge = meth.getArchetypeBadge();
+                counts.put(badge, counts.getOrDefault(badge, 0) + 1);
+            }
+            if (counts.isEmpty()) return "0 archetypes";
+            List<String> list = new ArrayList<>();
+            counts.forEach((k, v) -> list.add(v + " " + k));
+            return String.join(", ", list);
+        } catch (Exception e) {
+            return "None";
+        }
+    }
+
     private static int countLines(Path path) {
         if (path == null || !Files.exists(path)) return 0;
         try {
@@ -680,7 +798,7 @@ public class MergeEngine {
         return set;
     }
 
-    private static boolean mergeFileContentsToOutput(Path sourceFile, Path baseFile, Path destOut, String startMarker, String endMarker) throws IOException {
+    private static MergeOutcome mergeFileContentsToOutput(Path sourceFile, Path baseFile, Path destOut, String startMarker, String endMarker) throws IOException {
         List<String> sourceLines = Files.readAllLines(sourceFile, StandardCharsets.UTF_8);
         List<String> baseLines = Files.readAllLines(baseFile, StandardCharsets.UTF_8);
 
@@ -704,12 +822,19 @@ public class MergeEngine {
         }
 
         if (sourceBlocks.isEmpty()) {
-            // Source doesn't have any markers -> copy base content to output
             Files.write(destOut, baseLines, StandardCharsets.UTF_8);
-            return false;
+            return new MergeOutcome(false, Collections.emptyList(), countArchetypes(baseFile), "None (no markers found in generated file)");
         }
 
-        // Merge into destination lines
+        // Parse AST for source and base to guide merger rules
+        JavaModel sourceModel = null;
+        JavaModel baseModel = null;
+        try {
+            sourceModel = ParserUtil.parseFile(sourceFile, sourceFile.getParent());
+            baseModel = ParserUtil.parseFile(baseFile, baseFile.getParent());
+        } catch (Exception ignored) {}
+
+        List<MethodMergeDecision> decisions = new ArrayList<>();
         List<String> mergedLines = new ArrayList<>();
         int blockIndex = 0;
         boolean destInside = false;
@@ -722,17 +847,73 @@ public class MergeEngine {
                 destInside = true;
                 if (blockIndex < sourceBlocks.size()) {
                     List<String> srcBlock = sourceBlocks.get(blockIndex);
-                    // Check if block actually changed
                     List<String> oldBlock = new ArrayList<>();
                     int j = i + 1;
                     while (j < baseLines.size() && !baseLines.get(j).contains(endMarker)) {
                         oldBlock.add(baseLines.get(j));
                         j++;
                     }
-                    if (!srcBlock.equals(oldBlock)) {
-                        modified = true;
+
+                    // Identify method(s) inside this marked block
+                    String srcText = String.join("\n", srcBlock);
+                    MethodModel matchedMethod = null;
+                    if (sourceModel != null) {
+                        for (MethodModel m : sourceModel.getMethods()) {
+                            if (Pattern.compile("\\b" + Pattern.quote(m.name) + "\\s*\\(").matcher(srcText).find()) {
+                                matchedMethod = m;
+                                break;
+                            }
+                        }
                     }
-                    mergedLines.addAll(srcBlock);
+
+                    String mAction = matchedMethod != null ? matchedMethod.getMergerAction() : "MARKER_MERGE";
+                    String mBadge = matchedMethod != null ? matchedMethod.getArchetypeBadge() : "METHOD";
+                    String mName = matchedMethod != null ? matchedMethod.name : ("Block#" + (blockIndex + 1));
+
+                    if ("PRESERVE_EXISTING".equalsIgnoreCase(mAction)) {
+                        // Archetype Rule: Protect baseline implementation!
+                        mergedLines.addAll(oldBlock);
+                        decisions.add(new MethodMergeDecision(mName, mBadge, "PRESERVE_EXISTING",
+                                "Preserved baseline implementation by rule", 0));
+                    } else if ("SKIP".equalsIgnoreCase(mAction)) {
+                        // Archetype Rule: Skip merging
+                        mergedLines.addAll(oldBlock);
+                        decisions.add(new MethodMergeDecision(mName, mBadge, "SKIP",
+                                "Skipped by archetype rule", 0));
+                    } else if ("ADD_IF_MISSING".equalsIgnoreCase(mAction)) {
+                        boolean oldEmpty = oldBlock.stream().allMatch(String::isBlank);
+                        if (oldEmpty) {
+                            mergedLines.addAll(srcBlock);
+                            modified = true;
+                            decisions.add(new MethodMergeDecision(mName, mBadge, "ADD_IF_MISSING",
+                                    "Added method (absent in base)", srcBlock.size() - oldBlock.size()));
+                        } else {
+                            mergedLines.addAll(oldBlock);
+                            decisions.add(new MethodMergeDecision(mName, mBadge, "ADD_IF_MISSING",
+                                    "Preserved existing method in base", 0));
+                        }
+                    } else if ("CLEAN_OVERWRITE".equalsIgnoreCase(mAction)) {
+                        // Archetype Rule: Clean overwrite without markers
+                        if (!srcBlock.equals(oldBlock)) {
+                            modified = true;
+                        }
+                        mergedLines.addAll(srcBlock);
+                        decisions.add(new MethodMergeDecision(mName, mBadge, "CLEAN_OVERWRITE",
+                                "Cleanly overwritten with generated code", srcBlock.size() - oldBlock.size()));
+                    } else {
+                        // Default: MARKER_MERGE
+                        int lDelta = srcBlock.size() - oldBlock.size();
+                        if (!srcBlock.equals(oldBlock)) {
+                            modified = true;
+                            decisions.add(new MethodMergeDecision(mName, mBadge, "MARKER_MERGE",
+                                    "Merged marked block (" + (lDelta >= 0 ? "+" : "") + lDelta + " lines)", lDelta));
+                        } else {
+                            decisions.add(new MethodMergeDecision(mName, mBadge, "MARKER_MERGE",
+                                    "No block changes", 0));
+                        }
+                        mergedLines.addAll(srcBlock);
+                    }
+
                     blockIndex++;
                 } else {
                     System.err.println("Warning [" + destOut.getFileName() + "]: Base contains more markers than source. Extra block left unchanged.");
@@ -751,10 +932,9 @@ public class MergeEngine {
         }
 
         if (blockIndex == 0) {
-            // No markers found in base file -> write base lines to output
             System.err.println("Warning [" + destOut.getFileName() + "]: Markers not found in base file; copying base version.");
             Files.write(destOut, baseLines, StandardCharsets.UTF_8);
-            return false;
+            return new MergeOutcome(false, decisions, countArchetypes(baseFile), "None (markers not found in base file)");
         }
 
         if (blockIndex < sourceBlocks.size()) {
@@ -762,6 +942,117 @@ public class MergeEngine {
         }
 
         Files.write(destOut, mergedLines, StandardCharsets.UTF_8);
-        return modified;
+
+        // Compute Detailed Modifications and Archetype Summary
+        ModificationsAudit audit = computeModificationsAudit(baseFile, destOut, sourceFile, decisions);
+        return new MergeOutcome(modified, decisions, audit.archetypeSummary, audit.modificationsDetail);
+    }
+
+    public static class ModificationsAudit {
+        public final String archetypeSummary;
+        public final String modificationsDetail;
+
+        public ModificationsAudit(String archetypeSummary, String modificationsDetail) {
+            this.archetypeSummary = archetypeSummary;
+            this.modificationsDetail = modificationsDetail;
+        }
+    }
+
+    public static ModificationsAudit computeModificationsAudit(Path baseFile, Path mergedFile, Path sourceFile, List<MethodMergeDecision> decisions) {
+        List<String> items = new ArrayList<>();
+        Map<String, Integer> archetypeActions = new LinkedHashMap<>();
+
+        // 1. Process decisions from merger blocks
+        if (decisions != null) {
+            for (MethodMergeDecision d : decisions) {
+                if ("PRESERVE_EXISTING".equalsIgnoreCase(d.action)) {
+                    items.add("Preserved method " + d.methodName + "() [" + d.archetypeBadge + "] (rule: PRESERVE_EXISTING)");
+                    String key = d.archetypeBadge + " (preserved)";
+                    archetypeActions.put(key, archetypeActions.getOrDefault(key, 0) + 1);
+                } else if ("CLEAN_OVERWRITE".equalsIgnoreCase(d.action)) {
+                    items.add("Overwritten method " + d.methodName + "() [" + d.archetypeBadge + "]");
+                    String key = d.archetypeBadge + " (overwritten)";
+                    archetypeActions.put(key, archetypeActions.getOrDefault(key, 0) + 1);
+                } else if ("MARKER_MERGE".equalsIgnoreCase(d.action)) {
+                    if (d.linesDelta != 0) {
+                        items.add("Modified method " + d.methodName + "() [" + d.archetypeBadge + "] (" + (d.linesDelta > 0 ? "+" : "") + d.linesDelta + " lines)");
+                        String key = d.archetypeBadge + " (merged)";
+                        archetypeActions.put(key, archetypeActions.getOrDefault(key, 0) + 1);
+                    } else {
+                        String key = d.archetypeBadge + " (unchanged)";
+                        archetypeActions.put(key, archetypeActions.getOrDefault(key, 0) + 1);
+                    }
+                } else if ("ADD_IF_MISSING".equalsIgnoreCase(d.action)) {
+                    items.add("Added method " + d.methodName + "() [" + d.archetypeBadge + "]");
+                    String key = d.archetypeBadge + " (added)";
+                    archetypeActions.put(key, archetypeActions.getOrDefault(key, 0) + 1);
+                }
+            }
+        }
+
+        // 2. Process AST Attribute & Method changes between base and merged
+        try {
+            JavaModel baseM = (baseFile != null && Files.exists(baseFile)) ? ParserUtil.parseFile(baseFile, baseFile.getParent()) : null;
+            JavaModel mergedM = (mergedFile != null && Files.exists(mergedFile)) ? ParserUtil.parseFile(mergedFile, mergedFile.getParent()) : null;
+
+            if (baseM != null && mergedM != null) {
+                Map<String, AttributeModel> oldAttrs = new HashMap<>();
+                for (AttributeModel a : baseM.getAttributes()) oldAttrs.put(a.name, a);
+                Map<String, AttributeModel> newAttrs = new HashMap<>();
+                for (AttributeModel a : mergedM.getAttributes()) newAttrs.put(a.name, a);
+
+                // Attributes added
+                for (Map.Entry<String, AttributeModel> e : newAttrs.entrySet()) {
+                    if (!oldAttrs.containsKey(e.getKey())) {
+                        AttributeModel a = e.getValue();
+                        String tag = a.isPrimaryKey() ? " [PK]" : (a.isMandatory() ? " [MANDATORY]" : "");
+                        items.add("Added attribute '" + a.name + "' (" + a.type + ")" + tag);
+                    }
+                }
+                // Attributes removed
+                for (String name : oldAttrs.keySet()) {
+                    if (!newAttrs.containsKey(name)) {
+                        items.add("Removed attribute '" + name + "'");
+                    }
+                }
+                // Attributes modified
+                for (Map.Entry<String, AttributeModel> e : oldAttrs.entrySet()) {
+                    String name = e.getKey();
+                    if (newAttrs.containsKey(name)) {
+                        AttributeModel oA = e.getValue();
+                        AttributeModel nA = newAttrs.get(name);
+                        if (!Objects.equals(oA.type, nA.type)) {
+                            items.add("Attribute '" + name + "' type: " + oA.type + " -> " + nA.type);
+                        }
+                    }
+                }
+
+                // Check extra methods added/removed in AST
+                Map<String, MethodModel> oldMeths = new HashMap<>();
+                for (MethodModel m : baseM.getMethods()) oldMeths.put(m.name + "#" + m.parameterCount, m);
+                Map<String, MethodModel> newMeths = new HashMap<>();
+                for (MethodModel m : mergedM.getMethods()) newMeths.put(m.name + "#" + m.parameterCount, m);
+
+                for (Map.Entry<String, MethodModel> e : newMeths.entrySet()) {
+                    if (!oldMeths.containsKey(e.getKey())) {
+                        MethodModel m = e.getValue();
+                        boolean alreadyDecided = decisions != null && decisions.stream().anyMatch(d -> d.methodName.equals(m.name));
+                        if (!alreadyDecided) {
+                            items.add("Added method " + m.name + "() [" + m.getArchetypeBadge() + "]");
+                            String key = m.getArchetypeBadge() + " (added)";
+                            archetypeActions.put(key, archetypeActions.getOrDefault(key, 0) + 1);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        String modDetail = items.isEmpty() ? "No modifications (identical to base)" : String.join("; ", items);
+
+        List<String> archList = new ArrayList<>();
+        archetypeActions.forEach((k, v) -> archList.add(v + " " + k));
+        String archSum = archList.isEmpty() ? countArchetypes(mergedFile) : String.join(", ", archList);
+
+        return new ModificationsAudit(archSum, modDetail);
     }
 }

@@ -37,7 +37,8 @@ public class ReportGenerator {
     private static final String[] REPORT_HDR = {
         "file", "package", "class", "member_type", "member_name",
         "type", "modifiers", "annotations", "extra_info",
-        "in_old_version", "in_new_version", "in_merged_output", "status"
+        "in_old_version", "in_new_version", "in_merged_output", "status",
+        "archetype_badge", "merger_policy"
     };
 
     public static class ReportItem {
@@ -54,6 +55,9 @@ public class ReportGenerator {
         public boolean inNew;
         public boolean inMerged;
         public String status = "ORIGINAL";
+        public String archetypeBadge = "";
+        public String archetypeCategory = "";
+        public String mergerPolicy = "";
     }
 
     public static class ReportSummary {
@@ -205,6 +209,10 @@ public class ReportGenerator {
                 item.inNew = "YES".equalsIgnoreCase(cols[10]);
                 item.inMerged = "YES".equalsIgnoreCase(cols[11]);
                 item.status = cols[12];
+                if (cols.length >= 15) {
+                    item.archetypeBadge = cols[13];
+                    item.mergerPolicy = cols[14];
+                }
                 items.add(item);
             }
         } catch (Exception e) {
@@ -273,7 +281,22 @@ public class ReportGenerator {
                     if (parts.length >= 2) {
                         String file = parts[0];
                         String status = parts[1];
-                        if (parts.length >= 13) {
+                        if (parts.length >= 15) {
+                            long exSize = parseLong(parts[2], 0L);
+                            long mgSize = parseLong(parts[3], 0L);
+                            long dBytes = parseLong(parts[4], 0L);
+                            int exLines = parseInt(parts[5], 0);
+                            int mgLines = parseInt(parts[6], 0);
+                            int dLines = parseInt(parts[7], 0);
+                            String typeChanges = parts[8];
+                            String pkChanges = parts[9];
+                            String mandChanges = parts[10];
+                            String archSummary = parts[11];
+                            String modDetail = parts[12];
+                            String sizeSummary = parts[13];
+                            String msg = parts[14];
+                            mergeResults.add(new MergeEngine.MergeResult(file, status, msg, exSize, mgSize, dBytes, exLines, mgLines, dLines, typeChanges, pkChanges, mandChanges, archSummary, modDetail, sizeSummary));
+                        } else if (parts.length >= 13) {
                             long exSize = parseLong(parts[2], 0L);
                             long mgSize = parseLong(parts[3], 0L);
                             long dBytes = parseLong(parts[4], 0L);
@@ -421,6 +444,9 @@ public class ReportGenerator {
                 item.inNew = inNew;
                 item.inMerged = inMerged;
                 item.status = status;
+                item.archetypeBadge = displayA.isPrimaryKey() ? "PK" : (displayA.isMandatory() ? "MANDATORY" : "");
+                item.archetypeCategory = "ATTRIBUTE";
+                item.mergerPolicy = inOld && inNew && !attributesEqual(oldA, displayA) ? "OVERWRITE_ATTR" : (inNew && !inOld ? "ADD_ATTR" : "PRESERVE");
                 items.add(item);
             }
 
@@ -467,6 +493,9 @@ public class ReportGenerator {
                 item.inNew = inNew;
                 item.inMerged = inMerged;
                 item.status = status;
+                item.archetypeBadge = displayM.getArchetypeBadge() != null ? displayM.getArchetypeBadge() : "";
+                item.archetypeCategory = displayM.getArchetypeCategory() != null ? displayM.getArchetypeCategory() : "";
+                item.mergerPolicy = displayM.getMergerAction() != null ? displayM.getMergerAction() : "";
                 items.add(item);
             }
         }
@@ -487,7 +516,8 @@ public class ReportGenerator {
                     item.memberType, item.memberName, item.type, item.modifiers,
                     item.annotations, item.extraInfo,
                     item.inOld ? "YES" : "NO", item.inNew ? "YES" : "NO", item.inMerged ? "YES" : "NO",
-                    item.status
+                    item.status,
+                    item.archetypeBadge, item.mergerPolicy
                 }));
             }
         }
@@ -532,6 +562,8 @@ public class ReportGenerator {
                          ", \"typeChanges\": \"" + escapeJson(r.typeChanges) +
                          "\", \"primaryKeyChanges\": \"" + escapeJson(r.primaryKeyChanges) +
                          "\", \"mandatoryChanges\": \"" + escapeJson(r.mandatoryChanges) +
+                         "\", \"archetypeSummary\": \"" + escapeJson(r.archetypeSummary) +
+                         "\", \"modificationsDetail\": \"" + escapeJson(r.modificationsDetail) +
                          "\", \"sizeSummary\": \"" + escapeJson(r.sizeSummary) +
                          "\", \"message\": \"" + escapeJson(r.message) + "\" }");
                 if (i < mergeResults.size() - 1) pw.println(",");
@@ -554,7 +586,10 @@ public class ReportGenerator {
                 pw.println("      \"inOld\": " + it.inOld + ",");
                 pw.println("      \"inNew\": " + it.inNew + ",");
                 pw.println("      \"inMerged\": " + it.inMerged + ",");
-                pw.println("      \"status\": \"" + escapeJson(it.status) + "\"");
+                pw.println("      \"status\": \"" + escapeJson(it.status) + "\",");
+                pw.println("      \"archetypeBadge\": \"" + escapeJson(it.archetypeBadge) + "\",");
+                pw.println("      \"archetypeCategory\": \"" + escapeJson(it.archetypeCategory) + "\",");
+                pw.println("      \"mergerPolicy\": \"" + escapeJson(it.mergerPolicy) + "\"");
                 pw.print("    }");
                 if (i < items.size() - 1) pw.println(",");
                 else pw.println();
@@ -662,7 +697,7 @@ public class ReportGenerator {
             pw.println("      <table id=\"report-table\">");
             pw.println("        <thead>");
             pw.println("          <tr>");
-            pw.println("            <th>File</th><th>Class</th><th>Type</th><th>Member Name</th><th>Signature / Type</th><th>Modifiers</th><th>Old</th><th>New</th><th>Merged</th><th>Status</th>");
+            pw.println("            <th>File</th><th>Class</th><th>Type</th><th>Member Name</th><th>Signature / Type</th><th>Modifiers</th><th>Old</th><th>New</th><th>Merged</th><th>Status</th><th>Archetype</th><th>Rule</th>");
             pw.println("          </tr>");
             pw.println("        </thead>");
             pw.println("        <tbody>");
@@ -676,6 +711,11 @@ public class ReportGenerator {
                 String typeBadge = "METHOD".equalsIgnoreCase(it.memberType) ?
                     "<span class=\"badge badge-meth\">METH</span>" : "<span class=\"badge badge-attr\">ATTR</span>";
 
+                String archBadge = it.archetypeBadge != null && !it.archetypeBadge.isEmpty() ?
+                    "<span class=\"badge\" style=\"background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3);\">" + escapeHtml(it.archetypeBadge) + "</span>" : "<span style=\"color: #52525b;\">—</span>";
+                String ruleCol = it.mergerPolicy != null && !it.mergerPolicy.isEmpty() ?
+                    "<span style=\"color: #93c5fd; font-family: monospace; font-size: 11px;\">" + escapeHtml(it.mergerPolicy) + "</span>" : "<span style=\"color: #52525b;\">—</span>";
+
                 pw.println("          <tr data-status=\"" + escapeHtml(it.status) + "\">");
                 pw.println("            <td>" + escapeHtml(it.file) + "</td>");
                 pw.println("            <td>" + escapeHtml(it.className) + "</td>");
@@ -687,6 +727,8 @@ public class ReportGenerator {
                 pw.println("            <td class=\"" + (it.inNew ? "check-yes" : "check-no") + "\">" + (it.inNew ? "✓" : "—") + "</td>");
                 pw.println("            <td class=\"" + (it.inMerged ? "check-yes" : "check-no") + "\">" + (it.inMerged ? "✓" : "—") + "</td>");
                 pw.println("            <td>" + statusBadge + "</td>");
+                pw.println("            <td>" + archBadge + "</td>");
+                pw.println("            <td>" + ruleCol + "</td>");
                 pw.println("          </tr>");
             }
 
@@ -694,10 +736,10 @@ public class ReportGenerator {
             pw.println("      </table>");
             pw.println("    </div>");
 
-            pw.println("    <div class=\"section-title\">Merge Operation Audit Trail &amp; Size / Type Telemetry</div>");
+            pw.println("    <div class=\"section-title\">Merge Operation Audit Trail &amp; Size / Type / Archetype Telemetry</div>");
             pw.println("    <div class=\"table-box\">");
             pw.println("      <table>");
-            pw.println("        <thead><tr><th>Target File</th><th>Status</th><th>Existing Size</th><th>Merged Size</th><th>Delta (Bytes)</th><th>Lines Delta</th><th>Type Changes</th><th>Primary Key Changes</th><th>Mandatory Changes</th><th>Diagnostics</th></tr></thead>");
+            pw.println("        <thead><tr><th>Target File</th><th>Status</th><th>Existing Size</th><th>Merged Size</th><th>Delta (Bytes)</th><th>Lines Delta</th><th>Archetypes</th><th>Itemized Modifications</th><th>Type Changes</th><th>PK &amp; Mandatory</th><th>Diagnostics</th></tr></thead>");
             pw.println("        <tbody>");
             for (MergeEngine.MergeResult r : mergeResults) {
                 String bColor = r.deltaBytes > 0 ? "#10b981" : (r.deltaBytes < 0 ? "#f43f5e" : "var(--text-muted)");
@@ -708,9 +750,10 @@ public class ReportGenerator {
                 pw.println("            <td>" + (r.mergedSizeBytes > 0 ? MergeEngine.formatBytes(r.mergedSizeBytes) : "0 B") + " (" + r.mergedLines + " L)</td>");
                 pw.println("            <td style=\"color: " + bColor + "; font-family: monospace;\">" + (r.deltaBytes > 0 ? "+" : "") + MergeEngine.formatBytes(r.deltaBytes) + "</td>");
                 pw.println("            <td style=\"font-family: monospace;\">" + (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L</td>");
-                pw.println("            <td style=\"color: #38bdf8; font-size: 11px;\">" + escapeHtml(r.typeChanges) + "</td>");
-                pw.println("            <td style=\"color: #f59e0b; font-size: 11px;\">" + escapeHtml(r.primaryKeyChanges) + "</td>");
-                pw.println("            <td style=\"color: #ec4899; font-size: 11px;\">" + escapeHtml(r.mandatoryChanges) + "</td>");
+                pw.println("            <td style=\"color: #c084fc; font-size: 11px;\">" + escapeHtml(r.archetypeSummary) + "</td>");
+                pw.println("            <td style=\"color: #38bdf8; font-size: 11px;\">" + escapeHtml(r.modificationsDetail) + "</td>");
+                pw.println("            <td style=\"color: #a1a1aa; font-size: 11px;\">" + escapeHtml(r.typeChanges) + "</td>");
+                pw.println("            <td style=\"color: #fbbf24; font-size: 11px;\">" + escapeHtml(r.primaryKeyChanges) + "; " + escapeHtml(r.mandatoryChanges) + "</td>");
                 pw.println("            <td style=\"color: var(--text-muted); font-size: 11px;\">" + escapeHtml(r.message) + "</td>");
                 pw.println("          </tr>");
             }
@@ -765,25 +808,27 @@ public class ReportGenerator {
             pw.println();
             pw.println("## Merge Operations Audit");
             pw.println();
-            pw.println("| File | Status | Old Size | Merged Size | Byte Delta | Lines Delta | Type Changes | Primary Key Changes | Mandatory Changes | Details |");
-            pw.println("|---|---|---|---|---|---|---|---|---|---|");
+            pw.println("| File | Status | Old Size | Merged Size | Byte Delta | Lines Delta | Type Changes | Primary Key Changes | Mandatory Changes | Archetype Summary | Itemized Modifications | Details |");
+            pw.println("|---|---|---|---|---|---|---|---|---|---|---|---|");
             for (MergeEngine.MergeResult r : mergeResults) {
                 String oldSz = r.existingSizeBytes > 0 ? MergeEngine.formatBytes(r.existingSizeBytes) : "0 B";
                 String newSz = r.mergedSizeBytes > 0 ? MergeEngine.formatBytes(r.mergedSizeBytes) : "0 B";
                 String byteDelta = (r.deltaBytes > 0 ? "+" : "") + MergeEngine.formatBytes(r.deltaBytes);
                 String linesDelta = (r.deltaLines > 0 ? "+" : "") + r.deltaLines + " L";
-                pw.println("| `" + r.relPath + "` | **" + r.status + "** | " + oldSz + " | " + newSz + " | " + byteDelta + " | " + linesDelta + " | " + r.typeChanges + " | " + r.primaryKeyChanges + " | " + r.mandatoryChanges + " | " + r.message + " |");
+                pw.println("| `" + r.relPath + "` | **" + r.status + "** | " + oldSz + " | " + newSz + " | " + byteDelta + " | " + linesDelta + " | " + r.typeChanges + " | " + r.primaryKeyChanges + " | " + r.mandatoryChanges + " | " + r.archetypeSummary + " | " + r.modificationsDetail + " | " + r.message + " |");
             }
             pw.println();
             pw.println("## AST Members Breakdown");
             pw.println();
-            pw.println("| File | Class | Type | Name | Signature / Return | Modifiers | Old | New | Merged | Status |");
-            pw.println("|---|---|---|---|---|---|---|---|---|---|");
+            pw.println("| File | Class | Type | Name | Signature / Return | Modifiers | Old | New | Merged | Status | Archetype | Merger Policy |");
+            pw.println("|---|---|---|---|---|---|---|---|---|---|---|---|");
             for (ReportItem it : items) {
+                String archBadge = it.archetypeBadge != null && !it.archetypeBadge.isEmpty() ? "`" + it.archetypeBadge + "`" : "—";
+                String ruleCol = it.mergerPolicy != null && !it.mergerPolicy.isEmpty() ? "`" + it.mergerPolicy + "`" : "—";
                 pw.println("| `" + it.file + "` | `" + it.className + "` | " + it.memberType +
                            " | **" + it.memberName + "** | `" + it.type + "` | " + it.modifiers +
                            " | " + (it.inOld ? "YES" : "NO") + " | " + (it.inNew ? "YES" : "NO") +
-                           " | " + (it.inMerged ? "YES" : "NO") + " | `" + it.status + "` |");
+                           " | " + (it.inMerged ? "YES" : "NO") + " | `" + it.status + "` | " + archBadge + " | " + ruleCol + " |");
             }
         }
     }
@@ -822,6 +867,8 @@ public class ReportGenerator {
                            "\" typeChanges=\"" + escapeXml(r.typeChanges) +
                            "\" primaryKeyChanges=\"" + escapeXml(r.primaryKeyChanges) +
                            "\" mandatoryChanges=\"" + escapeXml(r.mandatoryChanges) +
+                           "\" archetypeSummary=\"" + escapeXml(r.archetypeSummary) +
+                           "\" modificationsDetail=\"" + escapeXml(r.modificationsDetail) +
                            "\" sizeSummary=\"" + escapeXml(r.sizeSummary) +
                            "\" message=\"" + escapeXml(r.message) + "\" />");
             }
@@ -840,7 +887,9 @@ public class ReportGenerator {
                            "\" inOld=\"" + it.inOld +
                            "\" inNew=\"" + it.inNew +
                            "\" inMerged=\"" + it.inMerged +
-                           "\" status=\"" + escapeXml(it.status) + "\" />");
+                           "\" status=\"" + escapeXml(it.status) +
+                           "\" archetypeBadge=\"" + escapeXml(it.archetypeBadge) +
+                           "\" mergerPolicy=\"" + escapeXml(it.mergerPolicy) + "\" />");
             }
             pw.println("  </Members>");
             pw.println("</JavaLensReport>");
@@ -959,7 +1008,8 @@ public class ReportGenerator {
                     item.file, item.packageName, item.className, item.memberType, item.memberName,
                     item.type, item.modifiers, item.annotations, item.extraInfo,
                     item.inOld ? "YES" : "NO", item.inNew ? "YES" : "NO", item.inMerged ? "YES" : "NO",
-                    item.status
+                    item.status,
+                    item.archetypeBadge, item.mergerPolicy
                 };
                 for (int c = 0; c < vals.length; c++) {
                     String colRef = toExcelCol(c) + rowIdx;
@@ -981,7 +1031,7 @@ public class ReportGenerator {
             String[] mHdr = new String[]{
                 "File", "Status", "Existing Size (Bytes)", "Merged Size (Bytes)", "Byte Delta",
                 "Existing Lines", "Merged Lines", "Lines Delta", "Type Changes",
-                "Primary Key Changes", "Mandatory Attribute Changes", "Size Summary", "Message"
+                "Primary Key Changes", "Mandatory Attribute Changes", "Archetype Summary", "Itemized Modifications", "Size Summary", "Message"
             };
             for (int c = 0; c < mHdr.length; c++) {
                 String colRef = toExcelCol(c) + rowIdx;
@@ -1006,6 +1056,8 @@ public class ReportGenerator {
                         r.typeChanges != null ? r.typeChanges : "No type changes",
                         r.primaryKeyChanges != null ? r.primaryKeyChanges : "Preserved existing PK",
                         r.mandatoryChanges != null ? r.mandatoryChanges : "No mandatory changes",
+                        r.archetypeSummary != null ? r.archetypeSummary : "None",
+                        r.modificationsDetail != null ? r.modificationsDetail : "None",
                         r.sizeSummary != null ? r.sizeSummary : "",
                         r.message != null ? r.message : ""
                     };
@@ -1128,6 +1180,29 @@ public class ReportGenerator {
                     String mandShort = r.mandatoryChanges != null && r.mandatoryChanges.length() > 45 ? r.mandatoryChanges.substring(0, 42) + "..." : (r.mandatoryChanges != null ? r.mandatoryChanges : "");
                     pw.printf("%-24s %-8s %-38s %-45s%n",
                             truncateStr(r.relPath, 24), r.status, pkShort, mandShort);
+                }
+                pw.println();
+                pw.println("--------------------------------------------------------------------------------");
+                pw.println(" ARCHETYPE & MERGER RULES CLASSIFICATION AUDIT");
+                pw.println("--------------------------------------------------------------------------------");
+                pw.printf("%-20s %-8s %-32s %-45s%n",
+                        "File", "Status", "Archetype Summary", "Merger Policy / Action");
+                pw.println("--------------------------------------------------------------------------------");
+                for (MergeEngine.MergeResult r : mergeResults) {
+                    String archShort = r.archetypeSummary != null && r.archetypeSummary.length() > 32 ? r.archetypeSummary.substring(0, 29) + "..." : (r.archetypeSummary != null ? r.archetypeSummary : "None");
+                    pw.printf("%-20s %-8s %-32s %-45s%n",
+                            truncateStr(r.relPath, 20), r.status, archShort, r.message != null ? r.message : "");
+                }
+                pw.println();
+                pw.println("--------------------------------------------------------------------------------");
+                pw.println(" ITEMIZED MODIFICATIONS AUDIT (WHAT WAS MODIFIED)");
+                pw.println("--------------------------------------------------------------------------------");
+                pw.printf("%-20s %-8s %-75s%n",
+                        "File", "Status", "Detailed Modifications (Methods & Attributes Changed)");
+                pw.println("--------------------------------------------------------------------------------");
+                for (MergeEngine.MergeResult r : mergeResults) {
+                    pw.printf("%-20s %-8s %-75s%n",
+                            truncateStr(r.relPath, 20), r.status, r.modificationsDetail != null ? r.modificationsDetail : "None");
                 }
                 pw.println();
                 pw.println("--------------------------------------------------------------------------------");
@@ -1284,7 +1359,8 @@ public class ReportGenerator {
                 for (MethodModel m : model.getMethods()) {
                     methPw.println(csvRow(new String[]{
                         relPath, pkg, m.className, m.name, m.returnType, m.modifiers,
-                        m.parameters, String.valueOf(m.parameterCount), m.throwsList, m.annotations, m.kind
+                        m.parameters, String.valueOf(m.parameterCount), m.throwsList, m.annotations, m.kind,
+                        m.getArchetypeBadge(), m.getArchetypeLabel(), m.getArchetypeCategory(), m.getArchetypeColor(), m.getMergerAction()
                     }));
                 }
             }
@@ -1308,7 +1384,8 @@ public class ReportGenerator {
             "parameters_old", "parameters_new",
             "throws_old", "throws_new",
             "annotations_old", "annotations_new",
-            "kind_old", "kind_new"
+            "kind_old", "kind_new",
+            "archetype_badge", "archetype_label", "archetype_category", "archetype_color", "merger_action"
         };
 
         Path attrCsv = outputDir.resolve("comparison_attributes.csv");
@@ -1372,6 +1449,12 @@ public class ReportGenerator {
                 for (String key : allMethKeys) {
                     MethodModel oldM = oldMeths.get(key);
                     MethodModel newM = newMeths.get(key);
+                    MethodModel refM = newM != null ? newM : oldM;
+                    String archBadge = refM != null ? refM.getArchetypeBadge() : "";
+                    String archLabel = refM != null ? refM.getArchetypeLabel() : "";
+                    String archCat = refM != null ? refM.getArchetypeCategory() : "";
+                    String archColor = refM != null ? refM.getArchetypeColor() : "";
+                    String mergerAct = refM != null ? refM.getMergerAction() : "";
 
                     if (oldM != null && newM != null) {
                         boolean match = methodsEqual(oldM, newM);
@@ -1380,19 +1463,22 @@ public class ReportGenerator {
                             status, fileKey, newM.packageName, newM.className, newM.name,
                             oldM.returnType, newM.returnType, oldM.modifiers, newM.modifiers,
                             oldM.parameters, newM.parameters, oldM.throwsList, newM.throwsList,
-                            oldM.annotations, newM.annotations, oldM.kind, newM.kind
+                            oldM.annotations, newM.annotations, oldM.kind, newM.kind,
+                            archBadge, archLabel, archCat, archColor, mergerAct
                         }));
                     } else if (oldM != null) {
                         methPw.println(csvRow(new String[]{
                             "REMOVED", fileKey, oldM.packageName, oldM.className, oldM.name,
                             oldM.returnType, "", oldM.modifiers, "", oldM.parameters, "",
-                            oldM.throwsList, "", oldM.annotations, "", oldM.kind, ""
+                            oldM.throwsList, "", oldM.annotations, "", oldM.kind, "",
+                            archBadge, archLabel, archCat, archColor, mergerAct
                         }));
                     } else {
                         methPw.println(csvRow(new String[]{
                             "ADDED", fileKey, newM.packageName, newM.className, newM.name,
                             "", newM.returnType, "", newM.modifiers, "", newM.parameters,
-                            "", newM.throwsList, "", newM.annotations, "", newM.kind
+                            "", newM.throwsList, "", newM.annotations, "", newM.kind,
+                            archBadge, archLabel, archCat, archColor, mergerAct
                         }));
                     }
                 }

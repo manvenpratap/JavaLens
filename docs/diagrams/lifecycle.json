@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "JavaLens - Analysis & Merge Pipeline Lifecycle",
+    "output": "lifecycle.html",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "main", "label": "Pipeline Stages" },
+    { "id": "modes", "label": "Execution Modes" },
+    { "id": "terminal", "label": "Terminal Exits" }
+  ],
+  "states": [
+    { "id": "boot", "type": "start", "label": "JVM Initialize", "sublabel": "load JDK Tree API", "lane": "main", "col": 0, "step": "01", "tag": "boot" },
+    { "id": "mode_select", "type": "active", "label": "Mode Selection", "sublabel": "analyze / compare / merge", "lane": "modes", "col": 1, "step": "02", "tag": "cli" },
+    { "id": "ast_walk", "type": "active", "label": "Compiler AST Walk", "sublabel": "parse members & modifiers", "lane": "main", "col": 2, "step": "03", "tag": "ast" },
+    { "id": "delta_classify", "type": "active", "label": "Delta Classification", "sublabel": "categorize changes", "lane": "main", "col": 3, "step": "04", "tag": "diff" },
+    { "id": "report_ready", "type": "success", "label": "Report & Merge Done", "sublabel": "CSV & merged code ready", "lane": "main", "col": 4, "step": "05", "tag": "complete" },
+    { "id": "gui_server", "type": "waiting", "label": "Web GUI Server", "sublabel": "serving :8080 console", "lane": "modes", "col": 4, "tag": "server" },
+    { "id": "exit", "type": "success", "label": "Clean Process Exit", "sublabel": "exit code 0", "lane": "terminal", "col": 4, "tag": "terminal" }
+  ],
+  "transitions": [
+    { "from": "boot", "to": "mode_select", "label": "parse args" },
+    { "from": "mode_select", "to": "ast_walk", "label": "execute pipeline" },
+    { "from": "ast_walk", "to": "delta_classify", "label": "AST signatures" },
+    { "from": "delta_classify", "to": "report_ready", "label": "consolidate activity" },
+    { "from": "report_ready", "to": "gui_server", "label": "-m server", "variant": "dashed" },
+    { "from": "report_ready", "to": "exit", "label": "CLI complete", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Zero-Leak Architecture", "items": ["Java Compiler Tree API runs in-process with minimal heap overhead"] }
+  ]
+}

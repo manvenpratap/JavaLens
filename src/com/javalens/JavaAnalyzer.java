@@ -33,7 +33,8 @@ public class JavaAnalyzer {
     };
     public static final String[] METH_HDR = {
         "file", "package", "class", "method_name", "return_type",
-        "modifiers", "parameters", "parameter_count", "throws", "annotations", "kind"
+        "modifiers", "parameters", "parameter_count", "throws", "annotations", "kind",
+        "archetype_badge", "archetype_label", "archetype_category", "archetype_color", "merger_action"
     };
 
     // ── Entry point ───────────────────────────────────────────────────────────
@@ -186,7 +187,8 @@ public class JavaAnalyzer {
         for (MethodModel m : model.getMethods()) {
             methQ.put(new String[]{
                 relPath, pkg, m.className, m.name, m.returnType, m.modifiers,
-                m.parameters, String.valueOf(m.parameterCount), m.throwsList, m.annotations, m.kind
+                m.parameters, String.valueOf(m.parameterCount), m.throwsList, m.annotations, m.kind,
+                m.getArchetypeBadge(), m.getArchetypeLabel(), m.getArchetypeCategory(), m.getArchetypeColor(), m.getMergerAction()
             });
         }
     }

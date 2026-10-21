@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "JavaLens - Semantic Comparison & Report Sequence",
+    "output": "sequence.html",
+    "column_fit": "spread",
+    "animation": "trace",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "Developer", "sublabel": "Terminal / Web" },
+    { "id": "runtime", "type": "backend", "label": "JavaLens Core", "sublabel": "Main Orchestrator" },
+    { "id": "tree", "type": "backend", "label": "Compiler Tree", "sublabel": "JDK Tree API" },
+    { "id": "diff", "type": "backend", "label": "Comparator", "sublabel": "Semantic Diff" },
+    { "id": "report", "type": "database", "label": "Report Engine", "sublabel": "CSV & HTML Gen" }
+  ],
+  "segments": [
+    { "from": 150, "to": 260, "label": "AST Walk" },
+    { "from": 270, "to": 390, "label": "Semantic Compare" },
+    { "from": 400, "to": 510, "label": "Report Generation" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "runtime", "y": 160, "label": "javalens.jar -m compare dirA dirB", "variant": "emphasis" },
+    { "id": "m2", "from": "runtime", "to": "tree", "y": 200, "label": "Parse compilation units", "variant": "emphasis" },
+    { "id": "m3", "from": "tree", "to": "runtime", "y": 240, "label": "Extracted AST member signatures", "variant": "return" },
+    { "id": "m4", "from": "runtime", "to": "diff", "y": 300, "label": "Classify Added, Modified, Removed", "variant": "emphasis" },
+    { "id": "m5", "from": "diff", "to": "runtime", "y": 350, "label": "Classified delta map", "variant": "return" },
+    { "id": "m6", "from": "runtime", "to": "report", "y": 420, "label": "Generate activity_report.csv", "variant": "emphasis" },
+    { "id": "m7", "from": "report", "to": "user", "y": 480, "label": "Unified Report & Console Table", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "runtime", "from": 160, "to": 430, "type": "backend" },
+    { "participant": "tree", "from": 200, "to": 250, "type": "backend" },
+    { "participant": "diff", "from": 300, "to": 360, "type": "backend" },
+    { "participant": "report", "from": 420, "to": 490, "type": "database" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Microsecond Execution", "items": ["Parses thousands of Java files in under 2 seconds without launching an IDE or Maven daemon"] }
+  ]
+}
